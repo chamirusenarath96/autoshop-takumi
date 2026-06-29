@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "vehicles": "在庫車両",
+    "contact": "お問い合わせ"
+  },
+  "hero": {
+    "cta": "在庫を見る"
+  },
+  "vehicles": {
+    "title": "在庫車両",
+    "filters": {
+      "make": "メーカー",
+      "model": "モデル",
+      "year": "年式",
+      "yearFrom": "年式（から）",
+      "yearTo": "年式（まで）",
+      "priceFrom": "価格（から）",
+      "priceTo": "価格（まで）",
+      "bodyType": "ボディタイプ",
+      "transmission": "トランスミッション",
+      "all": "すべて",
+      "reset": "リセット"
+    },
+    "sort": {
+      "label": "並び替え",
+      "newest": "新着順",
+      "priceLow": "価格（低い順）",
+      "priceHigh": "価格（高い順）"
+    },
+    "status": {
+      "available": "在庫あり",
+      "reserved": "商談中",
+      "sold": "売約済"
+    },
+    "priceOnRequest": "要お問い合わせ",
+    "noResults": "該当する車両が見つかりませんでした",
+    "loadMore": "さらに読み込む",
+    "km": "km",
+    "year": "年"
+  },
+  "vehicle": {
+    "highlights": "特徴",
+    "specs": "スペック",
+    "gallery": "ギャラリー",
+    "related": "関連車両",
+    "shaken": "車検",
+    "inquiry": "お問い合わせ",
+    "shakenExpiry": "車検有効期限"
+  },
+  "inquiry": {
+    "title": "この車についてお問い合わせ",
+    "name": "お名前",
+    "email": "メールアドレス",
+    "phone": "電話番号（任意）",
+    "message": "メッセージ",
+    "submit": "送信する",
+    "success": "お問い合わせを受け付けました。担当者よりご連絡いたします。",
+    "error": "送信に失敗しました。もう一度お試しください。"
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  }
+}

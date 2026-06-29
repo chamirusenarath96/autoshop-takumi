@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "home": "Home",
+    "vehicles": "Inventory",
+    "contact": "Contact"
+  },
+  "hero": {
+    "cta": "View Inventory"
+  },
+  "vehicles": {
+    "title": "Vehicle Inventory",
+    "filters": {
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "yearFrom": "Year from",
+      "yearTo": "Year to",
+      "priceFrom": "Price from",
+      "priceTo": "Price to",
+      "bodyType": "Body type",
+      "transmission": "Transmission",
+      "all": "All",
+      "reset": "Reset filters"
+    },
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "priceLow": "Price: low to high",
+      "priceHigh": "Price: high to low"
+    },
+    "status": {
+      "available": "Available",
+      "reserved": "Reserved",
+      "sold": "Sold"
+    },
+    "priceOnRequest": "Contact for price",
+    "noResults": "No vehicles found matching your filters.",
+    "loadMore": "Load more",
+    "km": "km",
+    "year": ""
+  },
+  "vehicle": {
+    "highlights": "Highlights",
+    "specs": "Specifications",
+    "gallery": "Gallery",
+    "related": "Related Vehicles",
+    "shaken": "Shaken (車検)",
+    "inquiry": "Make an Inquiry",
+    "shakenExpiry": "Shaken expiry"
+  },
+  "inquiry": {
+    "title": "Inquire about this vehicle",
+    "name": "Your name",
+    "email": "Email address",
+    "phone": "Phone number (optional)",
+    "message": "Message",
+    "submit": "Send inquiry",
+    "success": "Thank you! Your inquiry has been received. We'll be in touch soon.",
+    "error": "Something went wrong. Please try again."
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  }
+}

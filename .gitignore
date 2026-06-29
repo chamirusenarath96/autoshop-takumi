@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Payload
+.payload/
+
+# SQLite (local dev database)
+*.db
+*.db-shm
+*.db-wal
+
+# env files — never commit real secrets
+.env
+.env.local
+.env.production
+
+# media uploads (local dev)
+public/media/
+
+# misc
+.DS_Store
+*.log

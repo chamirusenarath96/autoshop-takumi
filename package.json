@@ -1,0 +1,41 @@
+{
+  "name": "autoshop-takumi",
+  "version": "1.0.0",
+  "description": "Bilingual JP/EN vehicle sales website for Autoshop Takumi",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate:types": "payload generate:types",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "^3.85.1",
+    "@payloadcms/db-sqlite": "^3.85.1",
+    "@payloadcms/next": "^3.85.1",
+    "@payloadcms/richtext-lexical": "^3.85.1",
+    "@payloadcms/storage-s3": "^3.85.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.22.0",
+    "next": "^15.5.19",
+    "next-intl": "^4.13.0",
+    "payload": "^3.85.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "resend": "^6.16.0",
+    "sharp": "^0.35.2",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}
