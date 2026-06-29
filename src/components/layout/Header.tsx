@@ -52,7 +52,7 @@ export function Header({ locale }: Props) {
         {/* Logo */}
         <a href={`/${locale}`} className="shrink-0 flex items-center">
           <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Autoshop Takumi"
             className="h-9 w-auto object-contain"
           />

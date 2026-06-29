@@ -17,7 +17,7 @@ export function Footer() {
 
         {/* Brand */}
         <div>
-          <img src="/logo.jpg" alt="Autoshop Takumi" className="h-8 w-auto object-contain mb-4 brightness-0 invert" />
+          <img src="/logo.png" alt="Autoshop Takumi" className="h-8 w-auto object-contain mb-4" />
           <p className="text-white/60 text-sm leading-relaxed">
             Driven by Precision.<br />
             Powered by Trust.<br />

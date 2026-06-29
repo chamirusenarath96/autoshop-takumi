@@ -1,60 +1,68 @@
 @import "tailwindcss";
 
-/* ── Brand color palette ─────────────────────────────────────────── */
-/* Orange: #fe4d03 — sampled from Autoshop Takumi logo               */
-/* Blue-grey: #1D3557 — from the SOLD OUT badge accent colour         */
+/*
+ * ── COLOR SYSTEM ────────────────────────────────────────────────────────────
+ *
+ * All colors are defined as bare "H S% L%" values (no hsl() wrapper).
+ * Use them at the call site:  background-color: hsl(var(--primary));
+ *                             color: hsl(var(--primary) / 0.5);   ← opacity free
+ *
+ * To retheme:  change the values below. Component code never changes.
+ *
+ * Brand palette
+ * ─────────────
+ *   Orange   → #fe4d03  ≈  hsl(18, 99%, 50%)   — sampled from logo
+ *   Blue-grey → #1D3557  ≈  hsl(213, 50%, 23%)  — from SOLD OUT badge
+ * ────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Core brand */
-  --brand-orange-h: 18;
-  --brand-orange-s: 99%;
-  --brand-orange-l: 50%;
+  /* ── Brand ── */
+  --primary:             18  99%  50%;   /* #fe4d03  orange */
+  --primary-foreground:   0   0% 100%;   /* white on orange */
 
-  --brand-blue-h: 213;
-  --brand-blue-s: 50%;
-  --brand-blue-l: 23%;
+  --secondary:          213  50%  23%;   /* #1D3557  blue-grey */
+  --secondary-foreground: 0   0% 100%;   /* white on blue-grey */
 
-  /* Light mode tokens */
-  --background: 0 0% 100%;
-  --foreground: 213 30% 12%;
+  /* ── Light mode surfaces ── */
+  --background:           0   0% 100%;
+  --foreground:         213  30%  12%;
 
-  --primary: var(--brand-orange-h) var(--brand-orange-s) var(--brand-orange-l);
-  --primary-foreground: 0 0% 100%;
+  --card:                 0   0% 100%;
+  --card-foreground:    213  30%  12%;
 
-  --secondary: var(--brand-blue-h) var(--brand-blue-s) var(--brand-blue-l);
-  --secondary-foreground: 0 0% 100%;
+  --muted:              213  20%  95%;
+  --muted-foreground:   213  20%  40%;
 
-  --muted: 213 20% 95%;
-  --muted-foreground: 213 20% 40%;
+  --border:             213  15%  88%;
 
-  --border: 213 15% 88%;
-  --radius: 0.5rem;
-
-  /* Navbar specific */
-  --nav-bg: 0 0% 100%;
-  --nav-fg: 213 30% 12%;
-  --nav-border: 213 15% 88%;
-  --topbar-bg: var(--brand-blue-h) var(--brand-blue-s) var(--brand-blue-l);
+  /* ── Nav (light) ── */
+  --nav-bg:               0   0% 100%;
+  --nav-fg:             213  30%  12%;
+  --nav-border:         213  15%  88%;
 }
 
-/* Dark mode */
+/* ── Dark mode ─────────────────────────────────────────────────────────────
+   Same token names — component code is identical in both modes.           */
 [data-theme="dark"] {
-  --background: 213 30% 8%;
-  --foreground: 0 0% 95%;
+  --background:         213  30%   8%;
+  --foreground:           0   0%  95%;
 
-  --muted: 213 25% 14%;
-  --muted-foreground: 213 15% 60%;
+  --card:               213  30%  11%;
+  --card-foreground:      0   0%  95%;
 
-  --border: 213 25% 20%;
+  --muted:              213  25%  14%;
+  --muted-foreground:   213  15%  60%;
 
-  --nav-bg: 213 35% 10%;
-  --nav-fg: 0 0% 92%;
-  --nav-border: 213 25% 18%;
+  --border:             213  25%  20%;
+
+  --nav-bg:             213  35%  10%;
+  --nav-fg:               0   0%  92%;
+  --nav-border:         213  25%  18%;
 }
 
-/* Base */
+/* ── Base ───────────────────────────────────────────────────────────────── */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

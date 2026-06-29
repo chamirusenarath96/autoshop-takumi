@@ -90,7 +90,7 @@ export default async function AboutPage({ params }: Props) {
 
           {/* Logo / visual */}
           <div className="flex items-center justify-center bg-[hsl(var(--muted))] rounded-lg p-12">
-            <img src="/logo.jpg" alt="Autoshop Takumi" className="w-full max-w-xs object-contain" />
+            <img src="/logo.png" alt="Autoshop Takumi" className="w-full max-w-xs object-contain" />
           </div>
         </div>
       </section>
