@@ -60,8 +60,10 @@
   --nav-border:         213  25%  18%;
 }
 
-/* ── Base ───────────────────────────────────────────────────────────────── */
-body {
+/* ── Base (public site only) ──────────────────────────────────────────────
+   Scoped to [data-public] so Payload admin body is not affected.
+   The public layout sets data-public on <html>.                           */
+[data-public] body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   transition: background-color 0.2s ease, color 0.2s ease;

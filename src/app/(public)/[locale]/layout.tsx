@@ -36,7 +36,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages()
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} data-public suppressHydrationWarning>
       <head>
         {/* Blocking theme script — runs before paint to avoid flash of wrong theme.
             suppressHydrationWarning on <html> silences the expected data-theme mismatch
