@@ -1,0 +1,44 @@
+language: en-US
+
+reviews:
+  profile: chill          # chill | assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  path_filters:
+    - "!public/**"
+    - "!package-lock.json"
+    - "!*.md"
+
+  path_instructions:
+    - path: "src/collections/**"
+      instructions: |
+        Review Payload CMS collection configs carefully:
+        - Access control functions must restrict public reads to published content only
+        - Localized fields must have localized: true
+        - beforeChange hooks that block publishing should throw clear error messages
+
+    - path: "src/components/**"
+      instructions: |
+        Review React components for:
+        - No hardcoded Japanese or English strings — all UI text must use next-intl useTranslations()
+        - No shop-specific content (addresses, phone numbers, copy) hardcoded in JSX — belongs in Payload globals
+        - Client components ('use client') should be minimal; prefer server components
+
+    - path: "src/app/(public)/**"
+      instructions: |
+        Review public Next.js pages for:
+        - Proper locale handling (locale param from params)
+        - Error handling when Payload returns empty data (global with no seed)
+        - SEO metadata (title, description, hreflang)
+
+    - path: "src/app/(payload)/**"
+      instructions: |
+        Review Payload admin setup — ensure server actions are properly marked with 'use server'
+        and importMap is correctly wired
+
+chat:
+  auto_reply: true
