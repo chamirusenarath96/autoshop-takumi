@@ -15,7 +15,7 @@ export function Header({ locale }: Props) {
           <img
             src="/logo.jpg"
             alt="Autoshop Takumi"
-            className="h-14 w-auto object-contain"
+            className="h-10 w-auto object-contain"
           />
         </a>
         <nav className="flex items-center gap-6">
