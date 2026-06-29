@@ -182,7 +182,8 @@ export const Vehicles: CollectionConfig = {
       name: 'heroImage',
       type: 'upload',
       relationTo: 'media',
-      required: true,
+      // Not required at schema level — drafts can exist without a photo.
+      // The beforeChange hook blocks status:'available' without a heroImage.
     },
     {
       name: 'gallery',
