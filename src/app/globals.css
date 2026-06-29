@@ -3,7 +3,7 @@
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 5%;
-  --primary: 25 100% 50%;       /* Autoshop Takumi orange — update from real logo */
+  --primary: 18 99% 50%;        /* Autoshop Takumi orange — sampled from logo #fe4d03 */
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 8%;         /* near-black */
   --secondary-foreground: 0 0% 100%;
