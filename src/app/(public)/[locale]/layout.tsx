@@ -36,12 +36,16 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages()
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <head>
-        {/* Blocking theme script prevents flash of wrong theme */}
+        {/* Blocking theme script — runs before paint to avoid flash of wrong theme.
+            suppressHydrationWarning on <html> silences the expected data-theme mismatch
+            (server renders without it; script sets it client-side before React hydrates). */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>
+      {/* suppressHydrationWarning on <body> silences browser-extension attribute injections
+          (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <Header locale={locale} />
           <main>{children}</main>
