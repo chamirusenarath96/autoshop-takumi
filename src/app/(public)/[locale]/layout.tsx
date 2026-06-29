@@ -15,6 +15,17 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
+// Inline script runs before paint to avoid flash of wrong theme
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch(e) {}
+})();
+`
+
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params
 
@@ -26,6 +37,10 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale}>
+      <head>
+        {/* Blocking theme script prevents flash of wrong theme */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <Header locale={locale} />

@@ -1,14 +1,60 @@
 @import "tailwindcss";
 
+/* ── Brand color palette ─────────────────────────────────────────── */
+/* Orange: #fe4d03 — sampled from Autoshop Takumi logo               */
+/* Blue-grey: #1D3557 — from the SOLD OUT badge accent colour         */
+
 :root {
+  /* Core brand */
+  --brand-orange-h: 18;
+  --brand-orange-s: 99%;
+  --brand-orange-l: 50%;
+
+  --brand-blue-h: 213;
+  --brand-blue-s: 50%;
+  --brand-blue-l: 23%;
+
+  /* Light mode tokens */
   --background: 0 0% 100%;
-  --foreground: 0 0% 5%;
-  --primary: 18 99% 50%;        /* Autoshop Takumi orange — sampled from logo #fe4d03 */
+  --foreground: 213 30% 12%;
+
+  --primary: var(--brand-orange-h) var(--brand-orange-s) var(--brand-orange-l);
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 8%;         /* near-black */
+
+  --secondary: var(--brand-blue-h) var(--brand-blue-s) var(--brand-blue-l);
   --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 40%;
-  --border: 0 0% 88%;
+
+  --muted: 213 20% 95%;
+  --muted-foreground: 213 20% 40%;
+
+  --border: 213 15% 88%;
   --radius: 0.5rem;
+
+  /* Navbar specific */
+  --nav-bg: 0 0% 100%;
+  --nav-fg: 213 30% 12%;
+  --nav-border: 213 15% 88%;
+  --topbar-bg: var(--brand-blue-h) var(--brand-blue-s) var(--brand-blue-l);
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --background: 213 30% 8%;
+  --foreground: 0 0% 95%;
+
+  --muted: 213 25% 14%;
+  --muted-foreground: 213 15% 60%;
+
+  --border: 213 25% 20%;
+
+  --nav-bg: 213 35% 10%;
+  --nav-fg: 0 0% 92%;
+  --nav-border: 213 25% 18%;
+}
+
+/* Base */
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: background-color 0.2s, color 0.2s;
 }
