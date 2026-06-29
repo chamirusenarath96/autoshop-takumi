@@ -1,6 +1,7 @@
 import { buildConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
+import sharp from 'sharp'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -50,4 +51,6 @@ export default buildConfig({
   },
 
   secret: process.env.PAYLOAD_SECRET ?? 'dev-secret',
+
+  sharp,
 })
