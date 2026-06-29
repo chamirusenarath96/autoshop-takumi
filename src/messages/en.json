@@ -2,7 +2,9 @@
   "nav": {
     "home": "Home",
     "vehicles": "Inventory",
-    "contact": "Contact"
+    "about": "About",
+    "contact": "Contact",
+    "followUs": "Follow us"
   },
   "hero": {
     "cta": "View Inventory"
@@ -58,7 +60,22 @@
     "success": "Thank you! Your inquiry has been received. We'll be in touch soon.",
     "error": "Something went wrong. Please try again."
   },
+  "about": {
+    "title": "About Autoshop Takumi",
+    "subtitle": "Driven by Precision. Powered by Trust. Delivered by Takumi.",
+    "story": "About Us",
+    "profile": "Company Profile",
+    "fields": {
+      "companyName": "Company Name",
+      "address": "Address",
+      "phone": "Phone",
+      "email": "Email",
+      "hours": "Business Hours",
+      "services": "Services"
+    }
+  },
   "footer": {
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "followUs": "Follow us on Instagram"
   }
 }
