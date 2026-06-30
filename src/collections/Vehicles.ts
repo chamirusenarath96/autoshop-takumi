@@ -6,9 +6,6 @@ export const Vehicles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'make', 'year', 'status', 'price'],
   },
-  versions: {
-    drafts: true,
-  },
   fields: [
     {
       name: 'title',

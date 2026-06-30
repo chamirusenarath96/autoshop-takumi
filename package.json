@@ -10,6 +10,7 @@
     "lint": "next lint",
     "generate:types": "payload generate:types",
     "seed": "tsx scripts/seed.ts",
+    "seed:e2e": "tsx scripts/seed-e2e-admin.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
