@@ -3,6 +3,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import sharp from 'sharp'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 import { Users } from './src/collections/Users'
@@ -16,6 +17,13 @@ import { Homepage } from './src/globals/Homepage'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+// SQLite needs its parent directory to exist before it can create the db file.
+// .payload/ is gitignored (local dev artifact), so CI runners need it created on first boot.
+const payloadDataDir = path.resolve(dirname, '.payload')
+if (!fs.existsSync(payloadDataDir)) {
+  fs.mkdirSync(payloadDataDir, { recursive: true })
+}
 
 export default buildConfig({
   admin: {
