@@ -2,7 +2,9 @@
   "nav": {
     "home": "ホーム",
     "vehicles": "在庫車両",
-    "contact": "お問い合わせ"
+    "about": "会社概要",
+    "contact": "お問い合わせ",
+    "followUs": "フォローする"
   },
   "hero": {
     "cta": "在庫を見る"
@@ -58,7 +60,22 @@
     "success": "お問い合わせを受け付けました。担当者よりご連絡いたします。",
     "error": "送信に失敗しました。もう一度お試しください。"
   },
+  "about": {
+    "title": "オートショップ匠について",
+    "subtitle": "精度に駆られ、信頼に支えられ、匠がお届けします。",
+    "story": "私たちについて",
+    "profile": "会社概要",
+    "fields": {
+      "companyName": "会社名",
+      "address": "所在地",
+      "phone": "電話番号",
+      "email": "メールアドレス",
+      "hours": "営業時間",
+      "services": "サービス"
+    }
+  },
   "footer": {
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "followUs": "Instagramでフォローする"
   }
 }

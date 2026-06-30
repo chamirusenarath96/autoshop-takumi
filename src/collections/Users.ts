@@ -24,8 +24,9 @@ export const Users: CollectionConfig = {
     },
   ],
   access: {
-    // Only admins can read/update the users list
-    read: ({ req }) => req.user?.role === 'admin',
+    // Any logged-in user can read users (needed for /api/users/me to work)
+    // Editors see the list but can't manage other users via update/delete
+    read: ({ req }) => !!req.user,
     update: ({ req }) => req.user?.role === 'admin',
     delete: ({ req }) => req.user?.role === 'admin',
   },
