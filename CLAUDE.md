@@ -81,6 +81,23 @@ CodeRabbit AI reviews every PR automatically once the GitHub App is installed. C
 - **Brand token** — primary orange is `hsl(18 99% 50%)` (`#fe4d03`), sampled from real logo
 - **Commits** — Conventional Commits style: `feat:`, `fix:`, `chore:`, `docs:`
 
+## Styling architecture — admin and public site are fully separate
+
+Two independent stylesheet systems, never imported into each other:
+
+| | Public site | Payload admin |
+|---|---|---|
+| File | `src/app/globals.css` | `src/app/(payload)/payload-theme-vars.css` |
+| Imported by | `src/app/(public)/[locale]/layout.tsx` only | `src/app/(payload)/layout.tsx` only |
+| System | Tailwind CSS v4 + custom brand tokens | Payload's own design tokens (`--theme-*`, `--style-radius-*`, etc.) |
+| Scoping | `[data-public] body { ... }` — only applies when `<html data-public>` is set (public layout sets this) | Global on admin routes only, since the admin route group never loads `globals.css` |
+
+**Why `payload-theme-vars.css` exists:** Payload's `RootLayout` internally imports `@payloadcms/ui/scss/app.scss`, which is supposed to define all of Payload's root CSS variables. In this project's Next.js 15.5 + webpack build, the `:root` variable block and the global `html`/`body` rules **written directly in `app.scss` itself** (as opposed to pulled in via `@import` from a partial file) silently fail to compile into the output — verified by comparing a clean standalone Sass compile (correct) against the actual served CSS (missing). Ruled out as causes: Tailwind's PostCSS plugin, Lightning CSS, legacy vs modern Sass JS API, `@payloadcms/ui`'s `sideEffects` config. The exact webpack mechanism is still unidentified — likely a `@layer payload-default` deduplication bug across concatenated Sass partials. `payload-theme-vars.css` supplies exactly the missing variables/rules (values copied verbatim from a verified-correct compile), nothing more — it does not touch any of Payload's component CSS, which compiles correctly on its own.
+
+**If you ever upgrade Payload/Next and admin styling still looks fine after deleting `payload-theme-vars.css`** — the upstream bug is fixed, remove the file and its import.
+
+**Regression guard:** `e2e/admin.spec.ts` has two tests — `admin renders with Payload theme variables resolved` and `admin styling does not leak from / into the public site` — that fail loudly if this separation breaks or the workaround stops being necessary/becomes incomplete.
+
 ## Local dev
 
 ```bash

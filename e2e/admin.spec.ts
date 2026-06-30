@@ -21,6 +21,48 @@ test('account page is accessible when logged in', async ({ page }) => {
   await expect(page).not.toHaveURL(/login/)
 })
 
+// ── Styling ──────────────────────────────────────────────────────────────
+// Guards against regressing payload-theme-vars.css (see that file for the
+// full story: Payload's own root CSS variables fail to compile in this
+// project's build, so we supply them ourselves, admin-scoped only).
+
+test('admin renders with Payload theme variables resolved (not browser defaults)', async ({ page }) => {
+  // Use the Makes create form — guaranteed to render a "Save" button
+  // regardless of auth/redirect state (unlike /admin/login, which redirects
+  // to the dashboard when already authenticated).
+  await page.goto('/admin/collections/makes/create')
+  await page.waitForLoadState('networkidle')
+
+  const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily)
+  expect(bodyFont).not.toContain('Times New Roman')
+  expect(bodyFont).toContain('apple-system')
+
+  const radiusVar = await page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--style-radius-s').trim(),
+  )
+  expect(radiusVar).toBe('3px')
+
+  const saveBtn = page.getByRole('button', { name: /save/i }).first()
+  const btnRadius = await saveBtn.evaluate((el) => getComputedStyle(el).borderRadius)
+  const btnPadding = await saveBtn.evaluate((el) => getComputedStyle(el).padding)
+  expect(btnRadius).toBe('3px')
+  expect(btnPadding).not.toBe('0px') // was "0px" when --style-radius-s/--font-body were undefined
+})
+
+test('admin styling does not leak from / into the public site', async ({ page }) => {
+  // Public site should NOT have data-public unset by admin CSS, and should
+  // NOT have Payload's --theme-* variables defined (separate stylesheets).
+  await page.goto('/en')
+  await page.waitForLoadState('networkidle')
+  const hasPayloadVar = await page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--style-radius-s').trim(),
+  )
+  expect(hasPayloadVar).toBe('') // payload-theme-vars.css must not be loaded on the public site
+
+  const hasDataPublic = await page.evaluate(() => document.documentElement.hasAttribute('data-public'))
+  expect(hasDataPublic).toBe(true)
+})
+
 // ── Makes ──────────────────────────────────────────────────────────────────
 
 test('Makes list loads with Create New button', async ({ page }) => {
