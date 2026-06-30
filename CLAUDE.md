@@ -87,16 +87,18 @@ Two independent stylesheet systems, never imported into each other:
 
 | | Public site | Payload admin |
 |---|---|---|
-| File | `src/app/globals.css` | `src/app/(payload)/payload-theme-vars.css` |
+| File | `src/app/globals.css` | `@payloadcms/next/css` (Payload's own package, imported by us) |
 | Imported by | `src/app/(public)/[locale]/layout.tsx` only | `src/app/(payload)/layout.tsx` only |
-| System | Tailwind CSS v4 + custom brand tokens | Payload's own design tokens (`--theme-*`, `--style-radius-*`, etc.) |
+| System | Tailwind CSS v4 + custom brand tokens | Payload's complete prebuilt admin stylesheet |
 | Scoping | `[data-public] body { ... }` — only applies when `<html data-public>` is set (public layout sets this) | Global on admin routes only, since the admin route group never loads `globals.css` |
 
-**Why `payload-theme-vars.css` exists:** Payload's `RootLayout` internally imports `@payloadcms/ui/scss/app.scss`, which is supposed to define all of Payload's root CSS variables. In this project's Next.js 15.5 + webpack build, the `:root` variable block and the global `html`/`body` rules **written directly in `app.scss` itself** (as opposed to pulled in via `@import` from a partial file) silently fail to compile into the output — verified by comparing a clean standalone Sass compile (correct) against the actual served CSS (missing). Ruled out as causes: Tailwind's PostCSS plugin, Lightning CSS, legacy vs modern Sass JS API, `@payloadcms/ui`'s `sideEffects` config. The exact webpack mechanism is still unidentified — likely a `@layer payload-default` deduplication bug across concatenated Sass partials. `payload-theme-vars.css` supplies exactly the missing variables/rules (values copied verbatim from a verified-correct compile), nothing more — it does not touch any of Payload's component CSS, which compiles correctly on its own.
+**Why we explicitly import `@payloadcms/next/css`:** Payload's `RootLayout` (from `@payloadcms/next/layouts`) internally does `import '@payloadcms/ui/scss/app.scss'`, expecting that to compile into the full admin stylesheet (root theme variables, plus every view's own CSS — login page layout, nav sidebar, etc.). In this project's Next.js 15.5 + webpack build, that internal SCSS import fails to compile correctly — not just the root `:root` variable block, but **entire view-level stylesheets** (e.g. the login page's `.template-minimal`/`.login__*` classes) are silently absent from the served CSS, in both dev and production builds. Verified by: standalone Sass compile of the same files (correct output); running that correct output through Tailwind's PostCSS plugin and Lightning CSS in isolation (no corruption in either); confirming `@payloadcms/ui`'s `sideEffects` config correctly prevents tree-shaking; confirming `sassOptions` survives the `withNextIntl(withPayload(...))` plugin chain. The exact webpack mechanism is still unidentified.
 
-**If you ever upgrade Payload/Next and admin styling still looks fine after deleting `payload-theme-vars.css`** — the upstream bug is fixed, remove the file and its import.
+The fix is a single import: `@payloadcms/next/css`, an **officially documented package export** (see its `package.json` `exports['./css']`) pointing to `dist/prod/styles.css` — Payload's own complete, prebuilt, already-correct admin stylesheet. This sidesteps the broken in-project SCSS compilation entirely rather than patching around it.
 
-**Regression guard:** `e2e/admin.spec.ts` has two tests — `admin renders with Payload theme variables resolved` and `admin styling does not leak from / into the public site` — that fail loudly if this separation breaks or the workaround stops being necessary/becomes incomplete.
+**If you ever upgrade Payload/Next:** try removing the explicit `@payloadcms/next/css` import and see if `RootLayout`'s internal SCSS import alone produces correct admin styling (check the login page specifically — `/admin/login`, look for a centered card, not a left-aligned unstyled list). If so, the upstream bug is fixed and the explicit import is no longer needed (though it's harmless to leave in either way, since it's Payload's own correct CSS).
+
+**Regression guard:** `e2e/admin.spec.ts` has three tests covering this — `admin renders with Payload theme variables resolved`, `admin nav sidebar renders with Payload's real layout CSS`, and `admin styling does not leak from / into the public site`.
 
 ## Local dev
 

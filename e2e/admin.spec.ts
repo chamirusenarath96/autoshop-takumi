@@ -22,9 +22,10 @@ test('account page is accessible when logged in', async ({ page }) => {
 })
 
 // ── Styling ──────────────────────────────────────────────────────────────
-// Guards against regressing payload-theme-vars.css (see that file for the
-// full story: Payload's own root CSS variables fail to compile in this
-// project's build, so we supply them ourselves, admin-scoped only).
+// Guards against regressing the @payloadcms/next/css import in
+// (payload)/layout.tsx (see CLAUDE.md "Styling architecture" for why it's
+// needed: RootLayout's internal app.scss compilation is broken in this
+// project's build, so we import Payload's official prebuilt CSS instead).
 
 test('admin renders with Payload theme variables resolved (not browser defaults)', async ({ page }) => {
   // Use the Makes create form — guaranteed to render a "Save" button
@@ -49,15 +50,35 @@ test('admin renders with Payload theme variables resolved (not browser defaults)
   expect(btnPadding).not.toBe('0px') // was "0px" when --style-radius-s/--font-body were undefined
 })
 
+test('admin nav sidebar renders with Payload\'s real layout CSS (not just variables)', async ({ page }) => {
+  // .nav__wrap's width comes from Payload's view-level CSS (--nav-width var
+  // consumed inside an actual layout rule, not just the variable itself) —
+  // this class of bug (missing component CSS, not just root variables) is
+  // what @payloadcms/next/css fixes. Note: this specifically does NOT test
+  // /admin/login with a fresh unauthenticated context, because
+  // browser.newContext() in this Playwright/environment combo inherits the
+  // session from storageState-using tests run earlier in the same process
+  // (verified manually in a real separate browser tab — /admin/login's
+  // .template-minimal__wrap correctly computes maxWidth: 480px there).
+  await page.goto('/admin')
+  await page.waitForLoadState('networkidle')
+
+  const navWrap = page.locator('.nav__wrap')
+  await expect(navWrap).toBeVisible()
+  const width = await navWrap.evaluate((el) => getComputedStyle(el).width)
+  expect(width).not.toBe('0px')
+  expect(width).not.toBe('auto')
+})
+
 test('admin styling does not leak from / into the public site', async ({ page }) => {
-  // Public site should NOT have data-public unset by admin CSS, and should
-  // NOT have Payload's --theme-* variables defined (separate stylesheets).
+  // Public site should NOT have Payload's --theme-* variables defined
+  // (completely separate stylesheets — see CLAUDE.md "Styling architecture").
   await page.goto('/en')
   await page.waitForLoadState('networkidle')
   const hasPayloadVar = await page.evaluate(() =>
     getComputedStyle(document.documentElement).getPropertyValue('--style-radius-s').trim(),
   )
-  expect(hasPayloadVar).toBe('') // payload-theme-vars.css must not be loaded on the public site
+  expect(hasPayloadVar).toBe('') // @payloadcms/next/css must not be loaded on the public site
 
   const hasDataPublic = await page.evaluate(() => document.documentElement.hasAttribute('data-public'))
   expect(hasDataPublic).toBe(true)

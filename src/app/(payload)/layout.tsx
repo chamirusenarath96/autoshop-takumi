@@ -2,13 +2,13 @@ import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import type { ServerFunctionClient, ServerFunctionClientArgs } from 'payload'
 import config from '@payload-config'
 import { importMap } from './importMap'
-// Supplies Payload's own root CSS theme variables, which fail to compile into
-// the build in this project for reasons not yet fully root-caused.
-// See payload-theme-vars.css for full investigation notes. This file is
-// Payload-admin-only — never imported by the public site (src/app/globals.css
-// + src/app/(public)/[locale]/layout.tsx are the completely separate,
-// public-site-only styling system).
-import './payload-theme-vars.css'
+// Payload's own complete, prebuilt admin stylesheet — official export, see
+// CLAUDE.md "Styling architecture" for why this is needed instead of relying
+// on RootLayout's internal `@payloadcms/ui/scss/app.scss` import (that SCSS
+// fails to compile correctly in this project's webpack pipeline; this
+// prebuilt CSS sidesteps the problem entirely). Admin-only — never imported
+// by the public site.
+import '@payloadcms/next/css'
 import React from 'react'
 
 type Args = {
