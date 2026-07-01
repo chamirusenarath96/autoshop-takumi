@@ -134,7 +134,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm bg-white"
+        className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
       >
         <option value="">{allLabel}</option>
         {options.map((o) => (

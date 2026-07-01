@@ -60,7 +60,7 @@ export default async function VehicleDetailPage({ params }: Props) {
           <h1 className="text-3xl font-bold">{vehicle.title}</h1>
           <p className="text-[hsl(var(--muted-foreground))] mt-1">
             {vehicle.year}{locale === 'ja' ? '年' : ''} ·{' '}
-            {vehicle.mileageKm?.toLocaleString()}{t('..') ?? ''} km
+            {vehicle.mileageKm?.toLocaleString()} km
           </p>
         </div>
         <div className="text-right">
