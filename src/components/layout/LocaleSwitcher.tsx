@@ -4,6 +4,9 @@ import { usePathname, useRouter } from 'next/navigation'
 
 type Props = { locale: string; dark?: boolean }
 
+// Language names are shown as their own endonym/abbreviation regardless of the
+// active UI locale (same convention as "Deutsch" or "日本語" switchers elsewhere),
+// so these are intentionally not routed through next-intl.
 export function LocaleSwitcher({ locale }: Props) {
   const pathname = usePathname()
   const router = useRouter()

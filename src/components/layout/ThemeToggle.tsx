@@ -1,26 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 export function ThemeToggle() {
+  const t = useTranslations('theme')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
+    // Reflect the already-stored or inferred theme without writing to localStorage —
+    // an inferred (never-chosen) theme shouldn't be persisted, or the user stops
+    // following OS theme changes on their next visit.
     const stored = localStorage.getItem('theme') as 'light' | 'dark' | null
     const preferred = stored ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    apply(preferred)
+    document.documentElement.setAttribute('data-theme', preferred)
+    setTheme(preferred)
   }, [])
 
-  function apply(t: 'light' | 'dark') {
-    document.documentElement.setAttribute('data-theme', t)
-    localStorage.setItem('theme', t)
-    setTheme(t)
+  function apply(next: 'light' | 'dark') {
+    document.documentElement.setAttribute('data-theme', next)
+    localStorage.setItem('theme', next)
+    setTheme(next)
   }
 
   return (
     <button
       onClick={() => apply(theme === 'light' ? 'dark' : 'light')}
-      aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+      aria-label={theme === 'light' ? t('switchToDark') : t('switchToLight')}
       className="w-8 h-8 flex items-center justify-center rounded hover:bg-[hsl(var(--muted))] transition text-[hsl(var(--nav-fg))]"
     >
       {theme === 'light' ? (

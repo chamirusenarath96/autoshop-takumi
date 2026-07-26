@@ -4,18 +4,19 @@ import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { ThemeToggle } from './ThemeToggle'
+import type { SiteSettingsData } from '@/lib/site-settings'
 
-type Props = { locale: string }
+type Props = { locale: string; siteSettings: SiteSettingsData }
 
-const INSTAGRAM_URL = 'https://www.instagram.com/autoshop_takumi/'
+function InstagramLink({ siteSettings, label }: { siteSettings: SiteSettingsData; label: string }) {
+  if (!siteSettings.instagramUrl) return null
 
-function InstagramLink() {
   return (
     <a
-      href={INSTAGRAM_URL}
+      href={siteSettings.instagramUrl}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Instagram"
+      aria-label={label}
       className="flex items-center gap-1.5 text-sm text-[hsl(var(--nav-fg))] hover:text-[hsl(var(--primary))] transition"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -23,12 +24,12 @@ function InstagramLink() {
         <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
         <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
       </svg>
-      <span className="hidden sm:inline font-medium">@autoshop_takumi</span>
+      <span className="hidden sm:inline font-medium">{siteSettings.instagramHandle}</span>
     </a>
   )
 }
 
-export function Header({ locale }: Props) {
+export function Header({ locale, siteSettings }: Props) {
   const t = useTranslations('nav')
   const pathname = usePathname()
 
@@ -53,7 +54,7 @@ export function Header({ locale }: Props) {
         <a href={`/${locale}`} className="shrink-0 flex items-center">
           <img
             src="/logo.png"
-            alt="Autoshop Takumi"
+            alt={siteSettings.shopName || 'Autoshop Takumi'}
             className="h-9 w-auto object-contain"
           />
         </a>
@@ -83,7 +84,7 @@ export function Header({ locale }: Props) {
 
         {/* Right side: Instagram · Locale · Theme */}
         <div className="flex items-center gap-3">
-          <InstagramLink />
+          <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
 
           <div className="w-px h-4 bg-[hsl(var(--border))]" />
 

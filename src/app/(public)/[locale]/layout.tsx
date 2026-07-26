@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { getSiteSettings } from '@/lib/site-settings'
 import '../../globals.css'
 
 type Props = {
@@ -34,6 +35,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   const messages = await getMessages()
+  const siteSettings = await getSiteSettings(locale as 'ja' | 'en')
 
   return (
     <html lang={locale} data-public suppressHydrationWarning>
@@ -47,9 +49,9 @@ export default async function LocaleLayout({ children, params }: Props) {
           (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
       <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
-          <Header locale={locale} />
+          <Header locale={locale} siteSettings={siteSettings} />
           <main>{children}</main>
-          <Footer />
+          <Footer locale={locale} siteSettings={siteSettings} />
         </NextIntlClientProvider>
       </body>
     </html>
