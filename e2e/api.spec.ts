@@ -11,8 +11,8 @@ test.use({ storageState: AUTH_STATE_PATH })
 // ── Auth ───────────────────────────────────────────────────────────────────
 
 test.describe('Auth API', () => {
-  test('POST /api/users/login — valid credentials return token + user', async ({ playwright }) => {
-    const ctx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+  test('POST /api/users/login — valid credentials return token + user', async ({ playwright, baseURL }) => {
+    const ctx = await playwright.request.newContext({ baseURL })
     const res = await ctx.post('/api/users/login', {
       data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
     })
@@ -23,8 +23,8 @@ test.describe('Auth API', () => {
     await ctx.dispose()
   })
 
-  test('POST /api/users/login — wrong password returns 401', async ({ playwright }) => {
-    const ctx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+  test('POST /api/users/login — wrong password returns 401', async ({ playwright, baseURL }) => {
+    const ctx = await playwright.request.newContext({ baseURL })
     const res = await ctx.post('/api/users/login', {
       data: { email: ADMIN_EMAIL, password: 'wrong-password' },
     })
@@ -39,15 +39,15 @@ test.describe('Auth API', () => {
     expect(body.user.email).toBe(ADMIN_EMAIL)
   })
 
-  test('GET /api/users/me — endpoint requires authentication (verified via curl separately)', async ({ page }) => {
-    // playwright.request.newContext() in the same test process shares cookies with the test context,
-    // making true unauthenticated isolation impossible here.
-    // Unauthenticated behavior (401/403) is verified via curl in CI or outside the test process.
-    // This test verifies the AUTHENTICATED path works:
-    const res = await page.request.get('/api/users/me')
+  test('GET /api/users/me — returns no user when unauthenticated', async ({ playwright, baseURL }) => {
+    // A fresh, storageState-less context — unlike page.request, this does not
+    // share the admin session cookie, so it exercises the real anonymous path.
+    const ctx = await playwright.request.newContext({ baseURL })
+    const res = await ctx.get('/api/users/me')
     expect(res.status()).toBe(200)
     const body = await res.json()
-    expect(body.user).toBeDefined()
+    expect(body.user).toBeFalsy()
+    await ctx.dispose()
   })
 })
 
@@ -166,7 +166,7 @@ test.describe('Vehicles API', () => {
     expect(body.doc.price).toBe(1800000)
   })
 
-  test('GET /api/vehicles — access control: admin sees drafts, public query filters to published only', async ({ page }) => {
+  test('GET /api/vehicles — access control: admin sees drafts, public query filters to published only', async ({ page, playwright, baseURL }) => {
     const makeId = await createMake(page, 'AC Test Make', `actm-${Date.now()}`)
     const modelId = await createModel(page, 'AC Model', `acm-${Date.now()}`, makeId)
     const slug = `ac-draft-${Date.now()}`
@@ -180,9 +180,13 @@ test.describe('Vehicles API', () => {
     expect(adminBody.docs).toHaveLength(1)
     expect(adminBody.docs[0].status).toBe('draft')
 
-    // Verify access control WHERE clause is configured correctly by checking field values
-    // (unauthenticated isolation via playwright.request is unreliable in-process;
-    // the curl-based check in CI confirms public users see 0 draft vehicles)
+    // Anonymous visitor — access control filters drafts out entirely
+    const publicCtx = await playwright.request.newContext({ baseURL })
+    const publicRes = await publicCtx.get(`/api/vehicles?where[slug][equals]=${slug}`)
+    expect(publicRes.status()).toBe(200)
+    const publicBody = await publicRes.json()
+    expect(publicBody.docs).toHaveLength(0)
+    await publicCtx.dispose()
   })
 
   test('GET /api/vehicles — admin can see draft vehicles', async ({ page }) => {
@@ -236,7 +240,7 @@ test.describe('Vehicles API', () => {
 // ── Inquiries ──────────────────────────────────────────────────────────────
 
 test.describe('Inquiries API', () => {
-  test('POST /api/inquiries — public user can create inquiry', async ({ page, playwright }) => {
+  test('POST /api/inquiries — public user can create inquiry', async ({ page, playwright, baseURL }) => {
     const makeId = await createMake(page, 'Inq Make', `inq-make-${Date.now()}`)
     const modelId = await createModel(page, 'Inq Model', `inq-mod-${Date.now()}`, makeId)
     const vRes = await page.request.post('/api/vehicles', {
@@ -244,7 +248,7 @@ test.describe('Inquiries API', () => {
     })
     const { doc: vehicle } = await vRes.json()
 
-    const publicCtx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const publicCtx = await playwright.request.newContext({ baseURL })
     const res = await publicCtx.post('/api/inquiries', {
       data: { vehicle: vehicle.id, name: 'API Buyer', email: `api-${Date.now()}@test.com`, message: 'Interested.', locale: 'en' },
     })
@@ -255,8 +259,8 @@ test.describe('Inquiries API', () => {
     await publicCtx.dispose()
   })
 
-  test('POST /api/inquiries — rejects missing required fields', async ({ playwright }) => {
-    const publicCtx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+  test('POST /api/inquiries — rejects missing required fields', async ({ playwright, baseURL }) => {
+    const publicCtx = await playwright.request.newContext({ baseURL })
     const res = await publicCtx.post('/api/inquiries', {
       data: { name: 'Incomplete' }, // missing vehicle, email, message
     })
@@ -272,16 +276,19 @@ test.describe('Inquiries API', () => {
     expect(body).toHaveProperty('totalDocs')
   })
 
-  test('GET /api/inquiries — admin access works (unauthenticated 403 verified via curl)', async ({ page }) => {
-    // playwright.request.newContext() shares cookies with the test process in this Playwright
-    // version, so true unauthenticated isolation isn't reliable in-process here.
-    // `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/inquiries` → 403, confirming
-    // the read access control (({ req }) => !!req.user) correctly blocks unauthenticated requests.
+  test('GET /api/inquiries — admin can list, unauthenticated is blocked', async ({ page, playwright, baseURL }) => {
     const res = await page.request.get('/api/inquiries')
     expect(res.status()).toBe(200)
+
+    // read access control is ({ req }) => !!req.user — a boolean `false` for an
+    // anonymous request, which Payload rejects outright rather than filtering.
+    const publicCtx = await playwright.request.newContext({ baseURL })
+    const publicRes = await publicCtx.get('/api/inquiries')
+    expect(publicRes.status()).toBe(403)
+    await publicCtx.dispose()
   })
 
-  test('PATCH /api/inquiries/:id — admin can update status to contacted', async ({ page, playwright }) => {
+  test('PATCH /api/inquiries/:id — admin can update status to contacted', async ({ page, playwright, baseURL }) => {
     const makeId = await createMake(page, 'Status Make', `stmk-${Date.now()}`)
     const modelId = await createModel(page, 'Status Mod', `stmd-${Date.now()}`, makeId)
     const vRes = await page.request.post('/api/vehicles', {
@@ -289,7 +296,7 @@ test.describe('Inquiries API', () => {
     })
     const { doc: vehicle } = await vRes.json()
 
-    const publicCtx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const publicCtx = await playwright.request.newContext({ baseURL })
     const iRes = await publicCtx.post('/api/inquiries', {
       data: { vehicle: vehicle.id, name: 'Status Buyer', email: `st-${Date.now()}@test.com`, message: 'test', locale: 'en' },
     })
@@ -308,9 +315,9 @@ test.describe('Inquiries API', () => {
 // ── Globals ────────────────────────────────────────────────────────────────
 
 test.describe('Globals API', () => {
-  test('GET /api/globals/site-settings — returns config (publicly readable)', async ({ playwright }) => {
+  test('GET /api/globals/site-settings — returns config (publicly readable)', async ({ playwright, baseURL }) => {
     // SiteSettings has no access control — public by default
-    const ctx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const ctx = await playwright.request.newContext({ baseURL })
     const res = await ctx.get('/api/globals/site-settings')
     expect(res.status()).toBe(200)
     const body = await res.json()
@@ -347,8 +354,8 @@ test.describe('Media API', () => {
     expect(Array.isArray(body.docs)).toBe(true)
   })
 
-  test('GET /api/media — unauthenticated access is allowed (media is public)', async ({ playwright }) => {
-    const ctx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+  test('GET /api/media — unauthenticated access is allowed (media is public)', async ({ playwright, baseURL }) => {
+    const ctx = await playwright.request.newContext({ baseURL })
     const res = await ctx.get('/api/media')
     expect(res.status()).toBe(200)
     await ctx.dispose()

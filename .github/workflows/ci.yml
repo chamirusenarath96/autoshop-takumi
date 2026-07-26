@@ -6,6 +6,11 @@ on:
   push:
     branches: [master]
 
+# Least-privilege default: every job only needs to read the repo. Set this at
+# workflow scope so repo-level GITHUB_TOKEN defaults can't silently widen it.
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Component Tests

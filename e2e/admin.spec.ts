@@ -172,6 +172,12 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   })
   // Hook throws → Payload returns 500 (generic server error for hook exceptions)
   expect(updateRes.status()).toBe(500)
+
+  // A generic 500 alone doesn't prove the hero-image check specifically fired —
+  // confirm the update was actually rejected and the vehicle is still a draft.
+  const verifyRes = await page.request.get(`/api/vehicles/${createData.doc.id}`)
+  const verifyData = await verifyRes.json()
+  expect(verifyData.status).toBe('draft')
 })
 
 // ── Inquiries ──────────────────────────────────────────────────────────────
@@ -182,7 +188,7 @@ test('Inquiries inbox loads', async ({ page }) => {
   await expect(page).toHaveTitle(/Inquiries/)
 })
 
-test('public inquiry API submission appears in admin inbox', async ({ page }) => {
+test('public inquiry API submission appears in admin inbox', async ({ page, baseURL }) => {
   const makeId = await createMake(page, 'Mitsubishi', `mits-${Date.now()}`)
   const modelId = await createModel(page, 'Lancer', `lancer-${Date.now()}`, makeId)
   const vehicleRes = await page.request.post('/api/vehicles', {
@@ -192,19 +198,22 @@ test('public inquiry API submission appears in admin inbox', async ({ page }) =>
   expect(vehicleRes.status(), JSON.stringify(vehicleData.errors ?? vehicleData)).toBe(201)
 
   // Submit inquiry as unauthenticated public user
-  const publicCtx = await page.context().browser()!.newContext()
-  const publicPage = await publicCtx.newPage()
-  const inquiryRes = await publicPage.request.post('http://localhost:3000/api/inquiries', {
-    data: {
-      vehicle: vehicleData.doc.id,
-      name: 'E2E Test Buyer',
-      email: `buyer-${Date.now()}@test.com`,
-      message: 'Is this available for export?',
-      locale: 'en',
-    },
-  })
-  expect(inquiryRes.status()).toBe(201)
-  await publicCtx.close()
+  const publicCtx = await page.context().browser()!.newContext({ baseURL })
+  try {
+    const publicPage = await publicCtx.newPage()
+    const inquiryRes = await publicPage.request.post('/api/inquiries', {
+      data: {
+        vehicle: vehicleData.doc.id,
+        name: 'E2E Test Buyer',
+        email: `buyer-${Date.now()}@test.com`,
+        message: 'Is this available for export?',
+        locale: 'en',
+      },
+    })
+    expect(inquiryRes.status()).toBe(201)
+  } finally {
+    await publicCtx.close()
+  }
 
   // Verify it appears in admin inbox
   await page.goto('/admin/collections/inquiries')

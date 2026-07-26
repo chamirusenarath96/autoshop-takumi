@@ -10,10 +10,16 @@ const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'Takumi2024!'
 async function seedAdmin() {
   const payload = await getPayload()
 
-  // Check if user already exists
-  const existing = await payload.find({ collection: 'users', limit: 1 })
+  // Check specifically for the configured E2E admin — a reused DB may already
+  // contain other users, which would otherwise cause this to skip seeding and
+  // leave the E2E login flow with no matching account.
+  const existing = await payload.find({
+    collection: 'users',
+    where: { email: { equals: ADMIN_EMAIL } },
+    limit: 1,
+  })
   if (existing.totalDocs > 0) {
-    console.log('Admin user already exists — skipping seed')
+    console.log('E2E admin user already exists — skipping seed')
     process.exit(0)
   }
 

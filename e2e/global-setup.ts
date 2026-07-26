@@ -27,29 +27,50 @@ export default async function globalSetup() {
 
     console.log('Fresh DB — creating first admin user via browser...')
     const browser = await chromium.launch()
-    const bCtx = await browser.newContext({ baseURL: BASE_URL })
-    const page = await bCtx.newPage()
+    try {
+      const bCtx = await browser.newContext({ baseURL: BASE_URL })
+      const page = await bCtx.newPage()
 
-    await page.goto('/admin/create-first-user', { waitUntil: 'networkidle', timeout: 60_000 })
-    await page.waitForSelector('input[name="password"]', { timeout: 15_000 })
+      await page.goto('/admin/create-first-user', { waitUntil: 'networkidle', timeout: 60_000 })
+      await page.waitForSelector('input[name="password"]', { timeout: 15_000 })
 
-    // Type into each field (triggers React synthetic events properly)
-    await page.locator('#field-email').fill(ADMIN_EMAIL)
-    await page.locator('#field-password').fill(ADMIN_PASSWORD)
-    await page.locator('#field-confirm-password').fill(ADMIN_PASSWORD)
-    await page.locator('#field-name').fill('Admin')
-    await page.waitForTimeout(500)
+      // Type into each field (triggers React synthetic events properly)
+      await page.locator('#field-email').fill(ADMIN_EMAIL)
+      await page.locator('#field-password').fill(ADMIN_PASSWORD)
+      await page.locator('#field-confirm-password').fill(ADMIN_PASSWORD)
+      await page.locator('#field-name').fill('Admin')
+      await page.waitForTimeout(500)
 
-    await page.getByRole('button', { name: /create/i }).click()
-    await page.waitForURL('**/admin', { timeout: 30_000 })
-    console.log('✓ First user created — now on admin dashboard')
+      await page.getByRole('button', { name: /create/i }).click()
+      await page.waitForURL('**/admin', { timeout: 30_000 })
+      console.log('✓ First user created — now on admin dashboard')
 
-    // Payload auto-logs in after first-user creation — grab those cookies
-    await bCtx.storageState({ path: AUTH_STATE_PATH })
-    await bCtx.close()
-    await browser.close()
+      // Payload auto-logs in after first-user creation — grab those cookies
+      await bCtx.storageState({ path: AUTH_STATE_PATH })
+      await bCtx.close()
+    } finally {
+      await browser.close()
+    }
   }
 
   const saved = JSON.parse(fs.readFileSync(AUTH_STATE_PATH, 'utf8'))
   console.log(`✓ Auth state saved (${saved.cookies?.length ?? 0} cookie(s))`)
+
+  // Seed SiteSettings once so pages that now source contact info / social
+  // links from the CMS (Header, Footer, About) have something to render.
+  const authedCtx = await request.newContext({ baseURL: BASE_URL, storageState: AUTH_STATE_PATH })
+  try {
+    await authedCtx.post('/api/globals/site-settings', {
+      data: {
+        shopName: 'Autoshop Takumi',
+        contactEmail: 'takumitradings@gmail.com',
+        contactPhone: '022-342-2285',
+        address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+        socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
+      },
+    })
+  } finally {
+    await authedCtx.dispose()
+  }
+  console.log('✓ Site settings seeded')
 }

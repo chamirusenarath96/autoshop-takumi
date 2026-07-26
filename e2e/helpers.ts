@@ -39,6 +39,7 @@ export async function loginAsAdmin(browser: Browser, baseURL = 'http://localhost
 export async function createMake(page: Page, name: string, slug: string): Promise<number> {
   const res = await page.request.post('/api/makes', { data: { name, slug } })
   const data = await res.json()
+  if (!res.ok()) throw new Error(`createMake failed (${res.status()}): ${JSON.stringify(data.errors ?? data)}`)
   return data.doc.id
 }
 
@@ -46,5 +47,6 @@ export async function createMake(page: Page, name: string, slug: string): Promis
 export async function createModel(page: Page, name: string, slug: string, makeId: number): Promise<number> {
   const res = await page.request.post('/api/models', { data: { name, slug, make: makeId } })
   const data = await res.json()
+  if (!res.ok()) throw new Error(`createModel failed (${res.status()}): ${JSON.stringify(data.errors ?? data)}`)
   return data.doc.id
 }
