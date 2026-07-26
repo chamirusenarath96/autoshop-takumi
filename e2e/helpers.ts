@@ -67,6 +67,7 @@ export async function uploadMedia(page: Page): Promise<number> {
     },
   })
   const data = await res.json()
+  if (!res.ok()) throw new Error(`uploadMedia failed (${res.status()}): ${JSON.stringify(data.errors ?? data)}`)
   return data.doc.id
 }
 

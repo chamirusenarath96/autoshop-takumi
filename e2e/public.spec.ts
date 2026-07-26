@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 import { AUTH_STATE_PATH, createPublishedVehicle } from './helpers'
 
 // ── Anonymous public browsing ──────────────────────────────────────────────
@@ -81,7 +83,7 @@ test.describe('Public site — navigation and pages', () => {
 test.describe('Vehicle listing and detail', () => {
   test.use({ storageState: AUTH_STATE_PATH })
 
-  test('vehicle added in admin appears on public listing page', async ({ page, playwright }) => {
+  test('vehicle added in admin appears on public listing page', async ({ page, playwright, baseURL }) => {
     const slug = `pub-test-${Date.now()}`
     await createPublishedVehicle(page, {
       makeName: 'Toyota',
@@ -93,7 +95,7 @@ test.describe('Vehicle listing and detail', () => {
     })
 
     // View as unauthenticated public visitor
-    const publicCtx = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    const publicCtx = await playwright.request.newContext({ baseURL })
     const res = await publicCtx.get(`/api/vehicles?where[slug][equals]=${slug}&locale=en`)
     expect(res.status()).toBe(200)
     const body = await res.json()
@@ -257,8 +259,6 @@ test.describe('Vehicle filters', () => {
     const cheapModelId = (await mdCheap.json()).doc.id
     const expModelId = (await mdExp.json()).doc.id
 
-    const { default: fs } = await import('fs')
-    const { default: path } = await import('path')
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
       multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'sort test' },
@@ -296,8 +296,11 @@ test.describe('Vehicle filters', () => {
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
 
-    // Switch to dark mode
-    await page.getByRole('button', { name: /switch to dark mode/i }).click()
+    // Don't assume the page starts in light mode — only toggle if it isn't already dark.
+    const currentTheme = await page.locator('html').getAttribute('data-theme')
+    if (currentTheme !== 'dark') {
+      await page.getByRole('button', { name: /switch to dark mode/i }).click()
+    }
     await page.waitForTimeout(300)
 
     const select = page.locator('select').first()
