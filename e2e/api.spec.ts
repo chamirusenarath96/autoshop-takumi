@@ -39,15 +39,15 @@ test.describe('Auth API', () => {
     expect(body.user.email).toBe(ADMIN_EMAIL)
   })
 
-  test('GET /api/users/me — returns no user when unauthenticated', async ({ playwright, baseURL }) => {
-    // A fresh, storageState-less context — unlike page.request, this does not
-    // share the admin session cookie, so it exercises the real anonymous path.
-    const ctx = await playwright.request.newContext({ baseURL })
-    const res = await ctx.get('/api/users/me')
-    expect(res.status()).toBe(200)
+  test('GET /api/users/me — returns no user when unauthenticated', async ({ baseURL }) => {
+    // Plain Node fetch — not a Playwright request/browser context, so there's
+    // no admin session cookie to inherit (playwright.request.newContext()
+    // was tried here first, but it round-tripped the authenticated session
+    // regardless of options, which isn't true unauthenticated isolation).
+    const res = await fetch(`${baseURL}/api/users/me`)
+    expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.user).toBeFalsy()
-    await ctx.dispose()
   })
 })
 
@@ -166,7 +166,7 @@ test.describe('Vehicles API', () => {
     expect(body.doc.price).toBe(1800000)
   })
 
-  test('GET /api/vehicles — access control: admin sees drafts, public query filters to published only', async ({ page, playwright, baseURL }) => {
+  test('GET /api/vehicles — access control: admin sees drafts, public query filters to published only', async ({ page, baseURL }) => {
     const makeId = await createMake(page, 'AC Test Make', `actm-${Date.now()}`)
     const modelId = await createModel(page, 'AC Model', `acm-${Date.now()}`, makeId)
     const slug = `ac-draft-${Date.now()}`
@@ -180,13 +180,12 @@ test.describe('Vehicles API', () => {
     expect(adminBody.docs).toHaveLength(1)
     expect(adminBody.docs[0].status).toBe('draft')
 
-    // Anonymous visitor — access control filters drafts out entirely
-    const publicCtx = await playwright.request.newContext({ baseURL })
-    const publicRes = await publicCtx.get(`/api/vehicles?where[slug][equals]=${slug}`)
-    expect(publicRes.status()).toBe(200)
+    // Anonymous visitor — plain fetch, no Playwright request context involved,
+    // so there's no admin session cookie to inherit.
+    const publicRes = await fetch(`${baseURL}/api/vehicles?where[slug][equals]=${slug}`)
+    expect(publicRes.status).toBe(200)
     const publicBody = await publicRes.json()
     expect(publicBody.docs).toHaveLength(0)
-    await publicCtx.dispose()
   })
 
   test('GET /api/vehicles — admin can see draft vehicles', async ({ page }) => {
@@ -276,16 +275,15 @@ test.describe('Inquiries API', () => {
     expect(body).toHaveProperty('totalDocs')
   })
 
-  test('GET /api/inquiries — admin can list, unauthenticated is blocked', async ({ page, playwright, baseURL }) => {
+  test('GET /api/inquiries — admin can list, unauthenticated is blocked', async ({ page, baseURL }) => {
     const res = await page.request.get('/api/inquiries')
     expect(res.status()).toBe(200)
 
     // read access control is ({ req }) => !!req.user — a boolean `false` for an
     // anonymous request, which Payload rejects outright rather than filtering.
-    const publicCtx = await playwright.request.newContext({ baseURL })
-    const publicRes = await publicCtx.get('/api/inquiries')
-    expect(publicRes.status()).toBe(403)
-    await publicCtx.dispose()
+    // Plain fetch, not a Playwright request context, so no session cookie leaks in.
+    const publicRes = await fetch(`${baseURL}/api/inquiries`)
+    expect(publicRes.status).toBe(403)
   })
 
   test('PATCH /api/inquiries/:id — admin can update status to contacted', async ({ page, playwright, baseURL }) => {
