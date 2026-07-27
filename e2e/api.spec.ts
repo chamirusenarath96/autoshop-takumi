@@ -324,13 +324,25 @@ test.describe('Globals API', () => {
   })
 
   test('POST /api/globals/site-settings — admin can update shop name', async ({ page }) => {
-    const res = await page.request.post('/api/globals/site-settings', {
-      data: { shopName: 'Autoshop Takumi E2E Test' },
-    })
-    expect(res.status()).toBe(200)
-    // Payload globals return { message, result } not { doc }
-    const body = await res.json()
-    expect(body.result?.shopName ?? body.shopName).toBe('Autoshop Takumi E2E Test')
+    // SiteSettings is a shared global that other tests (and the public site
+    // itself, via global-setup's seed) depend on — restore it afterward so
+    // this test doesn't leak state into whatever runs next.
+    const before = await page.request.get('/api/globals/site-settings')
+    const originalShopName = (await before.json()).shopName
+
+    try {
+      const res = await page.request.post('/api/globals/site-settings', {
+        data: { shopName: 'Autoshop Takumi E2E Test' },
+      })
+      expect(res.status()).toBe(200)
+      // Payload globals return { message, result } not { doc }
+      const body = await res.json()
+      expect(body.result?.shopName ?? body.shopName).toBe('Autoshop Takumi E2E Test')
+    } finally {
+      await page.request.post('/api/globals/site-settings', {
+        data: { shopName: originalShopName },
+      })
+    }
   })
 
   test('GET /api/globals/homepage — returns homepage config', async ({ page }) => {

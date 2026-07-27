@@ -54,7 +54,7 @@ export function Header({ locale, siteSettings }: Props) {
         <a href={`/${locale}`} className="shrink-0 flex items-center">
           <img
             src="/logo.png"
-            alt={siteSettings.shopName || 'Autoshop Takumi'}
+            alt="Autoshop Takumi"
             className="h-9 w-auto object-contain"
           />
         </a>
