@@ -16,6 +16,14 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
+// Header/Footer read SiteSettings from Payload on every render. Without this,
+// generateStaticParams above makes Next.js treat the locale segment as
+// static — getSiteSettings() would run once (e.g. on first build/request)
+// and its result would be cached indefinitely, so admin edits in the CMS
+// (and this repo's own e2e seed, which runs after the server's first
+// request) would never show up.
+export const dynamic = 'force-dynamic'
+
 // Inline script runs before paint to avoid flash of wrong theme
 const themeScript = `
 (function(){
