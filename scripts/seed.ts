@@ -38,14 +38,20 @@ async function seed() {
     slug: 'site-settings',
     data: {
       shopName: 'Autoshop Takumi',
-      contactEmail: 'info@autoshoptakumi.example',
+      contactEmail: 'takumitradings@gmail.com',
+      contactPhone: '022-342-2285',
+      address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+      socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
       showSoldVehicles: true,
     },
     locale: 'en',
   })
   await payload.updateGlobal({
     slug: 'site-settings',
-    data: { shopName: 'オートショップ匠' },
+    data: {
+      shopName: 'オートショップ匠',
+      address: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1',
+    },
     locale: 'ja',
   })
 

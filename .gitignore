@@ -21,6 +21,11 @@ out/
 # media uploads (local dev)
 public/media/
 
+# Playwright
+playwright-report/
+test-results/
+e2e/.auth/
+
 # misc
 .DS_Store
 *.log

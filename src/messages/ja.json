@@ -2,7 +2,9 @@
   "nav": {
     "home": "ホーム",
     "vehicles": "在庫車両",
-    "contact": "お問い合わせ"
+    "about": "会社概要",
+    "contact": "お問い合わせ",
+    "followUs": "Instagramでフォローする"
   },
   "hero": {
     "cta": "在庫を見る"
@@ -58,7 +60,45 @@
     "success": "お問い合わせを受け付けました。担当者よりご連絡いたします。",
     "error": "送信に失敗しました。もう一度お試しください。"
   },
+  "about": {
+    "title": "オートショップ匠について",
+    "subtitle": "精度に駆られ、信頼に支えられ、匠がお届けします。",
+    "story": "私たちについて",
+    "storyParagraphs": [
+      "オートショップ匠は、宮城県仙台市を拠点とする自動車販売・整備専門店です。国産車から輸入車まで幅広い車種を取り扱い、一台一台の品質と状態に徹底的にこだわってお客様にお届けしています。",
+      "整備・車検・カスタムなど、クルマにまつわるあらゆるご相談に経験豊富なスタッフが対応いたします。「精度に駆られ、信頼に支えられ」の理念のもと、お客様との長いお付き合いを大切にしています。",
+      "海外からのお客様にも対応しており、輸出手続きのサポートも承っております。Instagramでは最新の在庫情報や整備の様子を日々発信しています。"
+    ],
+    "servicesHeading": "サービス",
+    "services": {
+      "sales": "中古車販売",
+      "maintenance": "整備・修理",
+      "inspection": "車検",
+      "export": "輸出サポート"
+    },
+    "profile": "会社概要",
+    "fields": {
+      "companyName": "会社名",
+      "address": "所在地",
+      "phone": "電話番号",
+      "email": "メールアドレス",
+      "hours": "営業時間",
+      "instagram": "Instagram",
+      "services": "サービス"
+    },
+    "hoursValue": "お問い合わせください",
+    "findUs": "アクセス",
+    "mapTitle": "店舗地図"
+  },
   "footer": {
-    "rights": "All rights reserved."
+    "rights": "無断転載を禁じます。",
+    "followUs": "Instagramでフォローする",
+    "slogan": "精度に駆られ、信頼に支えられ、匠がお届けします。",
+    "navigationHeading": "ナビゲーション",
+    "contactHeading": "お問い合わせ"
+  },
+  "theme": {
+    "switchToDark": "ダークモードに切り替える",
+    "switchToLight": "ライトモードに切り替える"
   }
 }

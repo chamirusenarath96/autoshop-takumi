@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { getSiteSettings } from '@/lib/site-settings'
 import '../../globals.css'
 
 type Props = {
@@ -15,6 +16,25 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
+// Header/Footer read SiteSettings from Payload on every render. Without this,
+// generateStaticParams above makes Next.js treat the locale segment as
+// static — getSiteSettings() would run once (e.g. on first build/request)
+// and its result would be cached indefinitely, so admin edits in the CMS
+// (and this repo's own e2e seed, which runs after the server's first
+// request) would never show up.
+export const dynamic = 'force-dynamic'
+
+// Inline script runs before paint to avoid flash of wrong theme
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  } catch(e) {}
+})();
+`
+
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params
 
@@ -23,14 +43,23 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   const messages = await getMessages()
+  const siteSettings = await getSiteSettings(locale as 'ja' | 'en')
 
   return (
-    <html lang={locale}>
-      <body>
+    <html lang={locale} data-public suppressHydrationWarning>
+      <head>
+        {/* Blocking theme script — runs before paint to avoid flash of wrong theme.
+            suppressHydrationWarning on <html> silences the expected data-theme mismatch
+            (server renders without it; script sets it client-side before React hydrates). */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      {/* suppressHydrationWarning on <body> silences browser-extension attribute injections
+          (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
-          <Header locale={locale} />
+          <Header locale={locale} siteSettings={siteSettings} />
           <main>{children}</main>
-          <Footer />
+          <Footer locale={locale} siteSettings={siteSettings} />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,14 +1,70 @@
 @import "tailwindcss";
 
+/*
+ * ── COLOR SYSTEM ────────────────────────────────────────────────────────────
+ *
+ * All colors are defined as bare "H S% L%" values (no hsl() wrapper).
+ * Use them at the call site:  background-color: hsl(var(--primary));
+ *                             color: hsl(var(--primary) / 0.5);   ← opacity free
+ *
+ * To retheme:  change the values below. Component code never changes.
+ *
+ * Brand palette
+ * ─────────────
+ *   Orange   → #fe4d03  ≈  hsl(18, 99%, 50%)   — sampled from logo
+ *   Blue-grey → #1D3557  ≈  hsl(213, 50%, 23%)  — from SOLD OUT badge
+ * ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 5%;
-  --primary: 18 99% 50%;        /* Autoshop Takumi orange — sampled from logo #fe4d03 */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 8%;         /* near-black */
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 40%;
-  --border: 0 0% 88%;
-  --radius: 0.5rem;
+  /* ── Brand ── */
+  --primary:             18  99%  50%;   /* #fe4d03  orange */
+  --primary-foreground:   0   0% 100%;   /* white on orange */
+
+  --secondary:          213  50%  23%;   /* #1D3557  blue-grey */
+  --secondary-foreground: 0   0% 100%;   /* white on blue-grey */
+
+  /* ── Light mode surfaces ── */
+  --background:           0   0% 100%;
+  --foreground:         213  30%  12%;
+
+  --card:                 0   0% 100%;
+  --card-foreground:    213  30%  12%;
+
+  --muted:              213  20%  95%;
+  --muted-foreground:   213  20%  40%;
+
+  --border:             213  15%  88%;
+
+  /* ── Nav (light) ── */
+  --nav-bg:               0   0% 100%;
+  --nav-fg:             213  30%  12%;
+  --nav-border:         213  15%  88%;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────────────────
+   Same token names — component code is identical in both modes.           */
+[data-theme="dark"] {
+  --background:         213  30%   8%;
+  --foreground:           0   0%  95%;
+
+  --card:               213  30%  11%;
+  --card-foreground:      0   0%  95%;
+
+  --muted:              213  25%  14%;
+  --muted-foreground:   213  15%  60%;
+
+  --border:             213  25%  20%;
+
+  --nav-bg:             213  35%  10%;
+  --nav-fg:               0   0%  92%;
+  --nav-border:         213  25%  18%;
+}
+
+/* ── Base (public site only) ──────────────────────────────────────────────
+   Scoped to [data-public] so Payload admin body is not affected.
+   The public layout sets data-public on <html>.                           */
+[data-public] body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: background-color 0.2s ease, color 0.2s ease;
 }

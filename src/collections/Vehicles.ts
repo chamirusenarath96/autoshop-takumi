@@ -6,9 +6,6 @@ export const Vehicles: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'make', 'year', 'status', 'price'],
   },
-  versions: {
-    drafts: true,
-  },
   fields: [
     {
       name: 'title',
@@ -182,7 +179,8 @@ export const Vehicles: CollectionConfig = {
       name: 'heroImage',
       type: 'upload',
       relationTo: 'media',
-      required: true,
+      // Not required at schema level — drafts can exist without a photo.
+      // The beforeChange hook blocks status:'available' without a heroImage.
     },
     {
       name: 'gallery',
