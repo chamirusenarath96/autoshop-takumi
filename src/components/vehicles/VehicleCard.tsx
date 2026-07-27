@@ -18,7 +18,7 @@ const statusLabels: Record<string, Record<string, string>> = {
 
 export function VehicleCard({ vehicle, locale }: Props) {
   const heroImage = typeof vehicle.heroImage === 'object' ? vehicle.heroImage : null
-  const imgUrl = heroImage?.sizes?.card?.url ?? heroImage?.url ?? '/placeholder-car.jpg'
+  const imgUrl = heroImage?.sizes?.card?.url ?? heroImage?.url ?? '/placeholder-car.svg'
 
   const price = vehicle.priceOnRequest
     ? locale === 'ja' ? '要お問い合わせ' : 'Contact for price'
