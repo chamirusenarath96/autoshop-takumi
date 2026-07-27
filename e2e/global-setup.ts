@@ -12,17 +12,16 @@ export default async function globalSetup() {
   const apiCtx = await request.newContext({ baseURL: BASE_URL, timeout: 60_000 })
 
   // Try login first (works on existing DB)
-  let loginRes = await apiCtx.post('/api/users/login', {
+  const loginRes = await apiCtx.post('/api/users/login', {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   })
 
-  if (loginRes.ok()) {
-    // Already have a user — save the API context cookies
-    await apiCtx.storageState({ path: AUTH_STATE_PATH })
-    await apiCtx.dispose()
-  } else {
-    // Fresh DB — create first user via browser UI
-    // Payload auto-logs in on first-user creation, so we grab cookies from the browser
+  if (!loginRes.ok()) {
+    // Fresh DB — create the first user via the browser UI (there's no REST
+    // equivalent of the create-first-user flow), then log back in below via
+    // the same request-context POST already proven to work above. Reading
+    // storageState off of a *browser* context and replaying it in a request
+    // context worked inconsistently in practice, so we don't rely on that.
     await apiCtx.dispose()
 
     console.log('Fresh DB — creating first admin user via browser...')
@@ -44,33 +43,34 @@ export default async function globalSetup() {
       await page.getByRole('button', { name: /create/i }).click()
       await page.waitForURL('**/admin', { timeout: 30_000 })
       console.log('✓ First user created — now on admin dashboard')
-
-      // Payload auto-logs in after first-user creation — grab those cookies
-      await bCtx.storageState({ path: AUTH_STATE_PATH })
       await bCtx.close()
     } finally {
       await browser.close()
     }
+
+    return globalSetup()
   }
+
+  await apiCtx.storageState({ path: AUTH_STATE_PATH })
 
   const saved = JSON.parse(fs.readFileSync(AUTH_STATE_PATH, 'utf8'))
   console.log(`✓ Auth state saved (${saved.cookies?.length ?? 0} cookie(s))`)
 
   // Seed SiteSettings once so pages that now source contact info / social
   // links from the CMS (Header, Footer, About) have something to render.
-  const authedCtx = await request.newContext({ baseURL: BASE_URL, storageState: AUTH_STATE_PATH })
-  try {
-    await authedCtx.post('/api/globals/site-settings', {
-      data: {
-        shopName: 'Autoshop Takumi',
-        contactEmail: 'takumitradings@gmail.com',
-        contactPhone: '022-342-2285',
-        address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
-        socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
-      },
-    })
-  } finally {
-    await authedCtx.dispose()
+  const seedRes = await apiCtx.post('/api/globals/site-settings', {
+    data: {
+      shopName: 'Autoshop Takumi',
+      contactEmail: 'takumitradings@gmail.com',
+      contactPhone: '022-342-2285',
+      address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+      socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
+    },
+  })
+  await apiCtx.dispose()
+
+  if (!seedRes.ok()) {
+    throw new Error(`Site settings seed failed (${seedRes.status()}): ${await seedRes.text()}`)
   }
   console.log('✓ Site settings seeded')
 }
