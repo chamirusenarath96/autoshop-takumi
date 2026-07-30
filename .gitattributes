@@ -1,0 +1,4 @@
+# Normalize line endings to LF in the repo regardless of which OS/shell
+# touches a file — avoids whole-file diffs from CRLF<->LF churn when the
+# same repo is worked on from both Windows and WSL/Linux.
+* text=auto eol=lf

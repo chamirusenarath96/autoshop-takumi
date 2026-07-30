@@ -313,14 +313,23 @@ test.describe('Inquiries API', () => {
 // ── Globals ────────────────────────────────────────────────────────────────
 
 test.describe('Globals API', () => {
-  test('GET /api/globals/site-settings — returns config (publicly readable)', async ({ playwright, baseURL }) => {
-    // SiteSettings has no access control — public by default
-    const ctx = await playwright.request.newContext({ baseURL })
-    const res = await ctx.get('/api/globals/site-settings')
+  test('GET /api/globals/site-settings — admin can read config', async ({ page }) => {
+    const res = await page.request.get('/api/globals/site-settings')
     expect(res.status()).toBe(200)
     const body = await res.json()
     expect(body).toHaveProperty('showSoldVehicles')
-    await ctx.dispose()
+  })
+
+  test('GET /api/globals/site-settings — unauthenticated requests are rejected', async ({ baseURL }) => {
+    // SiteSettings has no `access` block, so it falls back to Payload's
+    // default (Boolean(user)) — auth required for every operation. The
+    // public site never hits this REST endpoint directly: Header/Footer/About
+    // read it server-side via the Local API, which defaults to
+    // overrideAccess: true and bypasses this check entirely.
+    // Plain fetch — not a Playwright request context — so there's no
+    // session cookie to (incorrectly) inherit.
+    const res = await fetch(`${baseURL}/api/globals/site-settings`)
+    expect(res.status).toBe(403)
   })
 
   test('POST /api/globals/site-settings — admin can update shop name', async ({ page }) => {
@@ -364,10 +373,12 @@ test.describe('Media API', () => {
     expect(Array.isArray(body.docs)).toBe(true)
   })
 
-  test('GET /api/media — unauthenticated access is allowed (media is public)', async ({ playwright, baseURL }) => {
-    const ctx = await playwright.request.newContext({ baseURL })
-    const res = await ctx.get('/api/media')
-    expect(res.status()).toBe(200)
-    await ctx.dispose()
+  test('GET /api/media — unauthenticated requests are rejected', async ({ baseURL }) => {
+    // Media has no `access` block either, so it's also auth-required by
+    // Payload's default. Vehicle photos still render publicly because the
+    // <img> src is the direct static file URL under /media, not a call to
+    // this REST endpoint.
+    const res = await fetch(`${baseURL}/api/media`)
+    expect(res.status).toBe(403)
   })
 })
