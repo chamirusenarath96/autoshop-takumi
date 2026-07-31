@@ -10,8 +10,8 @@ A bilingual (Japanese/English) vehicle sales website for Autoshop Takumi, built 
 |---|---|
 | Framework | Next.js 15 (App Router, React Server Components) |
 | CMS / Admin | Payload CMS 3.x (embedded in the Next.js app) |
-| Database | SQLite (local dev) → PostgreSQL/Neon (production, not yet wired — see [Known Issues](#known-issues--gotchas)) |
-| Image storage | Local `/public` (dev) → Cloudflare R2 (production, not yet wired) |
+| Database | SQLite (local dev) → PostgreSQL/Neon (production, wired via `DATABASE_URI` — see [Environment Variables](#environment-variables)) |
+| Image storage | Local `/public` (dev) → Cloudflare R2 (production, wired via `R2_*` vars — falls back to local storage if unset) |
 | UI | Tailwind CSS v4 + custom CSS-variable brand tokens |
 | i18n (static UI) | next-intl (`/ja/...`, `/en/...` URL routing) |
 | i18n (content) | Payload field-level localization (JA + EN per field) |
@@ -223,7 +223,7 @@ CI (`.github/workflows/ci.yml`) runs all of the above on every PR to `master`, p
 # 1. Clone and install
 git clone https://github.com/chamirusenarath96/autoshop-takumi.git
 cd autoshop-takumi
-npm install --legacy-peer-deps   # plain `npm install` currently fails on a payload/graphql peer conflict
+npm install   # .npmrc sets legacy-peer-deps=true, so no flag needed — see Known Issues
 
 # 2. Set up environment
 cp .env.example .env
@@ -246,7 +246,7 @@ On first visit to `/admin`, Payload will prompt you to create the first admin us
 
 - **`npm run seed` and `npm run seed:e2e` fail on Node — but only when invoked directly via `tsx`.** `payload@3.85.1`'s `dist/bin/loadEnv.js` does `const { loadEnvConfig } = nextEnvImport` after a default import of `@next/env`. `@next/env`'s bundled CJS output sets `__esModule: true` without an actual `default` export. Node's native ESM loader (used by `npm run dev`/`npm run build`) tolerates this fine; `tsx`'s CJS-compatibility transform does not, and throws `Cannot destructure property 'loadEnvConfig' of 'import_env.default' as it is undefined`. Confirmed to reproduce identically across Node 22 and Node 24, and across Windows/WSL — it's a genuine upstream `payload`/`@next/env` version incompatibility, not an environment issue. A `node_modules` patch was tried and reverted: it fixed `tsx` but broke the real Next.js dev server (which needs the original `import` syntax, since it has no `require` in true ESM). No clean fix has been applied yet — see the corresponding roadmap/backlog item.
 - **CI's e2e job pins Node 20** (`.github/workflows/ci.yml`), which is now past its LTS support window. Other jobs may differ — worth auditing for consistency.
-- Local dev dependencies require `--legacy-peer-deps` due to a `graphql` version mismatch between the root project and `@payloadcms/graphql`.
+- There's a `graphql` version mismatch between the root project and `@payloadcms/graphql` that makes plain `npm install` fail peer-dependency resolution. Fixed via `.npmrc` (`legacy-peer-deps=true`) so it's automatic everywhere — local dev, CI, and Vercel builds — no flag needed. (This is also what broke the first production deploy: Vercel's build runs `npm install` with no flags, and hit this before `.npmrc` was added.)
 
 ---
 
@@ -257,10 +257,13 @@ On first visit to `/admin`, Payload will prompt you to create the first admin us
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 PAYLOAD_SECRET=                    # Any random secret string
 
-# Production: PostgreSQL (Neon recommended) — not yet wired into payload.config.ts (still SQLite-only)
+# Production: PostgreSQL (Neon recommended) — set this to switch payload.config.ts
+# from SQLite to postgresAdapter automatically. Unset = SQLite, as in local dev.
 DATABASE_URI=postgres://user:pass@host/db?sslmode=require
 
-# Production: Cloudflare R2 image storage — not yet wired (no s3Storage plugin registered)
+# Production: Cloudflare R2 image storage — set ALL FIVE to activate the
+# s3Storage plugin on the media collection. Any one missing = falls back to
+# local /public/media, same as local dev.
 R2_BUCKET=
 R2_ENDPOINT=                       # https://<account>.r2.cloudflarestorage.com
 R2_ACCESS_KEY_ID=
@@ -273,17 +276,16 @@ NOTIFY_EMAIL_FROM=inquiries@autoshoptakumi.example
 NOTIFY_EMAIL_TO=staff@autoshoptakumi.example
 ```
 
-Local dev works with only `PAYLOAD_SECRET` set. All other variables are production-only, and — per Known Issues above — Postgres/R2 aren't actually wired into the codebase yet even when these are set; that's still a TODO in `payload.config.ts`.
+Local dev works with only `PAYLOAD_SECRET` set. All other variables are production-only. Postgres, R2, and Resend are all wired to activate automatically the moment their env vars are present — no code changes needed at deploy time, just setting them in Vercel project settings. The switch logic lives in `src/lib/deploymentConfig.ts` (unit-tested in `src/lib/__tests__/deploymentConfig.test.ts`) and is consumed by `payload.config.ts`.
 
 ---
 
 ## Production Deployment (Vercel)
 
 1. Create accounts: [Neon](https://neon.tech) (Postgres), [Cloudflare R2](https://developers.cloudflare.com/r2/) (storage), [Resend](https://resend.com) (email)
-2. Connect this GitHub repo to a new Vercel project
-3. Add all environment variables in Vercel project settings
-4. Wire the `db` adapter in `payload.config.ts` to conditionally use `postgresAdapter` when `DATABASE_URI` is set, and register the `@payloadcms/storage-s3` plugin for R2 (both packages are already installed as dependencies, just not yet used)
-5. Push to `master` — CI runs, then Vercel auto-deploys
+2. Connect this GitHub repo to a new Vercel project (Vercel dashboard → Add New Project → Import Git Repository — this step needs to happen in the dashboard so Vercel's GitHub App gets the OAuth grant it needs to auto-deploy on push)
+3. Add all environment variables from the block above in Vercel project settings — `payload.config.ts` picks up Postgres/R2/Resend automatically the moment they're set, no further code changes needed
+4. Push to `master` — CI runs, then Vercel auto-deploys
 
 ---
 
@@ -313,9 +315,9 @@ No page templates, filter logic, or admin screens need to be rewritten.
 
 ## Open Items (before launch)
 
-- Wire Postgres/Neon and Cloudflare R2 into `payload.config.ts` (see Known Issues) — currently local-SQLite-only
 - Fix the `npm run seed` / `tsx` interop bug (see Known Issues) without regressing the Next.js dev/build path
-- Confirm Neon / R2 / Resend / Vercel accounts and billing ownership
+- Create the Neon, Cloudflare R2, and Resend accounts and confirm billing ownership — `payload.config.ts` is ready to use them the moment the env vars are set (see Environment Variables)
+- Link this repo to a Vercel project (dashboard → Import Git Repository)
 - Confirm the shop's domain name
 - Finalize filter field list once real inventory is entered (current set is a reasonable v1 default)
 - Decide on custom typography (currently unstyled default fonts) if brand fidelity matters before launch

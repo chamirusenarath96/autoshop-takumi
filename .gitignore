@@ -35,3 +35,5 @@ e2e/.auth/
 # ARE shared/committed — only these specific per-developer files are ignored.
 .claude/settings.local.json
 .claude/launch.json
+.vercel
+.env*
