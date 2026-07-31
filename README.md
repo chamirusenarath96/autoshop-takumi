@@ -223,7 +223,7 @@ CI (`.github/workflows/ci.yml`) runs all of the above on every PR to `master`, p
 # 1. Clone and install
 git clone https://github.com/chamirusenarath96/autoshop-takumi.git
 cd autoshop-takumi
-npm install --legacy-peer-deps   # plain `npm install` currently fails on a payload/graphql peer conflict
+npm install   # .npmrc sets legacy-peer-deps=true, so no flag needed — see Known Issues
 
 # 2. Set up environment
 cp .env.example .env
@@ -246,7 +246,7 @@ On first visit to `/admin`, Payload will prompt you to create the first admin us
 
 - **`npm run seed` and `npm run seed:e2e` fail on Node — but only when invoked directly via `tsx`.** `payload@3.85.1`'s `dist/bin/loadEnv.js` does `const { loadEnvConfig } = nextEnvImport` after a default import of `@next/env`. `@next/env`'s bundled CJS output sets `__esModule: true` without an actual `default` export. Node's native ESM loader (used by `npm run dev`/`npm run build`) tolerates this fine; `tsx`'s CJS-compatibility transform does not, and throws `Cannot destructure property 'loadEnvConfig' of 'import_env.default' as it is undefined`. Confirmed to reproduce identically across Node 22 and Node 24, and across Windows/WSL — it's a genuine upstream `payload`/`@next/env` version incompatibility, not an environment issue. A `node_modules` patch was tried and reverted: it fixed `tsx` but broke the real Next.js dev server (which needs the original `import` syntax, since it has no `require` in true ESM). No clean fix has been applied yet — see the corresponding roadmap/backlog item.
 - **CI's e2e job pins Node 20** (`.github/workflows/ci.yml`), which is now past its LTS support window. Other jobs may differ — worth auditing for consistency.
-- Local dev dependencies require `--legacy-peer-deps` due to a `graphql` version mismatch between the root project and `@payloadcms/graphql`.
+- There's a `graphql` version mismatch between the root project and `@payloadcms/graphql` that makes plain `npm install` fail peer-dependency resolution. Fixed via `.npmrc` (`legacy-peer-deps=true`) so it's automatic everywhere — local dev, CI, and Vercel builds — no flag needed. (This is also what broke the first production deploy: Vercel's build runs `npm install` with no flags, and hit this before `.npmrc` was added.)
 
 ---
 

@@ -103,7 +103,7 @@ The fix is a single import: `@payloadcms/next/css`, an **officially documented p
 ## Local dev
 
 ```bash
-npm install --legacy-peer-deps   # plain `npm install` fails on a payload/graphql peer conflict
+npm install   # .npmrc sets legacy-peer-deps=true, so no flag needed
 cp .env.example .env   # set PAYLOAD_SECRET to any string
 npm run dev            # → http://localhost:3000 (public) + /admin (Payload)
 npm run seed            # optional — seeds Makes/Models/SiteSettings/Homepage
