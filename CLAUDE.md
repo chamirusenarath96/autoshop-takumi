@@ -103,9 +103,10 @@ The fix is a single import: `@payloadcms/next/css`, an **officially documented p
 ## Local dev
 
 ```bash
-npm install
+npm install --legacy-peer-deps   # plain `npm install` fails on a payload/graphql peer conflict
 cp .env.example .env   # set PAYLOAD_SECRET to any string
 npm run dev            # → http://localhost:3000 (public) + /admin (Payload)
+npm run seed            # optional — seeds Makes/Models/SiteSettings/Homepage
 npm test               # run component tests
 npm run test:watch     # watch mode
 npm run test:e2e        # run e2e suite (needs npm run dev active in another terminal)
@@ -113,3 +114,5 @@ npm run test:e2e:ui     # Playwright UI mode — step through tests visually
 ```
 
 First run: go to `/admin/create-first-user` to create the admin account. `e2e/global-setup.ts` does this automatically for the e2e suite (creates `admin@autoshoptakumi.com` if no user exists, then logs in and caches the session in `e2e/.auth/`, gitignored).
+
+**Known gotcha — `npm run seed` / `npm run seed:e2e` via `tsx`:** `payload`'s `dist/bin/loadEnv.js` default-imports `@next/env`, whose bundled CJS output sets `__esModule: true` with no `default` export. Node's native ESM loader (what `npm run dev`/`build` use) tolerates this; `tsx`'s CJS transform doesn't, and throws `Cannot destructure property 'loadEnvConfig' of 'import_env.default' as it is undefined`. Reproduces identically across Node 22/24 and Windows/WSL — a real upstream `payload`↔`@next/env` version mismatch, not an environment issue. See README's Known Issues section before attempting a `node_modules` patch: a naive one fixes `tsx` but breaks the real Next.js dev server, which needs the file's original `import` syntax (no `require` in true ESM).

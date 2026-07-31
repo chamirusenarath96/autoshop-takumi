@@ -56,6 +56,23 @@ async function seed() {
   })
 
   console.log('Seeding homepage...')
+  // whyUsPoints.heading is required + localized, and the default locale is
+  // 'ja' (see payload.config.ts) — on first creation Payload validates
+  // required localized fields against the default locale, so it must be
+  // written first and with complete data, or the create fails outright.
+  await payload.updateGlobal({
+    slug: 'homepage',
+    data: {
+      heroHeading: '厳選されたJDMクラシックス',
+      heroSubheading: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
+      whyUsPoints: [
+        { heading: '徹底検査済み', body: 'すべての車両は出品前に100項目の検査を受けています。' },
+        { heading: 'バイリンガル対応', body: '日本語と英語で完全サポート。' },
+        { heading: '輸出対応', body: '海外のお客様向けの書類手続きも承ります。' },
+      ],
+    },
+    locale: 'ja',
+  })
   await payload.updateGlobal({
     slug: 'homepage',
     data: {
@@ -68,14 +85,6 @@ async function seed() {
       ],
     },
     locale: 'en',
-  })
-  await payload.updateGlobal({
-    slug: 'homepage',
-    data: {
-      heroHeading: '厳選されたJDMクラシックス',
-      heroSubheading: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-    },
-    locale: 'ja',
   })
 
   console.log('✓ Seed complete.')

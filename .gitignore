@@ -29,3 +29,9 @@ e2e/.auth/
 # misc
 .DS_Store
 *.log
+
+# Local editor/tool config — personal, not shared.
+# .claude/skills, .claude/commands etc. (e.g. spec-kit's /speckit-* skills)
+# ARE shared/committed — only these specific per-developer files are ignored.
+.claude/settings.local.json
+.claude/launch.json
