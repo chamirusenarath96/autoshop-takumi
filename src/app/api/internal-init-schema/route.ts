@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   }
 
   const payload = await getPayload()
-  await pushDevSchema(payload.db as Parameters<typeof pushDevSchema>[0])
+  await pushDevSchema(payload.db as unknown as Parameters<typeof pushDevSchema>[0])
 
   return NextResponse.json({ status: 'schema pushed' })
 }
