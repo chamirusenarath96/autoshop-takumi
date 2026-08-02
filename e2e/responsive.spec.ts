@@ -100,6 +100,40 @@ test.describe('Responsive — mobile (375px)', () => {
       await page.waitForLoadState('networkidle')
       await assertNoHorizontalOverflow(page)
     })
+
+    test('inquiry form: tap targets are >=44x44px and the form is submittable via tap', async ({ page }) => {
+      const ts = Date.now()
+      const vehicle = await createPublishedVehicle(page, {
+        makeName: `InquiryMake-${ts}`,
+        modelName: 'InquiryModel',
+        title: `Inquiry Test Vehicle ${ts}`,
+        slug: `inquiry-test-${ts}`,
+      })
+
+      await page.goto(`/en/vehicles/${vehicle.slug}`)
+      await page.waitForLoadState('networkidle')
+
+      const form = page.locator('form')
+      const controls = form.locator('input, textarea, button')
+      const count = await controls.count()
+      expect(count).toBeGreaterThan(0)
+      for (let i = 0; i < count; i++) {
+        const box = await controls.nth(i).boundingBox()
+        expect(box).not.toBeNull()
+        expect(box!.height).toBeGreaterThanOrEqual(44)
+        expect(box!.width).toBeGreaterThanOrEqual(44)
+      }
+
+      await form.locator('[name="name"]').tap()
+      await form.locator('[name="name"]').fill('Tap Tester')
+      await form.locator('[name="email"]').tap()
+      await form.locator('[name="email"]').fill('tap@example.com')
+      await form.locator('[name="message"]').tap()
+      await form.locator('[name="message"]').fill('Testing tap-based submission on a small viewport.')
+      await form.getByRole('button', { name: /send inquiry/i }).tap()
+
+      await expect(page.getByText(/thank you/i)).toBeVisible()
+    })
   })
 })
 

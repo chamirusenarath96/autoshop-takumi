@@ -43,29 +43,37 @@ export function InquiryForm({ vehicleId, locale }: Props) {
     return <p className="text-green-700 font-medium">{t('success')}</p>
   }
 
+  const inputClass =
+    'w-full min-h-11 border border-[hsl(var(--border))] rounded px-3 py-2 text-base sm:text-sm'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">{t('name')}</label>
-        <input name="name" required className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm" />
+        <input name="name" required className={inputClass} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">{t('email')}</label>
-        <input name="email" type="email" required className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm" />
+        <input name="email" type="email" required className={inputClass} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">{t('phone')}</label>
-        <input name="phone" type="tel" className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm" />
+        <input name="phone" type="tel" className={inputClass} />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">{t('message')}</label>
-        <textarea name="message" required rows={4} className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm" />
+        <textarea
+          name="message"
+          required
+          rows={4}
+          className="w-full min-h-32 border border-[hsl(var(--border))] rounded px-3 py-2 text-base sm:text-sm"
+        />
       </div>
-      {status === 'error' && <p className="text-red-600 text-sm">{t('error')}</p>}
+      {status === 'error' && <p className="text-red-600 text-sm break-words">{t('error')}</p>}
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="bg-[hsl(var(--primary))] text-white px-6 py-2 rounded font-semibold hover:opacity-90 transition disabled:opacity-50"
+        className="min-h-11 min-w-11 bg-[hsl(var(--primary))] text-white px-6 py-2 rounded font-semibold hover:opacity-90 transition disabled:opacity-50"
       >
         {status === 'loading' ? '...' : t('submit')}
       </button>

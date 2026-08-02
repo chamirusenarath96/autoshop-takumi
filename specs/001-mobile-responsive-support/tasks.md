@@ -98,13 +98,13 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 3
 
-- [ ] T020 [US3] Add `e2e/responsive.spec.ts` test block (mobile viewport): open a vehicle detail page, assert every inquiry form input/button has a bounding box of at least 44x44 CSS pixels (via `boundingBox()`), fill and submit the form via touch-style taps, assert the existing confirmation behavior appears (FR-005)
+- [X] T020 [US3] Add `e2e/responsive.spec.ts` test block (mobile viewport): open a vehicle detail page, assert every inquiry form input/button has a bounding box of at least 44x44 CSS pixels (via `boundingBox()`), fill and submit the form via touch-style taps, assert the existing confirmation behavior appears (FR-005)
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Audit `src/components/vehicles/InquiryForm.tsx` for tap target sizing (padding/height on inputs, buttons, and any checkboxes/selects) and adjust Tailwind classes to guarantee a 44x44px minimum hit area at mobile widths (FR-005, research.md §5)
-- [ ] T022 [US3] Confirm/adjust input `font-size` in `src/components/vehicles/InquiryForm.tsx` to at least 16px at mobile widths to prevent iOS Safari's zoom-on-focus behavior (FR-005, research.md §5)
-- [ ] T023 [US3] Verify inline validation error messages in `src/components/vehicles/InquiryForm.tsx` render without causing horizontal overflow at mobile width (spec Edge Cases)
+- [X] T021 [US3] Audit `src/components/vehicles/InquiryForm.tsx` for tap target sizing (padding/height on inputs, buttons, and any checkboxes/selects) and adjust Tailwind classes to guarantee a 44x44px minimum hit area at mobile widths (FR-005, research.md §5)
+- [X] T022 [US3] Confirm/adjust input `font-size` in `src/components/vehicles/InquiryForm.tsx` to at least 16px at mobile widths to prevent iOS Safari's zoom-on-focus behavior (FR-005, research.md §5)
+- [X] T023 [US3] Verify inline validation error messages in `src/components/vehicles/InquiryForm.tsx` render without causing horizontal overflow at mobile width (spec Edge Cases)
 
 **Checkpoint**: All P1/P2 user stories independently functional — full mobile browse → view → inquire journey works
 
