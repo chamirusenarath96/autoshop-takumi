@@ -52,14 +52,14 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 1
 
-- [ ] T006 [P] [US1] Component test for the filter drawer trigger's open/close behavior in `src/components/vehicles/__tests__/VehicleFilters.test.tsx` (new file or extend if one exists) — asserts the drawer is closed by default, opens on trigger click, and closes on its close control
-- [ ] T007 [US1] Add `e2e/responsive.spec.ts` test block (within the mobile and tablet `describe`s from T002): open `/en/vehicles`, assert no horizontal overflow (via T003 helper), open the filter drawer, select a body type filter, assert the drawer closes and results update, assert the desktop `describe` instead shows the sidebar filters inline with no drawer trigger present
+- [X] T006 [P] [US1] Component test for the filter drawer trigger's open/close behavior in `src/components/vehicles/__tests__/VehicleFilters.test.tsx` (new file or extend if one exists) — asserts the drawer is closed by default, opens on trigger click, and closes on its close control
+- [X] T007 [US1] Add `e2e/responsive.spec.ts` test block (within the mobile and tablet `describe`s from T002): open `/en/vehicles`, assert no horizontal overflow (via T003 helper), open the filter drawer, select a body type filter, assert the drawer closes and results update, assert the desktop `describe` instead shows the sidebar filters inline with no drawer trigger present
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Add a "Filters" trigger button + drawer/sheet wrapper markup to `src/components/vehicles/VehicleFilters.tsx` (or new `src/components/vehicles/FilterDrawer.tsx` if the file grows too large — implementer's call per plan.md), using `useState` for open/closed and the `vehicles.filters.openFilters`/`closeFilters` keys from T005; existing filter logic (`useSearchParams`/`router.push`) is reused unchanged (FR-003, FR-004)
-- [ ] T009 [US1] Apply Tailwind responsive classes so the drawer/trigger render only below the `lg` breakpoint (`lg:hidden`) and the existing inline sidebar renders only at `lg:` and above (`hidden lg:block`), in `src/components/vehicles/VehicleFilters.tsx` and/or `src/app/(public)/[locale]/vehicles/page.tsx` wherever the sidebar layout is composed (FR-007)
-- [ ] T010 [US1] Verify/adjust the vehicle listing grid (`src/app/(public)/[locale]/vehicles/page.tsx` or `VehicleCard`-rendering container) for single-column layout at mobile and multi-column at tablet/desktop with no horizontal overflow (FR-001)
+- [X] T008 [US1] Add a "Filters" trigger button + drawer/sheet wrapper markup to `src/components/vehicles/VehicleFilters.tsx` (or new `src/components/vehicles/FilterDrawer.tsx` if the file grows too large — implementer's call per plan.md), using `useState` for open/closed and the `vehicles.filters.openFilters`/`closeFilters` keys from T005; existing filter logic (`useSearchParams`/`router.push`) is reused unchanged (FR-003, FR-004)
+- [X] T009 [US1] Apply Tailwind responsive classes so the drawer/trigger render only below the `lg` breakpoint (`lg:hidden`) and the existing inline sidebar renders only at `lg:` and above (`hidden lg:block`), in `src/components/vehicles/VehicleFilters.tsx` and/or `src/app/(public)/[locale]/vehicles/page.tsx` wherever the sidebar layout is composed (FR-007)
+- [X] T010 [US1] Verify/adjust the vehicle listing grid (`src/app/(public)/[locale]/vehicles/page.tsx` or `VehicleCard`-rendering container) for single-column layout at mobile and multi-column at tablet/desktop with no horizontal overflow (FR-001)
 
 **Checkpoint**: User Story 1 fully functional and independently testable — mobile visitors can browse and filter inventory
 
