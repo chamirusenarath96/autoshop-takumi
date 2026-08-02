@@ -28,6 +28,7 @@ A bilingual (Japanese/English) vehicle sales website for Autoshop Takumi: landin
 - **Bug fix** → add a test that would have caught the bug, or extend an existing test's assertions
 - **Behavior change** (e.g. changing an access control rule, a field's required-ness, a route) → update the existing test(s) that assert the old behavior — don't leave them asserting something no longer true
 - **Refactor with no behavior change** → existing tests should still pass unmodified; if they don't, the refactor changed behavior and that's worth noticing
+- **New public page or component (standing requirement since the mobile/tablet responsive support feature)** → also add a viewport test to `e2e/responsive.spec.ts` covering mobile (375px), tablet (768px), and desktop (1280px) — at minimum, assert no horizontal overflow at all three breakpoints via the `assertNoHorizontalOverflow` helper in `e2e/helpers.ts`; extend the existing per-breakpoint `test.describe` blocks in that file rather than adding a new spec file
 - Before opening a PR, run all three suites locally and confirm green:
   ```bash
   npm test                  # component tests

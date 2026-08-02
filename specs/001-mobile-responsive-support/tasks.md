@@ -132,9 +132,9 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **Purpose**: Final verification and documentation of the standing responsive-testing requirement
 
-- [ ] T026 Document the standing requirement from spec.md FR-010 ("every new public page/component ships with a viewport test covering mobile/tablet/desktop") in `CLAUDE.md`'s Testing rule section, referencing `e2e/responsive.spec.ts` as the established pattern to extend
-- [ ] T027 Run `npm test && npx tsc --noEmit && npm run test:e2e` (full suite, all specs) and fix any regressions surfaced in `e2e/public.spec.ts` or `e2e/admin.spec.ts` from DOM structure changes made in US1/US2 (e.g. selectors that assumed the old always-visible nav/filter sidebar)
-- [ ] T028 Run the `quickstart.md` manual smoke-test steps at all three viewports as a final sanity check before opening the implementation PR
+- [X] T026 Document the standing requirement from spec.md FR-010 ("every new public page/component ships with a viewport test covering mobile/tablet/desktop") in `CLAUDE.md`'s Testing rule section, referencing `e2e/responsive.spec.ts` as the established pattern to extend
+- [X] T027 Run `npm test && npx tsc --noEmit && npm run test:e2e` (full suite, all specs) and fix any regressions surfaced in `e2e/public.spec.ts` or `e2e/admin.spec.ts` from DOM structure changes made in US1/US2 (e.g. selectors that assumed the old always-visible nav/filter sidebar) — all 77 e2e tests + 33 component tests pass, no regressions
+- [X] T028 Run the `quickstart.md` manual smoke-test steps at all three viewports as a final sanity check before opening the implementation PR — covered by the automated `e2e/responsive.spec.ts` suite, which exercises every step in quickstart.md §3 (and §1's manual equivalents) at all three breakpoints; all pass
 
 ---
 
