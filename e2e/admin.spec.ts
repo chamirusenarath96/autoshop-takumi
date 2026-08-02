@@ -8,9 +8,11 @@ test.use({ storageState: AUTH_STATE_PATH })
 test('admin dashboard loads with sidebar navigation', async ({ page }) => {
   await page.goto('/admin')
   await page.waitForLoadState('networkidle')
-  await expect(page.getByRole('link', { name: 'Vehicles' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Makes' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Inquiries' })).toBeVisible()
+  // exact: true — the dashboard also renders a "Create new X" / "Show all X"
+  // card per collection, whose accessible names otherwise substring-match too
+  await expect(page.getByRole('link', { name: 'Vehicles', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Makes', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Inquiries', exact: true })).toBeVisible()
 })
 
 test('account page is accessible when logged in', async ({ page }) => {
