@@ -4,7 +4,9 @@
     "vehicles": "Inventory",
     "about": "About",
     "contact": "Contact",
-    "followUs": "Follow us on Instagram"
+    "followUs": "Follow us on Instagram",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
     "cta": "View Inventory"
@@ -22,7 +24,9 @@
       "bodyType": "Body type",
       "transmission": "Transmission",
       "all": "All",
-      "reset": "Reset filters"
+      "reset": "Reset filters",
+      "openFilters": "Filters",
+      "closeFilters": "Close filters"
     },
     "sort": {
       "label": "Sort by",

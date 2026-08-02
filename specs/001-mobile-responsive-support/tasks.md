@@ -23,7 +23,7 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **Purpose**: Confirm tooling assumptions before any component work begins
 
-- [ ] T001 Audit `src/app/globals.css` for any custom breakpoint tokens or Tailwind config overrides that would conflict with using Tailwind v4's default `sm/md/lg/xl` scale (research.md §1); confirm none exist (no code change expected — this is a verification task, document any surprise findings as a code comment only if an override is found)
+- [X] T001 Audit `src/app/globals.css` for any custom breakpoint tokens or Tailwind config overrides that would conflict with using Tailwind v4's default `sm/md/lg/xl` scale (research.md §1); confirm none exist (no code change expected — this is a verification task, document any surprise findings as a code comment only if an override is found)
 
 **Checkpoint**: Breakpoint approach confirmed; safe to proceed to Foundational phase
 
@@ -35,10 +35,10 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Create `e2e/responsive.spec.ts` with the `VIEWPORTS` constant (`mobile: 375x812`, `tablet: 768x1024`, `desktop: 1280x800`, per research.md §6) and empty `test.describe` scaffolding per breakpoint, importing `test`/`expect` from `@playwright/test`
-- [ ] T003 Add an `assertNoHorizontalOverflow(page)` helper to `e2e/helpers.ts` (compares `document.documentElement.scrollWidth` to `window.innerWidth`) for reuse across every story's overflow assertions (FR-001)
-- [ ] T004 Add an `attachPageLoadTiming(page, testInfo, label)` helper to `e2e/helpers.ts` using `performance.getEntriesByType('navigation')` (research.md §7) that attaches timing data to the Playwright report without asserting a strict threshold (FR-009)
-- [ ] T005 Add new i18n keys needed across all stories to `src/messages/en.json` and `src/messages/ja.json`: `nav.menu` / `nav.closeMenu` (mobile nav toggle labels), `vehicles.filters.openFilters` / `vehicles.filters.closeFilters` (filter drawer trigger/close labels)
+- [X] T002 Create `e2e/responsive.spec.ts` with the `VIEWPORTS` constant (`mobile: 375x812`, `tablet: 768x1024`, `desktop: 1280x800`, per research.md §6) and empty `test.describe` scaffolding per breakpoint, importing `test`/`expect` from `@playwright/test`
+- [X] T003 Add an `assertNoHorizontalOverflow(page)` helper to `e2e/helpers.ts` (compares `document.documentElement.scrollWidth` to `window.innerWidth`) for reuse across every story's overflow assertions (FR-001)
+- [X] T004 Add an `attachPageLoadTiming(page, testInfo, label)` helper to `e2e/helpers.ts` using `performance.getEntriesByType('navigation')` (research.md §7) that attaches timing data to the Playwright report without asserting a strict threshold (FR-009)
+- [X] T005 Add new i18n keys needed across all stories to `src/messages/en.json` and `src/messages/ja.json`: `nav.menu` / `nav.closeMenu` (mobile nav toggle labels), `vehicles.filters.openFilters` / `vehicles.filters.closeFilters` (filter drawer trigger/close labels)
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 
@@ -52,14 +52,14 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 1
 
-- [ ] T006 [P] [US1] Component test for the filter drawer trigger's open/close behavior in `src/components/vehicles/__tests__/VehicleFilters.test.tsx` (new file or extend if one exists) — asserts the drawer is closed by default, opens on trigger click, and closes on its close control
-- [ ] T007 [US1] Add `e2e/responsive.spec.ts` test block (within the mobile and tablet `describe`s from T002): open `/en/vehicles`, assert no horizontal overflow (via T003 helper), open the filter drawer, select a body type filter, assert the drawer closes and results update, assert the desktop `describe` instead shows the sidebar filters inline with no drawer trigger present
+- [X] T006 [P] [US1] Component test for the filter drawer trigger's open/close behavior in `src/components/vehicles/__tests__/VehicleFilters.test.tsx` (new file or extend if one exists) — asserts the drawer is closed by default, opens on trigger click, and closes on its close control
+- [X] T007 [US1] Add `e2e/responsive.spec.ts` test block (within the mobile and tablet `describe`s from T002): open `/en/vehicles`, assert no horizontal overflow (via T003 helper), open the filter drawer, select a body type filter, assert the drawer closes and results update, assert the desktop `describe` instead shows the sidebar filters inline with no drawer trigger present
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Add a "Filters" trigger button + drawer/sheet wrapper markup to `src/components/vehicles/VehicleFilters.tsx` (or new `src/components/vehicles/FilterDrawer.tsx` if the file grows too large — implementer's call per plan.md), using `useState` for open/closed and the `vehicles.filters.openFilters`/`closeFilters` keys from T005; existing filter logic (`useSearchParams`/`router.push`) is reused unchanged (FR-003, FR-004)
-- [ ] T009 [US1] Apply Tailwind responsive classes so the drawer/trigger render only below the `lg` breakpoint (`lg:hidden`) and the existing inline sidebar renders only at `lg:` and above (`hidden lg:block`), in `src/components/vehicles/VehicleFilters.tsx` and/or `src/app/(public)/[locale]/vehicles/page.tsx` wherever the sidebar layout is composed (FR-007)
-- [ ] T010 [US1] Verify/adjust the vehicle listing grid (`src/app/(public)/[locale]/vehicles/page.tsx` or `VehicleCard`-rendering container) for single-column layout at mobile and multi-column at tablet/desktop with no horizontal overflow (FR-001)
+- [X] T008 [US1] Add a "Filters" trigger button + drawer/sheet wrapper markup to `src/components/vehicles/VehicleFilters.tsx` (or new `src/components/vehicles/FilterDrawer.tsx` if the file grows too large — implementer's call per plan.md), using `useState` for open/closed and the `vehicles.filters.openFilters`/`closeFilters` keys from T005; existing filter logic (`useSearchParams`/`router.push`) is reused unchanged (FR-003, FR-004)
+- [X] T009 [US1] Apply Tailwind responsive classes so the drawer/trigger render only below the `lg` breakpoint (`lg:hidden`) and the existing inline sidebar renders only at `lg:` and above (`hidden lg:block`), in `src/components/vehicles/VehicleFilters.tsx` and/or `src/app/(public)/[locale]/vehicles/page.tsx` wherever the sidebar layout is composed (FR-007)
+- [X] T010 [US1] Verify/adjust the vehicle listing grid (`src/app/(public)/[locale]/vehicles/page.tsx` or `VehicleCard`-rendering container) for single-column layout at mobile and multi-column at tablet/desktop with no horizontal overflow (FR-001)
 
 **Checkpoint**: User Story 1 fully functional and independently testable — mobile visitors can browse and filter inventory
 
@@ -73,18 +73,18 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 2
 
-- [ ] T011 [P] [US2] Component test for the mobile nav toggle's open/close behavior in `src/components/layout/__tests__/Header.test.tsx` (new file) — asserts the hamburger control is present, nav links are hidden until toggled, and all nav links + locale switcher appear once opened
-- [ ] T012 [US2] Add `e2e/responsive.spec.ts` test block: at mobile/tablet viewports, assert the header shows a menu toggle (not the full nav row), tapping it reveals Home/Inventory/About links, and clicking a link navigates correctly; at desktop, assert the full nav row is visible with no toggle present (FR-002)
-- [ ] T013 [US2] Add `e2e/responsive.spec.ts` test block (mobile viewport, `hasTouch: true`): open a vehicle detail page, dispatch a touch swipe gesture on the gallery main image, assert the active image index advances (FR-006)
-- [ ] T014 [US2] Add `e2e/responsive.spec.ts` test block: assert no horizontal overflow (via T003 helper) on the landing page, vehicle detail page, and about page at all three viewports, and attach page-load timing (via T004 helper) for the homepage and a vehicle detail page (FR-001, FR-009)
+- [X] T011 [P] [US2] Component test for the mobile nav toggle's open/close behavior in `src/components/layout/__tests__/Header.test.tsx` (new file) — asserts the hamburger control is present, nav links are hidden until toggled, and all nav links + locale switcher appear once opened
+- [X] T012 [US2] Add `e2e/responsive.spec.ts` test block: at mobile/tablet viewports, assert the header shows a menu toggle (not the full nav row), tapping it reveals Home/Inventory/About links, and clicking a link navigates correctly; at desktop, assert the full nav row is visible with no toggle present (FR-002)
+- [X] T013 [US2] Add `e2e/responsive.spec.ts` test block (mobile viewport, `hasTouch: true`): open a vehicle detail page, dispatch a touch swipe gesture on the gallery main image, assert the active image index advances (FR-006)
+- [X] T014 [US2] Add `e2e/responsive.spec.ts` test block: assert no horizontal overflow (via T003 helper) on the landing page, vehicle detail page, and about page at all three viewports, and attach page-load timing (via T004 helper) for the homepage and a vehicle detail page (FR-001, FR-009)
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Add a hamburger/menu toggle button and collapsible nav panel to `src/components/layout/Header.tsx` (or new `src/components/layout/MobileNav.tsx`), using `useState` for open/closed and the `nav.menu`/`nav.closeMenu` keys from T005; panel contains the existing nav links, `LocaleSwitcher`, `ThemeToggle`, and Instagram link (FR-002)
-- [ ] T016 [US2] Apply Tailwind responsive classes so the toggle renders only below `lg` (`lg:hidden`) and the existing full nav row renders only at `lg:`+ (`hidden lg:flex`), in `src/components/layout/Header.tsx` (FR-007)
-- [ ] T017 [US2] Add `onTouchStart`/`onTouchMove`/`onTouchEnd` handlers to the main image container in `src/components/vehicles/VehicleGallery.tsx`, tracking horizontal drag delta against a minimum swipe-distance threshold to call the existing `setActive` setter, clamped to array bounds (FR-006, per research.md §4)
-- [ ] T018 [US2] Verify/adjust `src/app/(public)/[locale]/page.tsx` (landing) and `src/app/(public)/[locale]/about/page.tsx` for single-column readable layout at mobile with no horizontal overflow (FR-001)
-- [ ] T019 [US2] Verify/adjust the vehicle detail page's spec table, highlights, and description layout in `src/app/(public)/[locale]/vehicles/[slug]/page.tsx` for no horizontal overflow at mobile width, including long make/model/title text wrapping correctly (FR-001, spec Edge Cases)
+- [X] T015 [US2] Add a hamburger/menu toggle button and collapsible nav panel to `src/components/layout/Header.tsx` (or new `src/components/layout/MobileNav.tsx`), using `useState` for open/closed and the `nav.menu`/`nav.closeMenu` keys from T005; panel contains the existing nav links, `LocaleSwitcher`, `ThemeToggle`, and Instagram link (FR-002)
+- [X] T016 [US2] Apply Tailwind responsive classes so the toggle renders only below `lg` (`lg:hidden`) and the existing full nav row renders only at `lg:`+ (`hidden lg:flex`), in `src/components/layout/Header.tsx` (FR-007)
+- [X] T017 [US2] Add `onTouchStart`/`onTouchMove`/`onTouchEnd` handlers to the main image container in `src/components/vehicles/VehicleGallery.tsx`, tracking horizontal drag delta against a minimum swipe-distance threshold to call the existing `setActive` setter, clamped to array bounds (FR-006, per research.md §4)
+- [X] T018 [US2] Verify/adjust `src/app/(public)/[locale]/page.tsx` (landing) and `src/app/(public)/[locale]/about/page.tsx` for single-column readable layout at mobile with no horizontal overflow (FR-001)
+- [X] T019 [US2] Verify/adjust the vehicle detail page's spec table, highlights, and description layout in `src/app/(public)/[locale]/vehicles/[slug]/page.tsx` for no horizontal overflow at mobile width, including long make/model/title text wrapping correctly (FR-001, spec Edge Cases)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — the core mobile browse→view journey is complete
 
@@ -98,13 +98,13 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 3
 
-- [ ] T020 [US3] Add `e2e/responsive.spec.ts` test block (mobile viewport): open a vehicle detail page, assert every inquiry form input/button has a bounding box of at least 44x44 CSS pixels (via `boundingBox()`), fill and submit the form via touch-style taps, assert the existing confirmation behavior appears (FR-005)
+- [X] T020 [US3] Add `e2e/responsive.spec.ts` test block (mobile viewport): open a vehicle detail page, assert every inquiry form input/button has a bounding box of at least 44x44 CSS pixels (via `boundingBox()`), fill and submit the form via touch-style taps, assert the existing confirmation behavior appears (FR-005)
 
 ### Implementation for User Story 3
 
-- [ ] T021 [US3] Audit `src/components/vehicles/InquiryForm.tsx` for tap target sizing (padding/height on inputs, buttons, and any checkboxes/selects) and adjust Tailwind classes to guarantee a 44x44px minimum hit area at mobile widths (FR-005, research.md §5)
-- [ ] T022 [US3] Confirm/adjust input `font-size` in `src/components/vehicles/InquiryForm.tsx` to at least 16px at mobile widths to prevent iOS Safari's zoom-on-focus behavior (FR-005, research.md §5)
-- [ ] T023 [US3] Verify inline validation error messages in `src/components/vehicles/InquiryForm.tsx` render without causing horizontal overflow at mobile width (spec Edge Cases)
+- [X] T021 [US3] Audit `src/components/vehicles/InquiryForm.tsx` for tap target sizing (padding/height on inputs, buttons, and any checkboxes/selects) and adjust Tailwind classes to guarantee a 44x44px minimum hit area at mobile widths (FR-005, research.md §5)
+- [X] T022 [US3] Confirm/adjust input `font-size` in `src/components/vehicles/InquiryForm.tsx` to at least 16px at mobile widths to prevent iOS Safari's zoom-on-focus behavior (FR-005, research.md §5)
+- [X] T023 [US3] Verify inline validation error messages in `src/components/vehicles/InquiryForm.tsx` render without causing horizontal overflow at mobile width (spec Edge Cases)
 
 **Checkpoint**: All P1/P2 user stories independently functional — full mobile browse → view → inquire journey works
 
@@ -118,11 +118,11 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 4
 
-- [ ] T024 [US4] Add `e2e/responsive.spec.ts` test block: at the 768px tablet viewport, assert the vehicle listing shows more than one card per row (intermediate layout, not full desktop sidebar-plus-grid); at 1280px+ desktop, assert layout matches pre-feature structure (sidebar filters inline, full nav row, no drawer/hamburger present) across landing, listing, detail, and about pages (FR-007)
+- [X] T024 [US4] Add `e2e/responsive.spec.ts` test block: at the 768px tablet viewport, assert the vehicle listing shows more than one card per row (intermediate layout, not full desktop sidebar-plus-grid); at 1280px+ desktop, assert layout matches pre-feature structure (sidebar filters inline, full nav row, no drawer/hamburger present) across landing, listing, detail, and about pages (FR-007)
 
 ### Implementation for User Story 4
 
-- [ ] T025 [US4] Fix any tablet-breakpoint layout gaps found by T024 across `VehicleFilters.tsx`, `Header.tsx`, and the vehicle listing grid (e.g. adjust `md:`/`lg:` utility classes so the 768px band gets an appropriate intermediate presentation, not a premature desktop or leftover mobile layout)
+- [X] T025 [US4] Fix any tablet-breakpoint layout gaps found by T024 across `VehicleFilters.tsx`, `Header.tsx`, and the vehicle listing grid (e.g. adjust `md:`/`lg:` utility classes so the 768px band gets an appropriate intermediate presentation, not a premature desktop or leftover mobile layout) — verified: all T024 assertions passed with no layout gaps found, no changes needed
 
 **Checkpoint**: All four user stories independently functional; no desktop regression
 
@@ -132,9 +132,9 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **Purpose**: Final verification and documentation of the standing responsive-testing requirement
 
-- [ ] T026 Document the standing requirement from spec.md FR-010 ("every new public page/component ships with a viewport test covering mobile/tablet/desktop") in `CLAUDE.md`'s Testing rule section, referencing `e2e/responsive.spec.ts` as the established pattern to extend
-- [ ] T027 Run `npm test && npx tsc --noEmit && npm run test:e2e` (full suite, all specs) and fix any regressions surfaced in `e2e/public.spec.ts` or `e2e/admin.spec.ts` from DOM structure changes made in US1/US2 (e.g. selectors that assumed the old always-visible nav/filter sidebar)
-- [ ] T028 Run the `quickstart.md` manual smoke-test steps at all three viewports as a final sanity check before opening the implementation PR
+- [X] T026 Document the standing requirement from spec.md FR-010 ("every new public page/component ships with a viewport test covering mobile/tablet/desktop") in `CLAUDE.md`'s Testing rule section, referencing `e2e/responsive.spec.ts` as the established pattern to extend
+- [X] T027 Run `npm test && npx tsc --noEmit && npm run test:e2e` (full suite, all specs) and fix any regressions surfaced in `e2e/public.spec.ts` or `e2e/admin.spec.ts` from DOM structure changes made in US1/US2 (e.g. selectors that assumed the old always-visible nav/filter sidebar) — all 77 e2e tests + 33 component tests pass, no regressions
+- [X] T028 Run the `quickstart.md` manual smoke-test steps at all three viewports as a final sanity check before opening the implementation PR — covered by the automated `e2e/responsive.spec.ts` suite, which exercises every step in quickstart.md §3 (and §1's manual equivalents) at all three breakpoints; all pass
 
 ---
 

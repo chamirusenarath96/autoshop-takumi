@@ -1,4 +1,4 @@
-import { Page, Browser, expect } from '@playwright/test'
+import { Page, Browser, TestInfo, expect } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -77,12 +77,18 @@ export async function uploadMedia(page: Page): Promise<number> {
  */
 export async function createPublishedVehicle(
   page: Page,
-  opts: { makeName: string; modelName: string; title: string; slug: string; year?: number; price?: number; bodyType?: string; transmission?: string },
+  opts: { makeName: string; modelName: string; title: string; slug: string; year?: number; price?: number; bodyType?: string; transmission?: string; galleryImages?: number },
 ): Promise<{ id: number; slug: string; title: string }> {
   const ts = Date.now()
   const makeId = await createMake(page, opts.makeName, `${opts.makeName.toLowerCase().replace(/\s+/g, '-')}-${ts}`)
   const modelId = await createModel(page, opts.modelName, `${opts.modelName.toLowerCase().replace(/\s+/g, '-')}-${ts}`, makeId)
   const mediaId = await uploadMedia(page)
+
+  const galleryCount = opts.galleryImages ?? 0
+  const gallery = []
+  for (let i = 0; i < galleryCount; i++) {
+    gallery.push({ image: await uploadMedia(page) })
+  }
 
   const res = await page.request.post('/api/vehicles', {
     data: {
@@ -97,9 +103,44 @@ export async function createPublishedVehicle(
       heroImage: mediaId,
       bodyType: opts.bodyType,
       transmission: opts.transmission,
+      gallery: gallery.length > 0 ? gallery : undefined,
     },
   })
   const data = await res.json()
   if (res.status() !== 201) throw new Error(`createPublishedVehicle failed: ${JSON.stringify(data.errors ?? data)}`)
   return { id: data.doc.id, slug: data.doc.slug, title: data.doc.title }
+}
+
+/**
+ * Asserts the page has no horizontal overflow at the current viewport
+ * (document.documentElement.scrollWidth should never exceed window.innerWidth).
+ */
+export async function assertNoHorizontalOverflow(page: Page) {
+  const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    innerWidth: window.innerWidth,
+  }))
+  expect(scrollWidth, `document.documentElement.scrollWidth (${scrollWidth}) should not exceed window.innerWidth (${innerWidth})`).toBeLessThanOrEqual(innerWidth)
+}
+
+/**
+ * Captures Navigation Timing data for the current page and attaches it to the
+ * Playwright report. Informational only — not a pass/fail performance gate
+ * (see specs/001-mobile-responsive-support/research.md §7).
+ */
+export async function attachPageLoadTiming(page: Page, testInfo: TestInfo, label: string) {
+  const timing = await page.evaluate(() => {
+    const [nav] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    if (!nav) return null
+    return {
+      domContentLoadedMs: nav.domContentLoadedEventEnd - nav.startTime,
+      loadEventMs: nav.loadEventEnd - nav.startTime,
+    }
+  })
+  await testInfo.attach(`page-load-timing:${label}`, {
+    body: JSON.stringify(timing ?? { error: 'no navigation timing entry available' }, null, 2),
+    contentType: 'application/json',
+  })
+  // Loose smoke-test upper bound — catches a true hang/regression, not a real perf budget.
+  if (timing) expect(timing.loadEventMs).toBeLessThan(30_000)
 }

@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 type Props = {
   makes: any[]
@@ -17,6 +17,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -29,11 +30,15 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
       // Reset model when make changes
       if (key === 'make') params.delete('model')
       router.push(`${pathname}?${params.toString()}`)
+      setDrawerOpen(false)
     },
     [searchParams, pathname, router],
   )
 
-  const reset = () => router.push(pathname)
+  const reset = useCallback(() => {
+    router.push(pathname)
+    setDrawerOpen(false)
+  }, [pathname, router])
 
   const filteredModels = currentFilters.make
     ? models.filter((m) => {
@@ -43,7 +48,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
       })
     : models
 
-  return (
+  const fields = (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">{t('make')}</h2>
@@ -113,6 +118,46 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
       />
     </div>
   )
+
+  return (
+    <>
+      {/* Desktop: always-visible inline sidebar (unchanged behavior) */}
+      <div className="hidden lg:block">{fields}</div>
+
+      {/* Mobile/tablet: trigger + drawer */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="w-full flex items-center justify-center gap-2 border border-[hsl(var(--border))] rounded px-4 py-2.5 text-sm font-medium bg-[hsl(var(--background))]"
+        >
+          {t('openFilters')}
+        </button>
+
+        {drawerOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-labelledby="filter-drawer-heading">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <div className="relative w-full max-w-xs h-full bg-[hsl(var(--background))] overflow-y-auto p-5 shadow-xl">
+              <div className="flex items-center justify-between mb-5">
+                <h2 id="filter-drawer-heading" className="font-semibold text-lg">{t('openFilters')}</h2>
+                <button
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label={t('closeFilters')}
+                  className="text-2xl leading-none px-2 py-1"
+                >
+                  ×
+                </button>
+              </div>
+              {fields}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
 }
 
 function FilterSelect({
@@ -129,8 +174,8 @@ function FilterSelect({
   allLabel: string
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
+    <label className="block">
+      <span className="block text-sm font-medium mb-1">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -143,6 +188,6 @@ function FilterSelect({
           </option>
         ))}
       </select>
-    </div>
+    </label>
   )
 }
