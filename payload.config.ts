@@ -74,6 +74,13 @@ export default buildConfig({
     user: Users.slug,
     importMap: {
       baseDir: path.resolve(dirname),
+      // Without this, Payload's default resolution writes to
+      // src/app/(payload)/admin/importMap.js, which nothing in this project
+      // imports (layout.tsx, page.tsx, not-found.tsx, and actions.ts all
+      // import from src/app/(payload)/importMap.ts). Pin it explicitly so a
+      // future `generate:importmap` run can't silently regenerate the wrong,
+      // unused file again.
+      importMapFile: path.resolve(dirname, 'src/app/(payload)/importMap.ts'),
     },
   },
 
