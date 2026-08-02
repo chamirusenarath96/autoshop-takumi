@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test'
 import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle } from './helpers'
 
+/** Dispatches a synthetic touch swipe gesture from right to left across the element matching `testId`. */
+async function swipeLeft(page: import('@playwright/test').Page, testId: string) {
+  await page.locator(`[data-testid="${testId}"]`).evaluate((el) => {
+    const rect = el.getBoundingClientRect()
+    const y = rect.top + rect.height / 2
+    const startX = rect.left + rect.width * 0.8
+    const endX = rect.left + rect.width * 0.2
+    const touch = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y })
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [touch(startX)], bubbles: true, cancelable: true }))
+    el.dispatchEvent(
+      new TouchEvent('touchend', { touches: [], changedTouches: [touch(endX)], bubbles: true, cancelable: true }),
+    )
+  })
+}
+
 export const VIEWPORTS = {
   mobile: { width: 375, height: 812 },
   tablet: { width: 768, height: 1024 },
@@ -15,13 +30,76 @@ test.describe('Responsive — mobile (375px)', () => {
     await page.waitForLoadState('networkidle')
     await assertNoHorizontalOverflow(page)
 
-    await page.getByRole('button', { name: 'Filters' }).click()
+    await page.getByRole('button', { name: 'Filters', exact: true }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
     await dialog.getByLabel('Body type').selectOption('suv')
     await expect(dialog).not.toBeVisible()
     await page.waitForURL(/bodyType=suv/)
+  })
+
+  test('header: menu toggle reveals nav links, and navigating collapses it', async ({ page }) => {
+    await page.goto('/en')
+    await page.waitForLoadState('networkidle')
+    const header = page.getByRole('banner')
+
+    await expect(header.getByRole('button', { name: 'Menu' })).toBeVisible()
+    await expect(header.getByRole('link', { name: 'Inventory' })).not.toBeVisible()
+
+    await header.getByRole('button', { name: 'Menu' }).click()
+    const panel = page.getByTestId('mobile-nav-panel')
+    await expect(panel.getByRole('link', { name: 'Inventory' })).toBeVisible()
+
+    await panel.getByRole('link', { name: 'Inventory' }).click()
+    await expect(page).toHaveURL(/\/en\/vehicles/)
+  })
+
+  test.describe('with a seeded vehicle', () => {
+    test.use({ storageState: AUTH_STATE_PATH })
+
+    test('vehicle detail: gallery advances on touch swipe', async ({ page }) => {
+      const ts = Date.now()
+      const vehicle = await createPublishedVehicle(page, {
+        makeName: `SwipeMake-${ts}`,
+        modelName: 'SwipeModel',
+        title: `Swipe Test Vehicle ${ts}`,
+        slug: `swipe-test-${ts}`,
+        galleryImages: 2,
+      })
+
+      await page.goto(`/en/vehicles/${vehicle.slug}`)
+      await page.waitForLoadState('networkidle')
+
+      const main = page.getByTestId('gallery-main')
+      await expect(main).toHaveAttribute('data-active-index', '0')
+      await swipeLeft(page, 'gallery-main')
+      await expect(main).toHaveAttribute('data-active-index', '1')
+    })
+
+    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
+      const ts = Date.now()
+      const vehicle = await createPublishedVehicle(page, {
+        makeName: `OverflowMake-${ts}`,
+        modelName: 'OverflowModel',
+        title: `Overflow Test Vehicle ${ts}`,
+        slug: `overflow-test-${ts}`,
+      })
+
+      await page.goto('/en')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'mobile:homepage')
+
+      await page.goto(`/en/vehicles/${vehicle.slug}`)
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'mobile:vehicle-detail')
+
+      await page.goto('/en/about')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+    })
   })
 })
 
@@ -33,13 +111,53 @@ test.describe('Responsive — tablet (768px)', () => {
     await page.waitForLoadState('networkidle')
     await assertNoHorizontalOverflow(page)
 
-    await page.getByRole('button', { name: 'Filters' }).click()
+    await page.getByRole('button', { name: 'Filters', exact: true }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
     await dialog.getByLabel('Body type').selectOption('suv')
     await expect(dialog).not.toBeVisible()
     await page.waitForURL(/bodyType=suv/)
+  })
+
+  test('header: menu toggle reveals nav links', async ({ page }) => {
+    await page.goto('/en')
+    await page.waitForLoadState('networkidle')
+    const header = page.getByRole('banner')
+
+    await expect(header.getByRole('button', { name: 'Menu' })).toBeVisible()
+    await expect(header.getByRole('link', { name: 'Inventory' })).not.toBeVisible()
+
+    await header.getByRole('button', { name: 'Menu' }).click()
+    await expect(page.getByTestId('mobile-nav-panel').getByRole('link', { name: 'Inventory' })).toBeVisible()
+  })
+
+  test.describe('with a seeded vehicle', () => {
+    test.use({ storageState: AUTH_STATE_PATH })
+
+    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
+      const ts = Date.now()
+      const vehicle = await createPublishedVehicle(page, {
+        makeName: `TabOverflowMake-${ts}`,
+        modelName: 'TabOverflowModel',
+        title: `Tablet Overflow Test Vehicle ${ts}`,
+        slug: `tab-overflow-test-${ts}`,
+      })
+
+      await page.goto('/en')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'tablet:homepage')
+
+      await page.goto(`/en/vehicles/${vehicle.slug}`)
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'tablet:vehicle-detail')
+
+      await page.goto('/en/about')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+    })
   })
 })
 
@@ -52,6 +170,43 @@ test.describe('Responsive — desktop (1280px)', () => {
     await assertNoHorizontalOverflow(page)
 
     await expect(page.getByLabel('Body type')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Filters' })).not.toBeVisible()
+    await expect(page.getByRole('button', { name: 'Filters', exact: true })).not.toBeVisible()
+  })
+
+  test('header: full nav row visible, no menu toggle', async ({ page }) => {
+    await page.goto('/en')
+    await page.waitForLoadState('networkidle')
+    const header = page.getByRole('banner')
+
+    await expect(header.getByRole('link', { name: 'Inventory' })).toBeVisible()
+    await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
+  })
+
+  test.describe('with a seeded vehicle', () => {
+    test.use({ storageState: AUTH_STATE_PATH })
+
+    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
+      const ts = Date.now()
+      const vehicle = await createPublishedVehicle(page, {
+        makeName: `DeskOverflowMake-${ts}`,
+        modelName: 'DeskOverflowModel',
+        title: `Desktop Overflow Test Vehicle ${ts}`,
+        slug: `desk-overflow-test-${ts}`,
+      })
+
+      await page.goto('/en')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'desktop:homepage')
+
+      await page.goto(`/en/vehicles/${vehicle.slug}`)
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+      await attachPageLoadTiming(page, test.info(), 'desktop:vehicle-detail')
+
+      await page.goto('/en/about')
+      await page.waitForLoadState('networkidle')
+      await assertNoHorizontalOverflow(page)
+    })
   })
 })

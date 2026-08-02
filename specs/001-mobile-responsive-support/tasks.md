@@ -73,18 +73,18 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 2
 
-- [ ] T011 [P] [US2] Component test for the mobile nav toggle's open/close behavior in `src/components/layout/__tests__/Header.test.tsx` (new file) — asserts the hamburger control is present, nav links are hidden until toggled, and all nav links + locale switcher appear once opened
-- [ ] T012 [US2] Add `e2e/responsive.spec.ts` test block: at mobile/tablet viewports, assert the header shows a menu toggle (not the full nav row), tapping it reveals Home/Inventory/About links, and clicking a link navigates correctly; at desktop, assert the full nav row is visible with no toggle present (FR-002)
-- [ ] T013 [US2] Add `e2e/responsive.spec.ts` test block (mobile viewport, `hasTouch: true`): open a vehicle detail page, dispatch a touch swipe gesture on the gallery main image, assert the active image index advances (FR-006)
-- [ ] T014 [US2] Add `e2e/responsive.spec.ts` test block: assert no horizontal overflow (via T003 helper) on the landing page, vehicle detail page, and about page at all three viewports, and attach page-load timing (via T004 helper) for the homepage and a vehicle detail page (FR-001, FR-009)
+- [X] T011 [P] [US2] Component test for the mobile nav toggle's open/close behavior in `src/components/layout/__tests__/Header.test.tsx` (new file) — asserts the hamburger control is present, nav links are hidden until toggled, and all nav links + locale switcher appear once opened
+- [X] T012 [US2] Add `e2e/responsive.spec.ts` test block: at mobile/tablet viewports, assert the header shows a menu toggle (not the full nav row), tapping it reveals Home/Inventory/About links, and clicking a link navigates correctly; at desktop, assert the full nav row is visible with no toggle present (FR-002)
+- [X] T013 [US2] Add `e2e/responsive.spec.ts` test block (mobile viewport, `hasTouch: true`): open a vehicle detail page, dispatch a touch swipe gesture on the gallery main image, assert the active image index advances (FR-006)
+- [X] T014 [US2] Add `e2e/responsive.spec.ts` test block: assert no horizontal overflow (via T003 helper) on the landing page, vehicle detail page, and about page at all three viewports, and attach page-load timing (via T004 helper) for the homepage and a vehicle detail page (FR-001, FR-009)
 
 ### Implementation for User Story 2
 
-- [ ] T015 [US2] Add a hamburger/menu toggle button and collapsible nav panel to `src/components/layout/Header.tsx` (or new `src/components/layout/MobileNav.tsx`), using `useState` for open/closed and the `nav.menu`/`nav.closeMenu` keys from T005; panel contains the existing nav links, `LocaleSwitcher`, `ThemeToggle`, and Instagram link (FR-002)
-- [ ] T016 [US2] Apply Tailwind responsive classes so the toggle renders only below `lg` (`lg:hidden`) and the existing full nav row renders only at `lg:`+ (`hidden lg:flex`), in `src/components/layout/Header.tsx` (FR-007)
-- [ ] T017 [US2] Add `onTouchStart`/`onTouchMove`/`onTouchEnd` handlers to the main image container in `src/components/vehicles/VehicleGallery.tsx`, tracking horizontal drag delta against a minimum swipe-distance threshold to call the existing `setActive` setter, clamped to array bounds (FR-006, per research.md §4)
-- [ ] T018 [US2] Verify/adjust `src/app/(public)/[locale]/page.tsx` (landing) and `src/app/(public)/[locale]/about/page.tsx` for single-column readable layout at mobile with no horizontal overflow (FR-001)
-- [ ] T019 [US2] Verify/adjust the vehicle detail page's spec table, highlights, and description layout in `src/app/(public)/[locale]/vehicles/[slug]/page.tsx` for no horizontal overflow at mobile width, including long make/model/title text wrapping correctly (FR-001, spec Edge Cases)
+- [X] T015 [US2] Add a hamburger/menu toggle button and collapsible nav panel to `src/components/layout/Header.tsx` (or new `src/components/layout/MobileNav.tsx`), using `useState` for open/closed and the `nav.menu`/`nav.closeMenu` keys from T005; panel contains the existing nav links, `LocaleSwitcher`, `ThemeToggle`, and Instagram link (FR-002)
+- [X] T016 [US2] Apply Tailwind responsive classes so the toggle renders only below `lg` (`lg:hidden`) and the existing full nav row renders only at `lg:`+ (`hidden lg:flex`), in `src/components/layout/Header.tsx` (FR-007)
+- [X] T017 [US2] Add `onTouchStart`/`onTouchMove`/`onTouchEnd` handlers to the main image container in `src/components/vehicles/VehicleGallery.tsx`, tracking horizontal drag delta against a minimum swipe-distance threshold to call the existing `setActive` setter, clamped to array bounds (FR-006, per research.md §4)
+- [X] T018 [US2] Verify/adjust `src/app/(public)/[locale]/page.tsx` (landing) and `src/app/(public)/[locale]/about/page.tsx` for single-column readable layout at mobile with no horizontal overflow (FR-001)
+- [X] T019 [US2] Verify/adjust the vehicle detail page's spec table, highlights, and description layout in `src/app/(public)/[locale]/vehicles/[slug]/page.tsx` for no horizontal overflow at mobile width, including long make/model/title text wrapping correctly (FR-001, spec Edge Cases)
 
 **Checkpoint**: User Stories 1 AND 2 both work independently — the core mobile browse→view journey is complete
 

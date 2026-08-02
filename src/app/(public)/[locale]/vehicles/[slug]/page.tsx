@@ -56,8 +56,8 @@ export default async function VehicleDetailPage({ params }: Props) {
 
       {/* Header */}
       <div className="mt-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{vehicle.title}</h1>
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold break-words">{vehicle.title}</h1>
           <p className="text-[hsl(var(--muted-foreground))] mt-1">
             {vehicle.year}{locale === 'ja' ? '年' : ''} ·{' '}
             {vehicle.mileageKm?.toLocaleString()} km
@@ -90,22 +90,24 @@ export default async function VehicleDetailPage({ params }: Props) {
       {vehicle.specs?.length > 0 && (
         <section className="mt-8">
           <h2 className="text-xl font-semibold mb-3">{t('specs')}</h2>
-          <table className="w-full text-sm border-collapse">
-            <tbody>
-              {vehicle.shakenExpiry && (
-                <tr className="border-b border-[hsl(var(--border))]">
-                  <td className="py-2 pr-4 font-medium w-1/3">{t('shakenExpiry')}</td>
-                  <td className="py-2">{new Date(vehicle.shakenExpiry).toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'en-US', { year: 'numeric', month: 'long' })}</td>
-                </tr>
-              )}
-              {vehicle.specs.map((spec: any, i: number) => (
-                <tr key={i} className="border-b border-[hsl(var(--border))]">
-                  <td className="py-2 pr-4 font-medium w-1/3">{spec.label}</td>
-                  <td className="py-2">{spec.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <tbody>
+                {vehicle.shakenExpiry && (
+                  <tr className="border-b border-[hsl(var(--border))]">
+                    <td className="py-2 pr-4 font-medium w-1/3 break-words">{t('shakenExpiry')}</td>
+                    <td className="py-2 break-words">{new Date(vehicle.shakenExpiry).toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'en-US', { year: 'numeric', month: 'long' })}</td>
+                  </tr>
+                )}
+                {vehicle.specs.map((spec: any, i: number) => (
+                  <tr key={i} className="border-b border-[hsl(var(--border))]">
+                    <td className="py-2 pr-4 font-medium w-1/3 break-words">{spec.label}</td>
+                    <td className="py-2 break-words">{spec.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 

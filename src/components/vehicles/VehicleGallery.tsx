@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 type Props = {
   heroImage: any
   gallery: { image: any; caption?: string }[]
 }
+
+const SWIPE_THRESHOLD_PX = 40
 
 export function VehicleGallery({ heroImage, gallery }: Props) {
   const allImages = [
@@ -15,17 +17,39 @@ export function VehicleGallery({ heroImage, gallery }: Props) {
 
   const [active, setActive] = useState(0)
   const [lightbox, setLightbox] = useState(false)
+  const touchStartX = useRef<number | null>(null)
 
   const current = allImages[active]
   const currentUrl =
     (typeof current?.image === 'object' ? current.image?.sizes?.detail?.url ?? current.image?.url : null) ?? ''
 
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0]?.clientX ?? null
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const startX = touchStartX.current
+    touchStartX.current = null
+    if (startX === null || allImages.length < 2) return
+    const endX = e.changedTouches[0]?.clientX ?? startX
+    const delta = endX - startX
+    if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return
+    setActive((i) => {
+      const next = delta < 0 ? i + 1 : i - 1
+      return Math.max(0, Math.min(allImages.length - 1, next))
+    })
+  }
+
   return (
     <div>
       {/* Main image */}
       <div
+        data-testid="gallery-main"
+        data-active-index={active}
         className="relative aspect-[16/9] rounded-lg overflow-hidden bg-[hsl(var(--muted))] cursor-pointer"
         onClick={() => setLightbox(true)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <img src={currentUrl} alt={current?.caption ?? ''} className="w-full h-full object-cover" />
       </div>

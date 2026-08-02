@@ -77,12 +77,18 @@ export async function uploadMedia(page: Page): Promise<number> {
  */
 export async function createPublishedVehicle(
   page: Page,
-  opts: { makeName: string; modelName: string; title: string; slug: string; year?: number; price?: number; bodyType?: string; transmission?: string },
+  opts: { makeName: string; modelName: string; title: string; slug: string; year?: number; price?: number; bodyType?: string; transmission?: string; galleryImages?: number },
 ): Promise<{ id: number; slug: string; title: string }> {
   const ts = Date.now()
   const makeId = await createMake(page, opts.makeName, `${opts.makeName.toLowerCase().replace(/\s+/g, '-')}-${ts}`)
   const modelId = await createModel(page, opts.modelName, `${opts.modelName.toLowerCase().replace(/\s+/g, '-')}-${ts}`, makeId)
   const mediaId = await uploadMedia(page)
+
+  const galleryCount = opts.galleryImages ?? 0
+  const gallery = []
+  for (let i = 0; i < galleryCount; i++) {
+    gallery.push({ image: await uploadMedia(page) })
+  }
 
   const res = await page.request.post('/api/vehicles', {
     data: {
@@ -97,6 +103,7 @@ export async function createPublishedVehicle(
       heroImage: mediaId,
       bodyType: opts.bodyType,
       transmission: opts.transmission,
+      gallery: gallery.length > 0 ? gallery : undefined,
     },
   })
   const data = await res.json()

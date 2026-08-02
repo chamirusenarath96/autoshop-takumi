@@ -174,8 +174,8 @@ function FilterSelect({
   allLabel: string
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
+    <label className="block">
+      <span className="block text-sm font-medium mb-1">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -188,6 +188,6 @@ function FilterSelect({
           </option>
         ))}
       </select>
-    </div>
+    </label>
   )
 }

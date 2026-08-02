@@ -113,26 +113,28 @@ export default async function AboutPage({ params }: Props) {
       <section className="max-w-4xl mx-auto px-6 py-16">
         <div className="w-12 h-1 bg-[hsl(var(--primary))] mb-6" />
         <h2 className="text-3xl font-bold mb-8">{t('profile')}</h2>
-        <table className="w-full text-sm border-collapse">
-          <tbody>
-            {profileRows.map((row) => (
-              <tr key={row.label} className="border-b border-[hsl(var(--border))]">
-                <td className="py-4 pr-8 font-semibold text-[hsl(var(--secondary))] w-1/3 align-top">
-                  {row.label}
-                </td>
-                <td className="py-4 text-[hsl(var(--muted-foreground))]">
-                  {row.link ? (
-                    <a href={row.link} target="_blank" rel="noopener noreferrer" className="text-[hsl(var(--primary))] hover:underline">
-                      {row.value}
-                    </a>
-                  ) : (
-                    row.value
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <tbody>
+              {profileRows.map((row) => (
+                <tr key={row.label} className="border-b border-[hsl(var(--border))]">
+                  <td className="py-4 pr-8 font-semibold text-[hsl(var(--secondary))] w-1/3 align-top break-words">
+                    {row.label}
+                  </td>
+                  <td className="py-4 text-[hsl(var(--muted-foreground))] break-words">
+                    {row.link ? (
+                      <a href={row.link} target="_blank" rel="noopener noreferrer" className="text-[hsl(var(--primary))] hover:underline">
+                        {row.value}
+                      </a>
+                    ) : (
+                      row.value
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* Map embed */}
