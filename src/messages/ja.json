@@ -4,7 +4,9 @@
     "vehicles": "在庫車両",
     "about": "会社概要",
     "contact": "お問い合わせ",
-    "followUs": "Instagramでフォローする"
+    "followUs": "Instagramでフォローする",
+    "menu": "メニュー",
+    "closeMenu": "メニューを閉じる"
   },
   "hero": {
     "cta": "在庫を見る"
@@ -22,7 +24,9 @@
       "bodyType": "ボディタイプ",
       "transmission": "トランスミッション",
       "all": "すべて",
-      "reset": "リセット"
+      "reset": "リセット",
+      "openFilters": "絞り込み",
+      "closeFilters": "閉じる"
     },
     "sort": {
       "label": "並び替え",

@@ -23,7 +23,7 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **Purpose**: Confirm tooling assumptions before any component work begins
 
-- [ ] T001 Audit `src/app/globals.css` for any custom breakpoint tokens or Tailwind config overrides that would conflict with using Tailwind v4's default `sm/md/lg/xl` scale (research.md §1); confirm none exist (no code change expected — this is a verification task, document any surprise findings as a code comment only if an override is found)
+- [X] T001 Audit `src/app/globals.css` for any custom breakpoint tokens or Tailwind config overrides that would conflict with using Tailwind v4's default `sm/md/lg/xl` scale (research.md §1); confirm none exist (no code change expected — this is a verification task, document any surprise findings as a code comment only if an override is found)
 
 **Checkpoint**: Breakpoint approach confirmed; safe to proceed to Foundational phase
 
@@ -35,10 +35,10 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Create `e2e/responsive.spec.ts` with the `VIEWPORTS` constant (`mobile: 375x812`, `tablet: 768x1024`, `desktop: 1280x800`, per research.md §6) and empty `test.describe` scaffolding per breakpoint, importing `test`/`expect` from `@playwright/test`
-- [ ] T003 Add an `assertNoHorizontalOverflow(page)` helper to `e2e/helpers.ts` (compares `document.documentElement.scrollWidth` to `window.innerWidth`) for reuse across every story's overflow assertions (FR-001)
-- [ ] T004 Add an `attachPageLoadTiming(page, testInfo, label)` helper to `e2e/helpers.ts` using `performance.getEntriesByType('navigation')` (research.md §7) that attaches timing data to the Playwright report without asserting a strict threshold (FR-009)
-- [ ] T005 Add new i18n keys needed across all stories to `src/messages/en.json` and `src/messages/ja.json`: `nav.menu` / `nav.closeMenu` (mobile nav toggle labels), `vehicles.filters.openFilters` / `vehicles.filters.closeFilters` (filter drawer trigger/close labels)
+- [X] T002 Create `e2e/responsive.spec.ts` with the `VIEWPORTS` constant (`mobile: 375x812`, `tablet: 768x1024`, `desktop: 1280x800`, per research.md §6) and empty `test.describe` scaffolding per breakpoint, importing `test`/`expect` from `@playwright/test`
+- [X] T003 Add an `assertNoHorizontalOverflow(page)` helper to `e2e/helpers.ts` (compares `document.documentElement.scrollWidth` to `window.innerWidth`) for reuse across every story's overflow assertions (FR-001)
+- [X] T004 Add an `attachPageLoadTiming(page, testInfo, label)` helper to `e2e/helpers.ts` using `performance.getEntriesByType('navigation')` (research.md §7) that attaches timing data to the Playwright report without asserting a strict threshold (FR-009)
+- [X] T005 Add new i18n keys needed across all stories to `src/messages/en.json` and `src/messages/ja.json`: `nav.menu` / `nav.closeMenu` (mobile nav toggle labels), `vehicles.filters.openFilters` / `vehicles.filters.closeFilters` (filter drawer trigger/close labels)
 
 **Checkpoint**: Foundation ready — user story implementation can now begin
 

@@ -1,4 +1,4 @@
-import { Page, Browser, expect } from '@playwright/test'
+import { Page, Browser, TestInfo, expect } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -102,4 +102,38 @@ export async function createPublishedVehicle(
   const data = await res.json()
   if (res.status() !== 201) throw new Error(`createPublishedVehicle failed: ${JSON.stringify(data.errors ?? data)}`)
   return { id: data.doc.id, slug: data.doc.slug, title: data.doc.title }
+}
+
+/**
+ * Asserts the page has no horizontal overflow at the current viewport
+ * (document.documentElement.scrollWidth should never exceed window.innerWidth).
+ */
+export async function assertNoHorizontalOverflow(page: Page) {
+  const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    innerWidth: window.innerWidth,
+  }))
+  expect(scrollWidth, `document.documentElement.scrollWidth (${scrollWidth}) should not exceed window.innerWidth (${innerWidth})`).toBeLessThanOrEqual(innerWidth)
+}
+
+/**
+ * Captures Navigation Timing data for the current page and attaches it to the
+ * Playwright report. Informational only — not a pass/fail performance gate
+ * (see specs/001-mobile-responsive-support/research.md §7).
+ */
+export async function attachPageLoadTiming(page: Page, testInfo: TestInfo, label: string) {
+  const timing = await page.evaluate(() => {
+    const [nav] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
+    if (!nav) return null
+    return {
+      domContentLoadedMs: nav.domContentLoadedEventEnd - nav.startTime,
+      loadEventMs: nav.loadEventEnd - nav.startTime,
+    }
+  })
+  await testInfo.attach(`page-load-timing:${label}`, {
+    body: JSON.stringify(timing ?? { error: 'no navigation timing entry available' }, null, 2),
+    contentType: 'application/json',
+  })
+  // Loose smoke-test upper bound — catches a true hang/regression, not a real perf budget.
+  if (timing) expect(timing.loadEventMs).toBeLessThan(30_000)
 }
