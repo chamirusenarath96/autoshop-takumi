@@ -118,11 +118,11 @@ Single Next.js App Router project — `src/`, `e2e/` at repository root (per pla
 
 ### Tests for User Story 4
 
-- [ ] T024 [US4] Add `e2e/responsive.spec.ts` test block: at the 768px tablet viewport, assert the vehicle listing shows more than one card per row (intermediate layout, not full desktop sidebar-plus-grid); at 1280px+ desktop, assert layout matches pre-feature structure (sidebar filters inline, full nav row, no drawer/hamburger present) across landing, listing, detail, and about pages (FR-007)
+- [X] T024 [US4] Add `e2e/responsive.spec.ts` test block: at the 768px tablet viewport, assert the vehicle listing shows more than one card per row (intermediate layout, not full desktop sidebar-plus-grid); at 1280px+ desktop, assert layout matches pre-feature structure (sidebar filters inline, full nav row, no drawer/hamburger present) across landing, listing, detail, and about pages (FR-007)
 
 ### Implementation for User Story 4
 
-- [ ] T025 [US4] Fix any tablet-breakpoint layout gaps found by T024 across `VehicleFilters.tsx`, `Header.tsx`, and the vehicle listing grid (e.g. adjust `md:`/`lg:` utility classes so the 768px band gets an appropriate intermediate presentation, not a premature desktop or leftover mobile layout)
+- [X] T025 [US4] Fix any tablet-breakpoint layout gaps found by T024 across `VehicleFilters.tsx`, `Header.tsx`, and the vehicle listing grid (e.g. adjust `md:`/`lg:` utility classes so the 768px band gets an appropriate intermediate presentation, not a premature desktop or leftover mobile layout) — verified: all T024 assertions passed with no layout gaps found, no changes needed
 
 **Checkpoint**: All four user stories independently functional; no desktop regression
 

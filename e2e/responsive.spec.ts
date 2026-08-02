@@ -169,6 +169,36 @@ test.describe('Responsive — tablet (768px)', () => {
   test.describe('with a seeded vehicle', () => {
     test.use({ storageState: AUTH_STATE_PATH })
 
+    test('vehicle listing: shows more than one card per row (intermediate layout)', async ({ page }) => {
+      const ts = Date.now()
+      await createPublishedVehicle(page, {
+        makeName: `TabGridMake-${ts}`,
+        modelName: 'GridModelA',
+        title: `Tab Grid A ${ts}`,
+        slug: `tab-grid-a-${ts}`,
+      })
+      await createPublishedVehicle(page, {
+        makeName: `TabGridMake2-${ts}`,
+        modelName: 'GridModelB',
+        title: `Tab Grid B ${ts}`,
+        slug: `tab-grid-b-${ts}`,
+      })
+
+      await page.goto('/en/vehicles')
+      await page.waitForLoadState('networkidle')
+      const cards = page.locator('a[href*="/vehicles/"]')
+      const count = await cards.count()
+      expect(count).toBeGreaterThanOrEqual(2)
+
+      const box0 = await cards.nth(0).boundingBox()
+      const box1 = await cards.nth(1).boundingBox()
+      expect(box0).not.toBeNull()
+      expect(box1).not.toBeNull()
+      // Same row => same (or near-same) top y-coordinate, and side-by-side x-coordinates.
+      expect(Math.abs(box0!.y - box1!.y)).toBeLessThan(5)
+      expect(box1!.x).toBeGreaterThan(box0!.x)
+    })
+
     test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
       const ts = Date.now()
       const vehicle = await createPublishedVehicle(page, {
@@ -214,6 +244,17 @@ test.describe('Responsive — desktop (1280px)', () => {
 
     await expect(header.getByRole('link', { name: 'Inventory' })).toBeVisible()
     await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
+  })
+
+  test('landing and about pages: no hamburger/drawer, pre-feature desktop structure', async ({ page }) => {
+    for (const path of ['/en', '/en/about']) {
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
+      const header = page.getByRole('banner')
+      await expect(header.getByRole('link', { name: 'Inventory' })).toBeVisible()
+      await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
+      await expect(page.getByRole('button', { name: 'Filters', exact: true })).toHaveCount(0)
+    }
   })
 
   test.describe('with a seeded vehicle', () => {
