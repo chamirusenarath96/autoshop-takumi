@@ -1,6 +1,28 @@
 import { test, expect } from '@playwright/test'
 import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle } from './helpers'
 
+/** Visits the homepage, a vehicle detail page, and the about page, asserting no horizontal overflow and attaching load timing for the homepage/detail pages. */
+async function assertOverflowAndTimingAcrossPages(
+  page: import('@playwright/test').Page,
+  testInfo: import('@playwright/test').TestInfo,
+  labelPrefix: string,
+  vehicleSlug: string,
+) {
+  await page.goto('/en')
+  await page.waitForLoadState('networkidle')
+  await assertNoHorizontalOverflow(page)
+  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:homepage`)
+
+  await page.goto(`/en/vehicles/${vehicleSlug}`)
+  await page.waitForLoadState('networkidle')
+  await assertNoHorizontalOverflow(page)
+  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:vehicle-detail`)
+
+  await page.goto('/en/about')
+  await page.waitForLoadState('networkidle')
+  await assertNoHorizontalOverflow(page)
+}
+
 /** Dispatches a synthetic touch swipe gesture from right to left across the element matching `testId`. */
 async function swipeLeft(page: import('@playwright/test').Page, testId: string) {
   await page.locator(`[data-testid="${testId}"]`).evaluate((el) => {
@@ -86,19 +108,7 @@ test.describe('Responsive — mobile (375px)', () => {
         slug: `overflow-test-${ts}`,
       })
 
-      await page.goto('/en')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'mobile:homepage')
-
-      await page.goto(`/en/vehicles/${vehicle.slug}`)
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'mobile:vehicle-detail')
-
-      await page.goto('/en/about')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
+      await assertOverflowAndTimingAcrossPages(page, test.info(), 'mobile', vehicle.slug)
     })
 
     test('inquiry form: tap targets are >=44x44px and the form is submittable via tap', async ({ page }) => {
@@ -208,19 +218,7 @@ test.describe('Responsive — tablet (768px)', () => {
         slug: `tab-overflow-test-${ts}`,
       })
 
-      await page.goto('/en')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'tablet:homepage')
-
-      await page.goto(`/en/vehicles/${vehicle.slug}`)
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'tablet:vehicle-detail')
-
-      await page.goto('/en/about')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
+      await assertOverflowAndTimingAcrossPages(page, test.info(), 'tablet', vehicle.slug)
     })
   })
 })
@@ -269,19 +267,7 @@ test.describe('Responsive — desktop (1280px)', () => {
         slug: `desk-overflow-test-${ts}`,
       })
 
-      await page.goto('/en')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'desktop:homepage')
-
-      await page.goto(`/en/vehicles/${vehicle.slug}`)
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
-      await attachPageLoadTiming(page, test.info(), 'desktop:vehicle-detail')
-
-      await page.goto('/en/about')
-      await page.waitForLoadState('networkidle')
-      await assertNoHorizontalOverflow(page)
+      await assertOverflowAndTimingAcrossPages(page, test.info(), 'desktop', vehicle.slug)
     })
   })
 })

@@ -134,7 +134,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
         </button>
 
         {drawerOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-labelledby="filter-drawer-heading">
             <div
               aria-hidden="true"
               className="absolute inset-0 bg-black/50"
@@ -142,7 +142,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
             />
             <div className="relative w-full max-w-xs h-full bg-[hsl(var(--background))] overflow-y-auto p-5 shadow-xl">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-semibold text-lg">{t('openFilters')}</h2>
+                <h2 id="filter-drawer-heading" className="font-semibold text-lg">{t('openFilters')}</h2>
                 <button
                   onClick={() => setDrawerOpen(false)}
                   aria-label={t('closeFilters')}

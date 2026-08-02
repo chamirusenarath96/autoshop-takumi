@@ -49,20 +49,21 @@ export function InquiryForm({ vehicleId, locale }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">{t('name')}</label>
-        <input name="name" required className={inputClass} />
+        <label htmlFor="inquiry-name" className="block text-sm font-medium mb-1">{t('name')}</label>
+        <input id="inquiry-name" name="name" required className={inputClass} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">{t('email')}</label>
-        <input name="email" type="email" required className={inputClass} />
+        <label htmlFor="inquiry-email" className="block text-sm font-medium mb-1">{t('email')}</label>
+        <input id="inquiry-email" name="email" type="email" required className={inputClass} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">{t('phone')}</label>
-        <input name="phone" type="tel" className={inputClass} />
+        <label htmlFor="inquiry-phone" className="block text-sm font-medium mb-1">{t('phone')}</label>
+        <input id="inquiry-phone" name="phone" type="tel" className={inputClass} />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">{t('message')}</label>
+        <label htmlFor="inquiry-message" className="block text-sm font-medium mb-1">{t('message')}</label>
         <textarea
+          id="inquiry-message"
           name="message"
           required
           rows={4}
