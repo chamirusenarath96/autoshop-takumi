@@ -4,9 +4,9 @@ Validation guide for confirming this feature works end-to-end once implemented. 
 
 ## Prerequisites
 
-- `npm install` completed (pulls in the new `allure-playwright`/`allure-commandline` devDependencies once added)
-- `npm run dev` running in one terminal (or rely on Playwright's `webServer` config, matching this repo's existing e2e setup)
-- `e2e/global-setup.ts` able to run (creates/logs in the admin user, matching existing `test:e2e` prerequisites)
+- `npm install` completed (pulls in the new `allure-playwright`/`allure` devDependencies once added)
+- `npm run dev` running in one terminal — required for every scenario below. Playwright's `webServer` config in `playwright.config.ts` only starts the dev server automatically when `process.env.CI` is set; a local run always needs the dev server already running
+- The `admin-setup` Playwright project able to run (creates/logs in the admin user — replaces today's `e2e/global-setup.ts` hook with a project-dependencies-based equivalent, see research.md) — note this is exactly the precondition that makes `/admin/create-first-user` unreachable in the normal `visual` project; see Scenario 2a below and research.md's "Coverage for the create-first-user admin view" decision
 
 ## Scenario 1 — Visual suite passes against unmodified pages (validates User Story 1's baseline "all good" path)
 
@@ -26,6 +26,16 @@ npx playwright test --project=visual
 3. **Expected outcome**: The admin-dashboard visual test fails with a screenshot diff, even though no functional admin test would catch this (functional tests only assert DOM/interaction, not that content is visually present).
 4. Revert the temporary breakage.
 
+## Scenario 2a — create-first-user view is covered despite the admin-setup ordering conflict (validates FR-002's fifth admin view)
+
+Run this project **standalone** — never combined with `chromium`/`visual` in the same invocation, since either of those triggers the `admin-setup` dependency that creates a user (see research.md's "Coverage for the create-first-user admin view" decision):
+
+```bash
+npx playwright test --project=visual-first-run
+```
+
+**Expected outcome**: This project has no `admin-setup` dependency, so it runs against a database with no admin user yet and snapshots `/admin/create-first-user` showing the actual first-run form, not a redirect to `/admin`/`/admin/login`.
+
 ## Scenario 3 — Visual and functional failures are distinguishable (validates User Story 2 / SC-003)
 
 ```bash
@@ -40,10 +50,8 @@ Documented procedure (also to be added to README.md/CLAUDE.md per FR-007):
 
 1. Make the intentional design change on a feature branch.
 2. Push and open a PR — CI's `e2e` job runs the visual project and fails with diffs for the changed page(s).
-3. Regenerate baselines in the CI-equivalent environment (do **not** commit a locally-generated PNG — see research.md's environment-determinism decision):
-   - Either: run the update in a container matching CI's image (`ubuntu-latest`'s Playwright browser image) and commit the resulting PNGs, or
-   - Use a dedicated CI-triggered "update snapshots" job/workflow_dispatch if one is added during implementation (see tasks.md for the decision).
-4. Push the updated baseline PNGs; CI's visual project now passes.
+3. From the GitHub Actions tab, manually trigger the `update-visual-baselines` `workflow_dispatch` job against the PR's branch (do **not** commit a locally-generated PNG — see research.md's environment-determinism decision). This job runs on the same `ubuntu-latest` runner as the `e2e` job, regenerates snapshots with `--update-snapshots`, and pushes the updated PNGs to the branch.
+4. Pull the branch locally (or just observe CI) — the updated baseline PNGs are now on the branch; CI's visual project re-runs and passes.
 
 **Expected outcome**: Suite passes with the new baseline; the diff in the PR clearly shows which snapshot PNGs changed, giving reviewers an explicit visual artifact to approve — not just "tests pass now."
 

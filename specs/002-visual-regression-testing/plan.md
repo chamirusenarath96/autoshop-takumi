@@ -12,11 +12,11 @@ Extend the existing Playwright e2e suite with visual/screenshot regression cover
 
 **Language/Version**: TypeScript (Next.js 15 / Node 20, matching `.github/workflows/ci.yml`)
 
-**Primary Dependencies**: `@playwright/test` (already in use — built-in `expect(page).toHaveScreenshot()` visual comparison, no new visual-diffing framework), `allure-playwright` (new dev dependency), `allure-commandline` (new dev dependency, for local/CI static report generation)
+**Primary Dependencies**: `@playwright/test` (already in use — built-in `expect(page).toHaveScreenshot()` visual comparison, no new visual-diffing framework; current installed version `^1.61.1`, which satisfies `allure-playwright`'s `>=1.53.0` peer requirement), `allure-playwright` (new dev dependency, reporter adapter), `allure` (new dev dependency — Allure 3's Node/TypeScript-based CLI, chosen over the older Java-based `allure-commandline` package specifically to avoid adding a Java toolchain requirement to CI/local dev for report generation, consistent with Constitution Principle VI)
 
 **Storage**: N/A — visual baselines are PNG files committed to the repo under `e2e/*-snapshots/` (Playwright's default convention); Allure results are ephemeral build output (`allure-results/`), not persisted storage
 
-**Testing**: Playwright (existing `e2e/*.spec.ts` suite: `admin.spec.ts`, `public.spec.ts`, `api.spec.ts`, `responsive.spec.ts`); this feature adds `e2e/visual.spec.ts` as a new spec file plus a new `visual` Playwright `project` entry in `playwright.config.ts`
+**Testing**: Playwright (existing `e2e/*.spec.ts` suite: `admin.spec.ts`, `public.spec.ts`, `api.spec.ts`, `responsive.spec.ts`); this feature adds `e2e/visual.spec.ts` and `e2e/visual-first-run.spec.ts` as new spec files, plus new `visual`, `visual-first-run`, and `admin-setup` Playwright `project` entries in `playwright.config.ts` (the last replacing the current top-level `globalSetup`, see research.md)
 
 **Target Platform**: CI — GitHub Actions `ubuntu-latest` runner (this becomes the authoritative environment for visual baselines, per FR-006/Assumptions); local dev (macOS/Linux/WSL) for iterative (non-authoritative) runs
 
@@ -26,7 +26,7 @@ Extend the existing Playwright e2e suite with visual/screenshot regression cover
 
 **Constraints**: Visual baselines MUST only be generated/compared in the CI Linux container (FR-006); dynamic content (timestamps, seeded IDs) MUST be masked (FR-004); adding visual coverage MUST NOT change any existing functional test's pass/fail behavior (FR-010, SC-006)
 
-**Scale/Scope**: 4 public pages × 3 viewports (mobile/tablet/desktop) = up to 12 public visual checks (landing, listing-no-filter, listing-filtered, detail, about — the spec lists 5 page/state combinations × 3 viewports = 15) + 5 Payload admin views (single viewport — admin has no established mobile/tablet requirement, unlike the public site) = roughly 20 new visual test cases total
+**Scale/Scope**: 5 public page/state combinations (landing, listing-no-filter, listing-filtered, detail, about) × 3 viewports (mobile/tablet/desktop) = 15 public visual checks + 5 Payload admin views (single viewport — admin has no established mobile/tablet requirement, unlike the public site) = 20 new visual test cases total
 
 ## Constitution Check
 
@@ -66,17 +66,17 @@ e2e/
 ├── public.spec.ts             # existing — functional public-site tests (unchanged)
 ├── api.spec.ts                # existing — REST API tests (unchanged)
 ├── responsive.spec.ts         # existing — overflow-only viewport tests (unchanged)
-├── visual.spec.ts             # NEW — visual/screenshot regression tests (public + admin)
-├── helpers.ts                 # existing — extend with a shared viewport-size constant reused by visual.spec.ts (avoid duplicating 375/768/1280 literals already in responsive.spec.ts)
-├── global-setup.ts            # existing — reused as-is for admin auth session in visual tests
-├── admin.spec.ts-snapshots/   # NEW (auto-created by Playwright) — committed baseline PNGs, admin views
-└── visual.spec.ts-snapshots/  # NEW (auto-created by Playwright) — committed baseline PNGs, public + admin
+├── visual.spec.ts             # NEW — visual/screenshot regression tests (public + admin, authenticated/unauthenticated views only — NOT create-first-user); does NOT import from another *.spec.ts file (Playwright forbids this at test-collection time)
+├── visual-first-run.spec.ts   # NEW — the single create-first-user snapshot test, in its own file/project with no admin-setup dependency (see research.md)
+├── helpers.ts                 # existing — MODIFIED to add the shared `VIEWPORTS` constant (moved here, not imported from responsive.spec.ts) plus a `getVisualMasks(page, view)` helper, both reused by visual.spec.ts
+├── global-setup.ts            # existing — REPLACED by an `admin-setup` Playwright project (project-dependencies model) performing the same `loginAsAdmin()` flow, so `visual-first-run` can opt out of it (see research.md's create-first-user decision — this is the one behavior change to existing test infrastructure this feature requires, since per-project globalSetup opt-out doesn't exist)
+└── visual.spec.ts-snapshots/  # NEW (auto-created by Playwright) — committed baseline PNGs for every visual.spec.ts (and visual-first-run.spec.ts) test, public and admin alike (Playwright names each spec file's snapshot directory after itself, so there is no separate admin.spec.ts-snapshots/)
 
-playwright.config.ts           # MODIFIED — add `visual` project, add allure-playwright reporter
+playwright.config.ts           # MODIFIED — replace `globalSetup` with an `admin-setup` project; add `chromium`/`visual` `dependencies: ['admin-setup']`; add `visual` project (scoped to visual.spec.ts only via testMatch; `chromium` gets a matching testIgnore so the two projects never double-run each other's spec) and `visual-first-run` project (scoped to visual-first-run.spec.ts, no `admin-setup` dependency); add allure-playwright reporter; add an explicit expect.toHaveScreenshot tolerance
 
-.github/workflows/ci.yml       # MODIFIED — upload allure-results/ (and generated static report) as artifact
+.github/workflows/ci.yml       # MODIFIED — upload allure-results/ (and generated static report) as artifact, unconditionally (not gated on test success); new workflow_dispatch job for regenerating visual baselines (see research.md)
 
-package.json                   # MODIFIED — add allure-playwright, allure-commandline devDependencies; new npm scripts for visual test run + baseline update + allure report generation
+package.json                   # MODIFIED — add allure-playwright, allure devDependencies; new npm scripts for visual test run + baseline update + allure report generation; ensure allure-results/ is cleared before each run (allure-playwright appends rather than overwriting)
 
 README.md / CLAUDE.md          # MODIFIED — document visual test workflow, baseline update procedure, CI-environment-determinism gotcha; CLAUDE.md testing rule updated per FR-011
 ```
