@@ -5,12 +5,14 @@ Validation guide for confirming this feature works end-to-end once implemented. 
 ## Prerequisites
 
 - `npm install` completed (pulls in the new `allure-playwright`/`allure` devDependencies once added)
-- For the `visual` project locally: `npm run dev` running in one terminal against a database that already has an admin user (any normal local dev setup works) — Playwright's `webServer` config only starts the dev server automatically when `process.env.CI` is set, so a local run always needs the dev server already running
+- For the `visual` project locally: `npm run dev` running in one terminal, then `npx tsx e2e/visual-setup.ts` run once against it to create `AUTH_STATE_PATH`, seed `SiteSettings`, and create the deterministic Vehicle fixture (`e2e/.visual-fixture.json`) that `e2e/visual.spec.ts`'s tests read — without this step, `test:e2e:visual` will fail immediately trying to read a fixture file that doesn't exist yet. `playwright.visual.config.ts` has no `webServer` entry (see research.md), so a local run always needs both the dev server and this setup step run manually first
 - For `visual-first-run`: this project needs a database with **no** admin user yet, which a normal local dev database won't have after first setup — treat this as CI-only in practice (see Scenario 2a) unless you deliberately point `DATABASE_URI` at a fresh, empty SQLite file first
 
 ## Scenario 1 — Visual suite passes against unmodified pages (validates User Story 1's baseline "all good" path)
 
 ```bash
+npm run dev &
+npx tsx e2e/visual-setup.ts
 npm run test:e2e:visual
 ```
 
