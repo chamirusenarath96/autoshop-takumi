@@ -33,10 +33,10 @@ This test only runs meaningfully inside the `visual-e2e` CI job, where `visual-f
 ```bash
 rm -f /tmp/visual-first-run-test.db   # or wherever your scratch DB lives
 DATABASE_URI=file:/tmp/visual-first-run-test.db npm run dev &
-DATABASE_URI=file:/tmp/visual-first-run-test.db npx playwright test --project=visual-first-run
+DATABASE_URI=file:/tmp/visual-first-run-test.db npx playwright test --config=playwright.visual.config.ts --project=visual-first-run
 ```
 
-**Expected outcome**: Against a database with no `Users` row yet, `/admin/create-first-user` renders the actual first-run form (not a redirect to `/admin`/`/admin/login`), and the snapshot test passes against the committed baseline.
+**Expected outcome**: Against a database with no `Users` row yet, `/admin/create-first-user` renders the actual first-run form (not a redirect to `/admin`/`/admin/login`), and the snapshot test passes against the committed baseline. This only works because `playwright.visual.config.ts` never references `e2e/global-setup.ts` (see research.md) — running this same test via the main `playwright.config.ts` would fail, since that config's `globalSetup` always creates an admin user first.
 
 ## Scenario 3 — Visual and functional failures are distinguishable (validates User Story 2 / SC-003)
 
