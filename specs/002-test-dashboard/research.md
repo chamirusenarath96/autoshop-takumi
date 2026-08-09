@@ -120,20 +120,53 @@ to sort out later.
 
 ## 5. Storage credential scoping
 
-**Decision**: The dashboard's R2 credentials are scoped read-only to the
-`testing-artifacts/` prefix (a separate R2 API token from whatever the main
-app uses for its media bucket writes), supplied via environment variables
-per FR-010/FR-011.
+**Decision**: The dashboard's R2 access is read-only and isolated to the
+`testing-artifacts/` prefix, using Cloudflare R2's **temporary credentials**
+API (short-lived, SigV4 credentials scoped to a `prefixes`/`objects` list
+within a single bucket) rather than a normal long-lived R2 API token. This
+distinction matters and was corrected from an earlier draft of this
+decision: **static R2 API tokens can only be scoped to a bucket, not to a
+prefix or object within it** — a static token "scoped to
+`testing-artifacts/`" is not something R2 actually offers. Getting genuine
+prefix isolation on a bucket shared with the main app's production media
+requires either (a) R2's temporary-credentials endpoint, minted server-side
+with `prefixes: ["testing-artifacts/"]` and refreshed as needed, or (b) a
+separate bucket dedicated to test artifacts. This decision picks (a) to
+avoid standing up and paying for a second bucket for what's still a small
+amount of data, but (b) is a legitimate, arguably simpler fallback if
+temporary-credential minting proves awkward in the dashboard's serverless
+deploy environment — see Alternatives below.
 
 **Rationale**: Least-privilege — the dashboard has no legitimate reason to
-read or write the main app's media objects, and a leaked dashboard
-credential should not be able to touch production media. This mirrors the
-explicit incident reference in issue #19 (`/api/internal-init-schema`) about
-avoiding overly-broad ambient credentials.
+read or write the main app's media objects, and a leaked/expired dashboard
+credential should not be able to touch production media. Temporary
+credentials additionally bound the blast radius *in time* (short expiry),
+not just in scope — an advantage a static token, even a hypothetically
+narrowly-scoped one, wouldn't have. This mirrors the explicit incident
+reference in issue #19 (`/api/internal-init-schema`) about avoiding
+overly-broad, long-lived ambient credentials. The application-level
+`runId`/`reportPath` validation in `contracts/runs-data-contract.md` (reject
+traversal, absolute URLs, prefix mismatches) is enforced as defense-in-depth
+regardless of the storage-level scoping mechanism — one is not a substitute
+for the other.
 
 **Alternatives considered**:
 - *Reuse the main app's existing R2 credentials wholesale*: rejected —
-  unnecessarily broad scope for a read-only, single-user internal tool.
+  unnecessarily broad scope for a read-only, single-user internal tool, and
+  the main app's own credentials are presumably not prefix-restricted
+  either.
+- *A static R2 API token, believed to be prefix-scoped*: rejected once
+  verified against R2's actual capabilities (see Decision above) — this was
+  the original, incorrect assumption in an earlier draft of this research;
+  static tokens only scope to a bucket.
+- *A separate, dedicated R2 bucket for `testing-artifacts/`*: viable
+  fallback if temporary credentials turn out to be impractical to mint and
+  refresh from the dashboard's deploy target — trades one extra bucket to
+  manage for not needing the temporary-credentials flow at all. Not chosen
+  as the primary decision only because it's marginally more infrastructure
+  for what's still a small, single-user tool, but this is a low-stakes
+  choice either way and can change during implementation without affecting
+  any other part of this spec.
 
 ## Outcome
 

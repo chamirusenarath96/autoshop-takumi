@@ -8,9 +8,12 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
 
 - Issue #15 has landed and CI is actively uploading Allure artifacts to
   `testing-artifacts/<run-id>/` in the shared R2 bucket, per
-  `contracts/runs-data-contract.md` (at least one complete run exists for a
-  non-empty-state check, though the empty state itself, FR-012, should also
-  be validated against a fresh bucket/prefix with zero runs).
+  `contracts/runs-data-contract.md`. At least **two** complete runs with
+  distinct `runId`s and different report contents exist (needed for
+  Scenario 4 to actually distinguish "the latest run" from "a specific
+  older run" rather than trivially matching a single run either way), plus
+  the empty state (FR-012) is separately validated against a fresh
+  bucket/prefix with zero runs (Scenario 5).
 - A GitHub OAuth app registered for the dashboard, with its client ID/secret
   available.
 - `ALLOWED_DASHBOARD_GITHUB_ID` set to the stable numeric GitHub account ID
@@ -18,7 +21,8 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
   FR-002 and `data-model.md`'s Authorized Viewer entity — the comparison is
   ID-based, not login-based), and access to at least one *other* GitHub
   account for the "denied" path.
-- R2 credentials scoped read-only to `testing-artifacts/` (research.md §5).
+- R2 temporary credentials, minted server-side and scoped to
+  `testing-artifacts/` (research.md §5) — not a static bucket-wide token.
 - `.env.example` copied to `.env.local` and filled in with the above.
 
 ## Setup
@@ -39,6 +43,14 @@ npm run dev                  # → http://localhost:3000
 3. Repeat step 1 with a direct deep link, e.g.
    `http://localhost:3000/runs/<any-run-id>`.
 4. **Expect**: same redirect — deep links are not a bypass (contracts/auth-contract.md).
+5. **Test the underlying resource, not just the page shell**: with no
+   session, directly request a known run's report asset, e.g.
+   `http://localhost:3000/runs/<run-id>/report/index.html` (or the
+   equivalent `data/*.json`).
+6. **Expect**: the same redirect/authorization failure as step 4, and the
+   response body contains none of that run's report content — a page-level
+   redirect alone doesn't prove the underlying asset route is guarded if it
+   was never actually requested directly.
 
 ## Scenario 2 — Non-allowlisted account is denied (US3, FR-002)
 
@@ -59,6 +71,11 @@ npm run dev                  # → http://localhost:3000
    (`contracts/auth-contract.md`); no run list, no run detail, no counts —
    nothing derived from `testing-artifacts/` appears anywhere in the
    response.
+5. While still signed in as the denied account, directly request the same
+   run-data and report-asset URLs as Scenario 1 step 5.
+6. **Expect**: same authorization failure, no run/report content in the
+   response — a denied *session* must not still be able to reach data
+   through a route the page-level check didn't cover.
 
 ## Scenario 3 — Allowed account sees the latest run (US1, FR-004)
 
@@ -71,12 +88,17 @@ npm run dev                  # → http://localhost:3000
 
 ## Scenario 4 — Browsing history (US2, FR-005/FR-006, SC-002)
 
+Requires the **two distinct complete runs** from Prerequisites, with
+different report contents — this scenario is only meaningful if there's a
+non-latest run whose data is actually distinguishable from the latest.
+
 1. From the dashboard home, navigate to the history/run-list view.
-2. **Expect**: runs listed most-recent-first, each showing date/time and
-   overall pass/fail summary; reachable in ≤3 interactions per SC-002.
-3. Select a run other than the latest.
-4. **Expect**: that specific run's full report renders — not the latest
-   run's data.
+2. **Expect**: both runs listed most-recent-first, each showing date/time
+   and overall pass/fail summary; reachable in ≤3 interactions per SC-002.
+3. Select the run that is **not** the latest.
+4. **Expect**: that specific older run's own report content renders (verify
+   against its known distinct data) — not the latest run's data reused or
+   duplicated.
 
 ## Scenario 5 — Empty and degraded states (FR-012/FR-013, Edge Cases)
 
@@ -87,14 +109,36 @@ npm run dev                  # → http://localhost:3000
    invalid endpoint temporarily) and reload.
 4. **Expect**: a "results temporarily unavailable" state, not an unhandled
    crash — and confirm no stale/incorrect data is shown as if it were live.
+5. Upload a run prefix with **no `summary.json`** yet (simulating an
+   in-progress upload) that is newer than the existing latest-complete run,
+   then reload the dashboard home.
+6. **Expect**: the existing latest-complete run's data still renders, plus
+   the "a newer run is still processing" indicator from
+   `contracts/runs-data-contract.md`'s "Latest run" semantics — the newer,
+   incomplete run must not silently replace or be indistinguishable from a
+   genuinely-latest run, and must not appear as a selectable entry in the
+   history list (Scenario 4).
+7. Upload a run prefix with a **malformed `summary.json`** (e.g. invalid
+   JSON, or a `reportPath`/`runId` that fails the validation in
+   `contracts/runs-data-contract.md`), then reload.
+8. **Expect**: that run is treated as `incomplete` — same non-crashing,
+   clearly-indicated-as-unavailable behavior as step 6, and other,
+   validly-complete runs continue to render normally in both the latest and
+   history views.
 
 ## Scenario 6 — Operational isolation (FR-009, SC-004)
 
 1. Confirm the dashboard's Vercel project, GitHub OAuth app, and deploy
    pipeline are entirely separate from `autoshop-takumi`'s.
-2. Confirm the dashboard's R2 credentials are scoped read-only to
-   `testing-artifacts/` and cannot write to or delete objects the main
-   app's media library depends on.
+2. **Effective-policy test, not just configuration review**: using the
+   dashboard's actual R2 temporary credentials against **disposable
+   validation objects** (never the main app's real production media),
+   attempt (a) a `GetObject`/`ListObjectsV2` call for a key outside
+   `testing-artifacts/` and confirm it's denied, and (b) a `PutObject` and a
+   `DeleteObject` call — both inside and outside `testing-artifacts/` — and
+   confirm both are denied. "The env var says read-only" is not the same
+   claim as "the credential was actually denied when it tried to write" —
+   this step proves the latter.
 
 All six scenarios passing, together with the automated Vitest/Playwright
 suites referenced in `plan.md`'s Testing section, constitute this feature
