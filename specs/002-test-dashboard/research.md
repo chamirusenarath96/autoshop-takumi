@@ -54,7 +54,10 @@ signed JWT sessions are sufficient and match constitution Principle VI
 
 **Decision**: Enforce the allowlist check in Next.js `middleware.ts` so it
 runs on every request/route (including deep links to `/runs/[runId]`), not
-only inside individual page components.
+only inside individual page components — with the explicit exception of
+`/api/auth/:path*` (Auth.js's own sign-in/callback handling, which must
+remain reachable *before* a session exists) and `/access-denied` itself, per
+`contracts/auth-contract.md`'s Middleware Scope section and tasks.md T006.
 
 **Rationale**: FR-003 explicitly requires per-view/per-request enforcement,
 not just entry-page gating. Centralizing the check in middleware means a
@@ -78,7 +81,8 @@ generates Allure's static HTML report (`allure generate --clean`, **not**
 the raw `allure-results/` result-file directory — see
 `contracts/allure-report-contract.md` for the exact bundle format and why a
 pre-rendered report was chosen over shipping raw results) and uploads it to
-`testing-artifacts/<run-id>/report/` in the shared R2 bucket, plus a small
+`testing-artifacts/<run-id>/report/` in a dedicated R2 bucket (see §5 —
+not the same bucket as the main app's production media), plus a small
 `summary.json` per run (status, counts, timestamp, commit SHA, a
 self-referential `reportPath`) written alongside it — and written **last**,
 only after the report bundle upload succeeds — for cheap list-view
@@ -120,53 +124,77 @@ to sort out later.
 
 ## 5. Storage credential scoping
 
-**Decision**: The dashboard's R2 access is read-only and isolated to the
-`testing-artifacts/` prefix, using Cloudflare R2's **temporary credentials**
-API (short-lived, SigV4 credentials scoped to a `prefixes`/`objects` list
-within a single bucket) rather than a normal long-lived R2 API token. This
-distinction matters and was corrected from an earlier draft of this
-decision: **static R2 API tokens can only be scoped to a bucket, not to a
-prefix or object within it** — a static token "scoped to
-`testing-artifacts/`" is not something R2 actually offers. Getting genuine
-prefix isolation on a bucket shared with the main app's production media
-requires either (a) R2's temporary-credentials endpoint, minted server-side
-with `prefixes: ["testing-artifacts/"]` and refreshed as needed, or (b) a
-separate bucket dedicated to test artifacts. This decision picks (a) to
-avoid standing up and paying for a second bucket for what's still a small
-amount of data, but (b) is a legitimate, arguably simpler fallback if
-temporary-credential minting proves awkward in the dashboard's serverless
-deploy environment — see Alternatives below.
+**Decision**: Test artifacts live in a **separate, dedicated R2 bucket**
+(e.g. `autoshop-takumi-testing-artifacts`) — not the same bucket as the main
+app's production media — and the dashboard's static R2 API token is scoped
+to that bucket alone. This is a change from an earlier draft of this
+decision (which proposed prefix-isolating a *shared* bucket via temporary
+credentials) after working through why that doesn't actually achieve
+isolation: **R2 temporary credentials can never exceed the permissions of
+the parent token used to mint them**, and since static R2 tokens only scope
+to a bucket (never a prefix), the parent token would itself need bucket-wide
+access to the *shared* bucket — including production media — in order to be
+capable of minting a `testing-artifacts/`-restricted child credential from
+it at all. A compromised minting secret, a bug in the minting endpoint, or
+simply reading the parent token out of the dashboard's deploy environment
+would then expose the *entire* shared bucket, not just the test-artifacts
+prefix — the prefix restriction only constrains the well-behaved path, not
+a compromised one. A dedicated bucket closes this off structurally: the
+dashboard's token (parent or temporary, either works) is scoped to a bucket
+that contains nothing but test artifacts, so there is no production-media
+blast radius to worry about regardless of how the credential is compromised.
 
-**Rationale**: Least-privilege — the dashboard has no legitimate reason to
-read or write the main app's media objects, and a leaked/expired dashboard
-credential should not be able to touch production media. Temporary
-credentials additionally bound the blast radius *in time* (short expiry),
-not just in scope — an advantage a static token, even a hypothetically
-narrowly-scoped one, wouldn't have. This mirrors the explicit incident
-reference in issue #19 (`/api/internal-init-schema`) about avoiding
-overly-broad, long-lived ambient credentials. The application-level
-`runId`/`reportPath` validation in `contracts/runs-data-contract.md` (reject
-traversal, absolute URLs, prefix mismatches) is enforced as defense-in-depth
-regardless of the storage-level scoping mechanism — one is not a substitute
-for the other.
+**Rationale**: Least-privilege that actually holds under compromise, not
+just under normal operation — the distinction the parent-credential
+constraint above makes necessary. The dashboard still has no legitimate
+reason to read or write the main app's media objects; a dedicated bucket
+enforces that at the infrastructure boundary rather than relying on a
+scoping mechanism (prefix-restricted temporary credentials on a shared
+bucket) that turned out not to hold end-to-end. This mirrors the explicit
+incident reference in issue #19 (`/api/internal-init-schema`) about avoiding
+overly-broad ambient credentials. The application-level `runId`/`reportPath`
+validation in `contracts/runs-data-contract.md` (reject traversal, absolute
+URLs, prefix mismatches) remains enforced as defense-in-depth regardless of
+the storage-level boundary — one is not a substitute for the other.
+Temporary credentials are still worth layering on top *within* the
+dedicated bucket (bounding blast radius in time, not just scope), but they
+are no longer load-bearing for isolation from production media the way they
+would have needed to be on a shared bucket.
+
+**Credential lifecycle** (for whichever token type is used against the
+dedicated bucket): if a static bucket-scoped token is used directly, it is
+long-lived but bucket-contained, so ordinary rotation practice (issue
+#19-style: rotate on suspected compromise, don't hardcode) applies. If
+temporary credentials are layered on top for extra blast-radius reduction,
+they MUST be minted with a short TTL (minutes, matching the signed-URL
+expiry used for report-asset delivery in
+`contracts/allure-report-contract.md`, so both mechanisms expire on a
+similar timescale) and refreshed proactively — before expiry, not reactively
+after a request fails — so a mid-request expiry during a lazy-loaded report
+asset fetch doesn't surface as a user-visible error; a request that does
+race an expiry MUST retry once against a freshly-minted credential rather
+than surfacing the failure directly. Credential-minting failure (of either
+type) MUST fail closed — the affected view shows the "results temporarily
+unavailable" state from `contracts/runs-data-contract.md`'s Error Handling,
+never a silent fallback to a broader-scoped credential.
 
 **Alternatives considered**:
 - *Reuse the main app's existing R2 credentials wholesale*: rejected —
-  unnecessarily broad scope for a read-only, single-user internal tool, and
-  the main app's own credentials are presumably not prefix-restricted
-  either.
-- *A static R2 API token, believed to be prefix-scoped*: rejected once
-  verified against R2's actual capabilities (see Decision above) — this was
-  the original, incorrect assumption in an earlier draft of this research;
-  static tokens only scope to a bucket.
-- *A separate, dedicated R2 bucket for `testing-artifacts/`*: viable
-  fallback if temporary credentials turn out to be impractical to mint and
-  refresh from the dashboard's deploy target — trades one extra bucket to
-  manage for not needing the temporary-credentials flow at all. Not chosen
-  as the primary decision only because it's marginally more infrastructure
-  for what's still a small, single-user tool, but this is a low-stakes
-  choice either way and can change during implementation without affecting
-  any other part of this spec.
+  unnecessarily broad scope for a read-only, single-user internal tool.
+- *A static R2 API token, believed to be prefix-scoped, against the shared
+  bucket*: rejected once verified against R2's actual capabilities — static
+  tokens only scope to a bucket, not a prefix.
+- *R2 temporary credentials, prefix-scoped to `testing-artifacts/`, against
+  the shared bucket*: this was the prior decision; rejected once the
+  parent-credential constraint above was worked through — it doesn't
+  actually isolate production media under a compromised minting path, only
+  under the well-behaved one. A dedicated bucket solves the same problem
+  more directly, without depending on that distinction holding.
+- *A trusted credential-minting broker as a separate service*: would also
+  address the parent-credential problem on a shared bucket, but adds an
+  entire extra service (with its own deploy, auth, and failure modes) to
+  build and operate for a single-user internal tool — a dedicated bucket
+  achieves the same isolation with an infrastructure change, not new code.
 
 ## Outcome
 

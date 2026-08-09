@@ -31,6 +31,6 @@
 
 ## Notes
 
-- Hosting architecture (separate Next.js project), OAuth provider (GitHub), and storage approach (shared R2 bucket, new prefix) were treated as recorded decisions rather than [NEEDS CLARIFICATION] markers, since the source issue (#16) already performed and documented that analysis with an explicit recommendation. See the Assumptions section in spec.md for reasoning on each.
+- Hosting architecture (separate Next.js project), OAuth provider (GitHub), and storage approach (dedicated R2 bucket for test artifacts — revised during review from an initial shared-bucket-with-prefix-isolation proposal once the R2 temporary-credentials parent-permission constraint made clear that prefix isolation alone doesn't protect production media, see research.md §5) were treated as recorded decisions rather than [NEEDS CLARIFICATION] markers, since the source issue (#16) already performed and documented the initial analysis with an explicit recommendation, and the storage-isolation mechanism was refined from there during spec review. See the Assumptions section in spec.md for reasoning on each.
 - This feature has a hard dependency on issue #15 (Allure artifact production in CI) — noted in spec.md's Assumptions and Edge Cases; does not block writing spec/plan/tasks, but does block real-data implementation/deployment.
 - All items pass; no spec revisions needed before `/speckit-plan`.

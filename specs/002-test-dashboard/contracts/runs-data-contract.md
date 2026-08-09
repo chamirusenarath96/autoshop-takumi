@@ -14,8 +14,11 @@ The **producer** side of this contract (writing `summary.json` and the
 the `autoshop-takumi` repo — **not** by this dashboard project. This
 dashboard is a pure **consumer**: read-only, never writes to
 `testing-artifacts/`. Issue #15's own acceptance criteria must include: (a)
-uploading to the `testing-artifacts/<run-id>/` prefix on the shared R2
-bucket, (b) uploading the full report bundle, and (c) writing `summary.json`
+uploading to the `testing-artifacts/<run-id>/` prefix on the **dedicated
+test-artifacts R2 bucket** (a separate bucket from the main app's
+production media — see `research.md` §5 for why prefix-isolating a shared
+bucket doesn't actually protect production media), (b) uploading the full
+report bundle, and (c) writing `summary.json`
 last, only after the bundle upload succeeds (see Run Identity & Listing
 below for why ordering matters). Without issue #15 implementing its half of
 this contract, this dashboard has no data to show regardless of how
