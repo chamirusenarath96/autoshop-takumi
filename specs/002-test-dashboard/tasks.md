@@ -55,13 +55,13 @@ Single Next.js project (see plan.md Project Structure):
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
 - [ ] T004 [P] Configure Auth.js (NextAuth v5) with the GitHub OAuth provider and JWT session strategy in `src/auth.ts`
-- [ ] T005 [US3] Implement the `signIn` callback in `src/auth.ts` that rejects any GitHub login not equal to `ALLOWED_DASHBOARD_GITHUB_LOGIN` (FR-002)
-- [ ] T006 Implement `src/middleware.ts` enforcing a valid, allowlisted session on every dashboard route including deep links, redirecting unauthenticated/rejected requests before any page component runs (FR-001, FR-003, `contracts/auth-contract.md`)
+- [ ] T005 [US3] Implement the `signIn` callback in `src/auth.ts` that compares the authenticated account's stable GitHub ID (`profile.id`) against `ALLOWED_DASHBOARD_GITHUB_ID` — not the login — returning `false` for any non-match, with `pages: { error: "/access-denied" }` configured so rejection routes deterministically (FR-002, `contracts/auth-contract.md`)
+- [ ] T006 Implement `src/middleware.ts` enforcing a valid, allowlisted session on every dashboard route including deep links, redirecting unauthenticated/rejected requests before any page component runs — with `/api/auth/:path*` explicitly excluded from the match so Auth.js's own sign-in/callback handling is never itself gated (FR-001, FR-003, `contracts/auth-contract.md`)
 - [ ] T007 [P] [US3] Create the access-denied route/page at `src/app/access-denied/page.tsx`, rendered on allowlist rejection, containing no run/report data
 - [ ] T008 [P] Implement a read-only R2 client wrapper in `src/lib/r2.ts` using `@aws-sdk/client-s3`, scoped to the `testing-artifacts/` prefix (research.md §5)
 - [ ] T009 [P] Define the `CIRun` type/shape in `src/lib/types.ts` per `data-model.md` (runId, startedAt, status, commitSha, counts, reportPath)
-- [ ] T010 Implement `listRunPrefixes()` and `readRunSummary(runId)` in `src/lib/runs.ts` reading `testing-artifacts/<run-id>/summary.json` via `src/lib/r2.ts`, per `contracts/runs-data-contract.md` — treating a missing/malformed `summary.json` as `status: 'incomplete'` rather than throwing (depends on T008, T009)
-- [ ] T011 [P] Create `.env.example` documenting `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_SECRET`, `ALLOWED_DASHBOARD_GITHUB_LOGIN`, and the R2 read-only credential/endpoint variables (FR-010, FR-011)
+- [ ] T010 Implement `listRunPrefixes()` and `readRunSummary(runId)` in `src/lib/runs.ts` reading `testing-artifacts/<run-id>/summary.json` via `src/lib/r2.ts`, per `contracts/runs-data-contract.md` — deriving the expected `reportPath` from `runId` and rejecting any `summary.json` whose `reportPath` doesn't match (or contains traversal/absolute-URL patterns), and treating a missing/malformed `summary.json` as `status: 'incomplete'` rather than throwing (depends on T008, T009)
+- [ ] T011 [P] Create `.env.example` documenting `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_SECRET`, `ALLOWED_DASHBOARD_GITHUB_LOGIN`, `ALLOWED_DASHBOARD_GITHUB_ID`, and the read-only R2 credentials — `R2_BUCKET`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` (naming matches this main repo's own `resolveR2Config`/`deploymentConfig.ts` convention for consistency). `R2_PUBLIC_URL` is explicitly **not** used — report assets are proxied through the authorized session, not served from a public bucket URL (see `contracts/runs-data-contract.md`) (FR-010, FR-011)
 
 **Checkpoint**: Auth gating and run-data access are in place — User Stories 1 and 2 can now be built on top, and User Story 3's dedicated verification tests can run against real behavior.
 
@@ -81,10 +81,10 @@ Single Next.js project (see plan.md Project Structure):
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Implement `getLatestRun()` in `src/lib/runs.ts`, returning the most recent complete `CIRun` or `null` (depends on T010)
-- [ ] T016 [US1] Implement `getRunReport(runId)` in `src/lib/runs.ts` to fetch/serve a single run's full Allure report bundle content from `reportPath` (depends on T010)
-- [ ] T017 [US1] Implement the dashboard home page in `src/app/(dashboard)/page.tsx`, rendering the latest run's overall status and pass/fail/skipped counts (depends on T015)
-- [ ] T018 [US1] Implement the run detail page in `src/app/(dashboard)/runs/[runId]/page.tsx`, rendering per-test results, failure messages, and any screenshots/traces Allure captured (depends on T016)
+- [ ] T015 [US1] Implement `getLatestRun()` in `src/lib/runs.ts`, returning the most recent run with a valid/complete `summary.json` (the "latest complete" run, per `contracts/runs-data-contract.md`) plus a flag/signal when a more recent, still-uploading or malformed run prefix exists beyond it (depends on T010)
+- [ ] T016 [US1] Implement a same-origin, session-gated report-serving route (e.g. `src/app/(dashboard)/runs/[runId]/report/[...path]/route.ts`) that validates the requested asset key resolves under that run's `testing-artifacts/<run-id>/report/` prefix and streams it (or redirects to a short-lived signed R2 URL) per `contracts/allure-report-contract.md`'s Delivery/access model — never a direct/public storage link (depends on T010)
+- [ ] T017 [US1] Implement the dashboard home page in `src/app/(dashboard)/page.tsx`, rendering the latest-complete run's overall status and pass/fail/skipped counts, plus the "newer run still processing/unreadable" indicator from T015 when applicable (depends on T015)
+- [ ] T018 [US1] Implement the run detail page in `src/app/(dashboard)/runs/[runId]/page.tsx`, rendering per-test results, failure messages, and any screenshots/traces Allure captured, loaded via the T016 report route (depends on T016)
 - [ ] T019 [US1] Add the empty-state UI to `src/app/(dashboard)/page.tsx` for when `getLatestRun()` returns `null` (FR-012)
 - [ ] T020 [US1] Add a "results temporarily unavailable" degraded-state UI to `src/app/(dashboard)/page.tsx` and `src/app/(dashboard)/runs/[runId]/page.tsx` for R2-unreachable or malformed-run conditions, without crashing (FR-013)
 
@@ -105,7 +105,7 @@ Single Next.js project (see plan.md Project Structure):
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Implement `listRuns({ page, pageSize })` in `src/lib/runs.ts`, returning paginated, most-recent-first `CIRun` summaries (depends on T010)
+- [ ] T023 [US2] Implement `listRuns({ page, pageSize })` in `src/lib/runs.ts`, returning paginated, most-recent-first `CIRun` summaries — per `contracts/runs-data-contract.md`'s ordering rules: fetch the lexicographically (= chronologically) ordered, incomplete-filtered run-prefix list, then paginate the reversed list at the application layer (depends on T010)
 - [ ] T024 [US2] Implement the history/run-list page in `src/app/(dashboard)/runs/page.tsx`, showing each run's date/time and overall pass/fail summary (depends on T023)
 - [ ] T025 [US2] Add pagination/lazy-loading controls to `src/app/(dashboard)/runs/page.tsx` so the list stays usable as runs accumulate (SC-002)
 - [ ] T026 [US2] Link each history row in `src/app/(dashboard)/runs/page.tsx` to its `runs/[runId]` detail view (reuses US1's `src/app/(dashboard)/runs/[runId]/page.tsx` from T018)
@@ -140,7 +140,7 @@ Single Next.js project (see plan.md Project Structure):
 **Purpose**: Documentation, isolation verification, and end-to-end validation across all stories.
 
 - [ ] T032 [P] Write the project README documenting how this dashboard relates to `autoshop-takumi`, how CI runs deliver new Allure artifacts into `testing-artifacts/` (per `contracts/runs-data-contract.md`), and how to rotate/replace the GitHub OAuth app registration in `README.md` (FR-014)
-- [ ] T033 [P] Component test: degraded/error state renders (not crashes) when a run's `summary.json` is malformed or R2 is unreachable in `tests/unit/error-states.test.tsx`
+- [ ] T033 [P] Component test: degraded/error state renders (not crashes) when a run's `summary.json` is malformed, its `report/` bundle is malformed/incomplete, or R2 is unreachable — including a history list where one run's detail is bad but the rest of the list still renders — in `tests/unit/error-states.test.tsx` (FR-013, `contracts/runs-data-contract.md`)
 - [ ] T034 Verify the dashboard's R2 credentials are scoped read-only to `testing-artifacts/` and cannot write to or delete objects the main app's media library depends on (FR-009, SC-004, research.md §5; quickstart.md Scenario 6)
 - [ ] T035 Confirm the dashboard's Vercel project and GitHub OAuth app registration are fully separate from `autoshop-takumi`'s own (FR-009, SC-004; quickstart.md Scenario 6)
 - [ ] T036 Run all `quickstart.md` validation scenarios end-to-end against a deployed preview and record results

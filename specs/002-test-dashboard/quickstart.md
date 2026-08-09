@@ -13,8 +13,10 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
   be validated against a fresh bucket/prefix with zero runs).
 - A GitHub OAuth app registered for the dashboard, with its client ID/secret
   available.
-- `ALLOWED_DASHBOARD_GITHUB_LOGIN` set to a real, reachable test GitHub
-  account for the "allowed" path, and access to at least one *other* GitHub
+- `ALLOWED_DASHBOARD_GITHUB_ID` set to the stable numeric GitHub account ID
+  of a real, reachable test account for the "allowed" path (see spec.md
+  FR-002 and `data-model.md`'s Authorized Viewer entity — the comparison is
+  ID-based, not login-based), and access to at least one *other* GitHub
   account for the "denied" path.
 - R2 credentials scoped read-only to `testing-artifacts/` (research.md §5).
 - `.env.example` copied to `.env.local` and filled in with the above.
@@ -25,7 +27,7 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
 cd autoshop-takumi-test-dashboard
 npm install
 cp .env.example .env.local   # fill in AUTH_GITHUB_ID/SECRET, AUTH_SECRET,
-                              # ALLOWED_DASHBOARD_GITHUB_LOGIN, R2 credentials
+                              # ALLOWED_DASHBOARD_GITHUB_ID, R2 credentials
 npm run dev                  # → http://localhost:3000
 ```
 
@@ -40,11 +42,23 @@ npm run dev                  # → http://localhost:3000
 
 ## Scenario 2 — Non-allowlisted account is denied (US3, FR-002)
 
-1. Complete GitHub OAuth sign-in using an account that is **not** the value
-   configured in `ALLOWED_DASHBOARD_GITHUB_LOGIN`.
-2. **Expect**: landed on an access-denied page/state; no run list, no run
-   detail, no counts — nothing derived from `testing-artifacts/` appears
-   anywhere in the response.
+1. Start from a **fresh/clean browser context** (new incognito window, or
+   explicitly clear cookies/local storage first) — reusing a browser profile
+   that still holds the allowlisted account's session would let the
+   dashboard render successfully without this scenario actually exercising
+   the denial path at all.
+2. Complete GitHub OAuth sign-in using an account whose stable GitHub
+   account ID is **not** the value configured in
+   `ALLOWED_DASHBOARD_GITHUB_ID`.
+3. **Verify the selected account before asserting anything else** — confirm
+   (e.g. via GitHub's own account-chooser UI during the OAuth flow, or by
+   checking which account the test fixture actually authenticated as) that
+   sign-in genuinely completed as the non-allowlisted account, not a
+   leftover session from Scenario 3.
+4. **Expect**: landed on `/access-denied?error=AccessDenied`
+   (`contracts/auth-contract.md`); no run list, no run detail, no counts —
+   nothing derived from `testing-artifacts/` appears anywhere in the
+   response.
 
 ## Scenario 3 — Allowed account sees the latest run (US1, FR-004)
 
