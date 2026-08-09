@@ -8,7 +8,7 @@
 
 ## Summary
 
-A single-user, OAuth-gated dashboard that lets the site owner view the latest and historical Allure test-report data produced by this repo's CI (the e2e/visual regression suite from issue #15), without downloading GitHub Actions artifact zips. Ships as its own minimal Next.js project (**not** inside `autoshop-takumi`) — its own Vercel project and GitHub OAuth app — reading Allure result/report artifacts CI uploads into a new `testing-artifacts/` prefix on the same Cloudflare R2 bucket the main app already uses in production. Auth.js (NextAuth v5) with the GitHub provider, JWT sessions (no database), and a `signIn` callback that only admits one allowlisted GitHub login enforces the single-viewer restriction on every route, not just the landing page.
+A single-user, OAuth-gated dashboard that lets the site owner view the latest and historical Allure test-report data produced by this repo's CI (the e2e/visual regression suite from issue #15), without downloading GitHub Actions artifact zips. Ships as its own minimal Next.js project (**not** inside `autoshop-takumi`) — its own Vercel project and GitHub OAuth app — reading Allure result/report artifacts CI uploads into a `testing-artifacts/` prefix on a **dedicated Cloudflare R2 bucket used only for test artifacts**, separate from the bucket the main app uses for production media (research.md §5 — prefix-isolating a shared bucket doesn't hold up against a compromised credential-minting path). Auth.js (NextAuth v5) with the GitHub provider, JWT sessions (no database), and a `signIn` callback that compares the stable GitHub account ID against one allowlisted value enforces the single-viewer restriction on every route, not just the landing page.
 
 ## Technical Context
 
