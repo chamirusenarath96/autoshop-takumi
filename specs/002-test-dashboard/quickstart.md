@@ -7,13 +7,20 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
 ## Prerequisites
 
 - Issue #15 has landed and CI is actively uploading Allure artifacts to
-  `testing-artifacts/<run-id>/` in the shared R2 bucket, per
-  `contracts/runs-data-contract.md`. At least **two** complete runs with
-  distinct `runId`s and different report contents exist (needed for
-  Scenario 4 to actually distinguish "the latest run" from "a specific
-  older run" rather than trivially matching a single run either way), plus
-  the empty state (FR-012) is separately validated against a fresh
-  bucket/prefix with zero runs (Scenario 5).
+  `testing-artifacts/<run-id>/` in the **dedicated test-artifacts R2
+  bucket** (separate from the main app's production-media bucket — see
+  research.md §5), per `contracts/runs-data-contract.md`. At least **two**
+  complete runs with distinct `runId`s and different report contents exist
+  (needed for Scenario 4 to actually distinguish "the latest run" from "a
+  specific older run" rather than trivially matching a single run either
+  way), plus the empty state (FR-012) is separately validated against a
+  fresh bucket/prefix with zero runs (Scenario 5).
+- This whole quickstart run happens against a **disposable validation
+  deployment and bucket** — not production — so that the incomplete/
+  malformed-run fixtures in Scenario 5 and the effective-policy test in
+  Scenario 6 can freely write throwaway data without affecting real users
+  or leaving stray "processing" indicators behind. Tear down/clear the
+  disposable bucket's contents after the run.
 - A GitHub OAuth app registered for the dashboard, with its client ID/secret
   available.
 - `ALLOWED_DASHBOARD_GITHUB_ID` set to the stable numeric GitHub account ID
@@ -21,8 +28,7 @@ Structure — nothing here runs inside the `autoshop-takumi` repo itself).
   FR-002 and `data-model.md`'s Authorized Viewer entity — the comparison is
   ID-based, not login-based), and access to at least one *other* GitHub
   account for the "denied" path.
-- R2 temporary credentials, minted server-side and scoped to
-  `testing-artifacts/` (research.md §5) — not a static bucket-wide token.
+- R2 credentials for the dedicated test-artifacts bucket (research.md §5).
 - `.env.example` copied to `.env.local` and filled in with the above.
 
 ## Setup
@@ -120,25 +126,41 @@ non-latest run whose data is actually distinguishable from the latest.
    history list (Scenario 4).
 7. Upload a run prefix with a **malformed `summary.json`** (e.g. invalid
    JSON, or a `reportPath`/`runId` that fails the validation in
-   `contracts/runs-data-contract.md`), then reload.
+   `contracts/runs-data-contract.md`) — give it a `runId` that sorts
+   **after** the existing latest-complete run from Prerequisites (same
+   requirement as step 5: if the malformed run were older, the dashboard
+   correctly ignoring it wouldn't actually exercise this scenario), then
+   reload.
 8. **Expect**: that run is treated as `incomplete` — same non-crashing,
-   clearly-indicated-as-unavailable behavior as step 6, and other,
-   validly-complete runs continue to render normally in both the latest and
-   history views.
+   "newer run unreadable" indicator as step 6, not a silent fallback to the
+   older complete run with no signal — and other, validly-complete runs
+   continue to render normally in both the latest and history views.
+9. **Cleanup**: remove the fixtures uploaded in steps 5 and 7 (or discard
+   the disposable bucket entirely) before treating this scenario as
+   complete, per the disposable-environment note in Prerequisites.
 
 ## Scenario 6 — Operational isolation (FR-009, SC-004)
 
-1. Confirm the dashboard's Vercel project, GitHub OAuth app, and deploy
-   pipeline are entirely separate from `autoshop-takumi`'s.
+1. Confirm the dashboard's Vercel project, GitHub OAuth app, and R2 bucket
+   are entirely separate from `autoshop-takumi`'s production infrastructure
+   — no shared deploy pipeline, no shared bucket (research.md §5).
 2. **Effective-policy test, not just configuration review**: using the
-   dashboard's actual R2 temporary credentials against **disposable
-   validation objects** (never the main app's real production media),
-   attempt (a) a `GetObject`/`ListObjectsV2` call for a key outside
-   `testing-artifacts/` and confirm it's denied, and (b) a `PutObject` and a
-   `DeleteObject` call — both inside and outside `testing-artifacts/` — and
-   confirm both are denied. "The env var says read-only" is not the same
-   claim as "the credential was actually denied when it tried to write" —
-   this step proves the latter.
+   dashboard's actual R2 credentials against **disposable validation
+   objects** in the dedicated test-artifacts bucket (never the main app's
+   real production media), attempt each of the following and confirm every
+   one is denied:
+   - `GetObjectCommand` with a `Key` pointing into the main app's
+     production-media bucket (proves the dedicated-bucket boundary, not
+     just a same-bucket prefix restriction).
+   - `ListObjectsV2Command` with a `Prefix` against the main app's
+     production-media bucket.
+   - `PutObjectCommand` and `DeleteObjectCommand`, attempted **within the
+     dashboard's own dedicated bucket** (proving the credential is
+     genuinely read-only, not merely bucket-isolated).
+
+   "The env var says read-only, different bucket" is not the same claim as
+   "the credential was actually denied when it tried" — this step proves
+   the latter.
 
 All six scenarios passing, together with the automated Vitest/Playwright
 suites referenced in `plan.md`'s Testing section, constitute this feature

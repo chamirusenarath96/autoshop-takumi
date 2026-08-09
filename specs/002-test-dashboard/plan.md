@@ -16,7 +16,7 @@ A single-user, OAuth-gated dashboard that lets the site owner view the latest an
 
 **Primary Dependencies**: Next.js 15 (App Router), Auth.js (NextAuth) v5 with the GitHub OAuth provider, `@aws-sdk/client-s3` (R2 is S3-compatible) for read-only artifact listing/fetch, Allure's own result/report tooling for interpreting `summary.json`/report output (no custom parser for Allure's internal format).
 
-**Storage**: Cloudflare R2 — read-only access to a `testing-artifacts/<run-id>/` prefix in the same bucket `resolveR2Config` already wires up for the main app's media. Prefix isolation is achieved via R2's **temporary credentials** API (short-lived, `prefixes`-scoped SigV4 credentials), not a static bucket-wide token — R2 static tokens only scope to a bucket, not a prefix within it (research.md §5). No relational database — there is exactly one user and run metadata is derived from what's already in R2 (object listing + each run's `summary.json`), not duplicated into a separate store.
+**Storage**: Cloudflare R2 — read-only access to a `testing-artifacts/<run-id>/` prefix in a **dedicated R2 bucket** for test artifacts, separate from the bucket `resolveR2Config` wires up for the main app's production media (research.md §5 — R2 temporary credentials can't exceed their parent token's permissions, and static tokens only scope to a bucket, so prefix-isolating a *shared* bucket doesn't actually protect production media from a compromised minting path; a dedicated bucket closes that off structurally). No relational database — there is exactly one user and run metadata is derived from what's already in R2 (object listing + each run's `summary.json`), not duplicated into a separate store.
 
 **Testing**: Vitest + React Testing Library for component-level UI behavior (run list rendering, empty/error states), Playwright for end-to-end coverage of the OAuth allow/deny flow and run browsing — mirroring the testing stack and "every change ships with a test" discipline this main repo uses, applied to the dashboard's own repo.
 
@@ -99,8 +99,9 @@ hard operational-isolation requirement in spec.md (SC-004).
 
 **Producer/consumer split, explicitly**: this feature (issue #16) is the
 **consumer** half only. The **producer** half — generating Allure's static
-report and uploading it plus `summary.json` to the shared R2 bucket's
-`testing-artifacts/<run-id>/` prefix, `summary.json` written last — is owned
+report and uploading it plus `summary.json` to the dedicated test-artifacts
+R2 bucket's `testing-artifacts/<run-id>/` prefix, `summary.json` written
+last — is owned
 entirely by **issue #15**, as a CI workflow step in `.github/workflows/ci.yml`
 in the `autoshop-takumi` repo (not this dashboard repo, and not a task in
 this feature's `tasks.md`). This is not left implicit: `contracts/runs-data-
