@@ -6,7 +6,7 @@
 
 ## Content Quality
 
-- [x] No implementation details (languages, frameworks, APIs)
+- [x] No implementation details (languages, frameworks, APIs) — scoped to the User Scenarios, Functional Requirements, and Success Criteria sections, which are technology-agnostic. The Assumptions section names specific technologies (Next.js, Auth.js, R2, Vercel) because the source issue (#16) already made and documented those architecture decisions with reasoning; recording a settled decision is the Assumptions section's stated purpose per the spec template, not a leak of implementation detail into the requirements themselves.
 - [x] Focused on user value and business needs
 - [x] Written for non-technical stakeholders
 - [x] All mandatory sections completed

@@ -33,6 +33,14 @@ regression suite that produced Allure output. Sourced from
 set once by CI on upload and is read-only from the dashboard's perspective
 (FR-007: the dashboard never writes back).
 
+**Relationship to Allure Report**: **optional (0..1)**, not guaranteed. A
+run whose `status` is `incomplete` (missing/malformed `summary.json`, or a
+`reportPath` that fails validation — see `contracts/runs-data-contract.md`)
+has no readable report to link to; the dashboard still lists the run
+prefix's existence without a report link, rather than omitting the run
+entirely or pretending an older run is "latest" with no indication a newer
+one exists (`contracts/runs-data-contract.md`'s "Latest run" semantics).
+
 ## Allure Report
 
 The full structured test-result output for one CI Run — individual test
@@ -55,18 +63,24 @@ a successful GitHub sign-in.
 
 | Field | Type | Notes |
 |---|---|---|
-| `githubLogin` | string | The signed-in GitHub account's login, compared against `ALLOWED_DASHBOARD_GITHUB_LOGIN` in the `signIn` callback (FR-002). |
-| `authorized` | boolean (derived) | `true` only when `githubLogin` matches the allowlist; unauthorized sessions never reach a page that renders CI Run/Allure Report data (FR-001, FR-003). |
+| `githubId` | string | The signed-in GitHub account's stable numeric account ID (GitHub's `profile.id` / OAuth `providerAccountId`, never reassigned even across a username rename). This is the field actually compared against the allowlist in the `signIn` callback (FR-002). |
+| `githubLogin` | string | The signed-in GitHub account's current login/username — carried in the session for display purposes (e.g. "signed in as @login") only. MUST NOT be used as the authorization comparison, since it is user-changeable. |
+| `authorized` | boolean (derived) | `true` only when `githubId` matches the allowlisted ID; unauthorized sessions never reach a page that renders CI Run/Allure Report data (FR-001, FR-003). |
 
 **Validation rules**:
 - The allowlist comparison MUST happen server-side (Auth.js `signIn`
   callback + `middleware.ts`), never as a client-side-only UI hide, per
   spec.md Edge Cases ("no test-result data was ever transmitted to that
   browser session").
+- The allowlist comparison MUST be performed on `githubId`, not
+  `githubLogin` (FR-002) — the configured allowlist value
+  (`ALLOWED_DASHBOARD_GITHUB_ID`, see `contracts/auth-contract.md`) is the
+  account's stable ID, with `ALLOWED_DASHBOARD_GITHUB_LOGIN` retained only as
+  an optional human-readable label for operators configuring the deployment.
 
 ## Relationships
 
 ```text
 Authorized Viewer ──(session-gated access)──→ CI Run (0..N, listed newest-first)
-CI Run ──(1:1)──→ Allure Report (full detail, fetched on selection)
+CI Run ──(0..1)──→ Allure Report (full detail, fetched on selection; absent for incomplete runs)
 ```

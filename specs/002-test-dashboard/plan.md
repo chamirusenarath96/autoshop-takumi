@@ -95,12 +95,20 @@ autoshop-takumi-test-dashboard/          # separate repo, separate Vercel projec
 per FR-009 and the constitution's "no new abstraction without concrete need"
 — reusing the exact same framework/testing stack as `autoshop-takumi` for
 tooling familiarity, but with zero shared deploy surface, satisfying the
-hard operational-isolation requirement in spec.md (SC-004). The
-`autoshop-takumi` repo's only change for this feature is a CI workflow step
-(tracked as a task, added to `.github/workflows/ci.yml` in *that* repo, not
-here) that uploads Allure artifacts to the shared R2 bucket's
-`testing-artifacts/` prefix after a run completes — everything else is new
-code in the new repo.
+hard operational-isolation requirement in spec.md (SC-004).
+
+**Producer/consumer split, explicitly**: this feature (issue #16) is the
+**consumer** half only. The **producer** half — generating Allure's static
+report and uploading it plus `summary.json` to the shared R2 bucket's
+`testing-artifacts/<run-id>/` prefix, `summary.json` written last — is owned
+entirely by **issue #15**, as a CI workflow step in `.github/workflows/ci.yml`
+in the `autoshop-takumi` repo (not this dashboard repo, and not a task in
+this feature's `tasks.md`). This is not left implicit: `contracts/runs-data-
+contract.md`'s Ownership section states it explicitly, and issue #15's own
+acceptance criteria must include the three concrete producer obligations
+above (prefix, bundle upload, summary-written-last ordering) so FR-008/SC-005
+can actually be met once both issues ship. Everything in this feature's
+`tasks.md` is new code in the new, separate dashboard repo.
 
 ## Complexity Tracking
 

@@ -74,33 +74,49 @@ home page.
 ## 4. Reading Allure data from R2
 
 **Decision**: CI (in the main `autoshop-takumi` repo, once issue #15 lands)
-uploads each run's Allure *results* (or a generated static *report*, TBD by
-#15's own implementation) to `testing-artifacts/<run-id>/` in the shared R2
-bucket, plus a small `summary.json` per run (status, counts, timestamp,
-commit SHA) written alongside it for cheap list-view rendering without
-having to parse the full Allure report just to build the history list. The
+generates Allure's static HTML report (`allure generate --clean`, **not**
+the raw `allure-results/` result-file directory — see
+`contracts/allure-report-contract.md` for the exact bundle format and why a
+pre-rendered report was chosen over shipping raw results) and uploads it to
+`testing-artifacts/<run-id>/report/` in the shared R2 bucket, plus a small
+`summary.json` per run (status, counts, timestamp, commit SHA, a
+self-referential `reportPath`) written alongside it — and written **last**,
+only after the report bundle upload succeeds — for cheap list-view
+rendering without having to open the report bundle just to build the
+history list. `runs-data-contract.md` fixes the ownership of this producer
+step to issue #15's own CI workflow, not this dashboard project. The
 dashboard lists run prefixes via `@aws-sdk/client-s3`'s `ListObjectsV2`,
-reads each `summary.json` for the history/list views, and serves/links the
-full report content for the detail view.
+reads each `summary.json` for the history/list views, and serves the report
+bundle's contents for the detail view through an authenticated
+streaming/signed-URL path (`contracts/allure-report-contract.md`), never as
+a direct public storage link.
 
-**Rationale**: Avoids requiring the dashboard to understand Allure's full
-internal result-file format just to render a list — a tiny denormalized
-summary file is cheap for CI to write and cheap for the dashboard to read.
-Keeps the dashboard fully decoupled from *how* issue #15 generates the
-report internally; the only real contract between the two features is
-"a `summary.json` and a report bundle exist under a known R2 prefix per
-run," documented in `data-model.md` and `contracts/`.
+**Rationale**: A pre-rendered static report means the dashboard never needs
+to understand Allure's internal result-file schema or re-implement any of
+Allure's own report rendering — it only needs to serve a self-contained
+asset tree to an authorized browser. A tiny denormalized `summary.json`
+sidecar is cheap for CI to write and cheap for the dashboard to read for
+the list view, without opening the full report bundle for data only needed
+in aggregate. Keeps the dashboard fully decoupled from *how* issue #15
+generates the report internally; the real contract between the two
+features is fully specified in `contracts/runs-data-contract.md` and
+`contracts/allure-report-contract.md`, not left as an implementation detail
+to sort out later.
 
 **Alternatives considered**:
 - *Pull artifacts from the GitHub Actions API instead of R2*: rejected —
   GitHub Actions artifacts expire after 7 days (the exact problem this
   feature exists to solve), and would require GitHub API credentials with
   broader repo-read scope than a read-only R2 prefix grant.
-- *Dashboard parses raw Allure `result.json` files directly for the list
-  view*: rejected as the default — more parsing logic in the dashboard for
-  data only needed in aggregate; the `summary.json` sidecar keeps the
-  dashboard's R2 reads cheap. (Full per-test detail for a single selected
-  run still comes from the real Allure report/result data, per FR-004.)
+- *Dashboard parses raw Allure `result.json` files directly, or receives
+  the raw `allure-results/` directory instead of a generated report*:
+  rejected — pushes Allure's internal result-schema knowledge and report
+  rendering into the dashboard itself, duplicating work Allure's own
+  `generate` step already does deterministically at CI time.
+- *Serve report assets as direct/public R2 URLs*: rejected — bypasses the
+  dashboard's own session/allowlist check entirely regardless of how
+  narrowly the backend R2 credentials are scoped; see
+  `contracts/allure-report-contract.md`'s Delivery/access model.
 
 ## 5. Storage credential scoping
 
