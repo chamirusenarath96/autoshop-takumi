@@ -34,26 +34,36 @@ testing-artifacts/
 
 ## Run identity & listing order
 
-- `<run-id>` MUST be a lexicographically-sortable, time-ordered identifier —
-  concretely, an ISO 8601 UTC timestamp with second precision plus a short
-  disambiguating suffix from the CI run itself, e.g.
-  `<run-id> = "<startedAt-as-YYYYMMDDTHHMMSSZ>-<github-run-id>"` (the GitHub
-  Actions run ID is already globally unique and monotonically increasing,
-  making it a correct tie-breaker for two runs that start within the same
-  second). Lexicographic sort on this key format equals chronological order,
-  which matters because R2's `ListObjectsV2` (S3-compatible) returns keys in
-  lexicographic order and paginates via an opaque `ContinuationToken` over
-  that same order — the dashboard's history list relies on this property
-  directly rather than sorting in application code after fetching everything.
+- `<run-id>` MUST be a lexicographically-sortable, time-ordered identifier
+  that also preserves numeric order for its tie-breaker, since plain
+  string/lexicographic comparison of an unpadded number is wrong (e.g.
+  `"...-10"` sorts *before* `"...-9"` as a string). Concretely:
+  `<run-id> = "<startedAt-as-YYYYMMDDTHHMMSSZ>-<github-run-id, zero-padded to 12 digits>"`
+  — GitHub Actions run IDs are numeric and currently well under 12 digits, so
+  zero-padding preserves both chronological order (from the timestamp
+  prefix) and correct numeric tie-breaking for two runs whose `startedAt`
+  lands in the same second (from the padded run ID). A test MUST cover two
+  runs with the same `startedAt` and run IDs that cross a digit-width
+  boundary (e.g. `9` and `10`) to confirm the padded key still orders them
+  correctly.
 - **Pagination**: the dashboard lists run prefixes with `ListObjectsV2`
   (`Delimiter: '/'`, `Prefix: 'testing-artifacts/'`), requesting keys in
   **descending** order is not natively supported by S3-compatible
-  `ListObjectsV2` (it's ascending-only), so the dashboard fetches the full
+  `ListObjectsV2` (it's ascending-only), so the dashboard fetches the
   ordered key set of run prefixes (cheap — prefixes only, not object bodies)
   and paginates the *reversed* list at the application layer for
   newest-first display; `pageSize` (FR-005/SC-002) applies to this
   already-time-ordered, already-incomplete-filtered list, not to raw
-  `ListObjectsV2` pages.
+  `ListObjectsV2` pages. Because a live re-listing between two page requests
+  could insert a new run and shift a naive offset-based "page 2" into
+  repeating or skipping an entry, pagination state MUST be an opaque
+  **keyset cursor** — a `beforeRunId` value (the last run ID emitted on the
+  previous page) plus the run-id upper bound in effect for that browsing
+  session — not a raw page number, and not the S3 `ContinuationToken` itself
+  (which only orders the underlying ascending storage listing, not the
+  dashboard's reversed, filtered view of it). Each subsequent page requests
+  "runs older than `beforeRunId`," which is stable regardless of what's
+  uploaded in between.
 - **Incomplete-run filtering**: a `<run-id>` prefix with no `summary.json`
   yet (upload still in progress) is excluded from the listable/paginated set
   entirely — it does not occupy a page slot, consistent with "in-progress
@@ -76,14 +86,27 @@ testing-artifacts/
 }
 ```
 
-`reportPath` MUST always equal `testing-artifacts/<runId>/report/` for that
-same run — it is not an independently-trusted field. The dashboard MUST
-**derive** the expected `reportPath` from `runId` itself rather than reading
-and trusting whatever string is in the JSON, and MUST reject (treat as
-malformed/`incomplete`, per Error Handling below) any `summary.json` whose
-`reportPath` doesn't match the derived value, contains `..` traversal
-segments, or is an absolute URL. This closes off a malformed or malicious
-`summary.json` pointing the dashboard at data outside its own run's prefix.
+Neither `runId` nor `reportPath` inside `summary.json` is an independently-
+trusted field — both MUST be validated against the R2 prefix the dashboard
+is actually reading, not taken at face value from the JSON payload:
+
+- The dashboard MUST derive the **expected** `runId` from the R2 prefix it
+  just listed (the `<run-id>` segment of `testing-artifacts/<run-id>/`), and
+  MUST reject (treat as malformed/`incomplete`) any `summary.json` whose own
+  `runId` field doesn't match that prefix-derived value. Without this check,
+  a malformed or malicious `summary.json` uploaded under run A's prefix
+  could claim to *be* run B and pass the `reportPath`-equality check below
+  purely because both sides used the same (wrong) `runId`.
+- `reportPath` MUST always equal `testing-artifacts/<prefix-derived-runId>/report/`.
+  The dashboard MUST **derive** the expected `reportPath` from the
+  prefix-derived `runId` (never from the JSON's own `runId` field, per the
+  point above) and MUST reject any `summary.json` whose `reportPath` doesn't
+  match the derived value, contains `..` traversal segments, or is an
+  absolute URL.
+
+Both checks together close off a malformed or malicious `summary.json`
+pointing the dashboard at data outside its own run's prefix — checking
+`reportPath` alone is insufficient if `runId` itself can't be trusted.
 
 ## "Latest run" semantics
 

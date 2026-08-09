@@ -60,21 +60,38 @@ session/allowlist check (`contracts/auth-contract.md`), using one of:
   Functions cap a single response body at 4.5 MB, any non-trivial attachment
   MUST use streaming rather than buffering the full object into memory
   before responding.
-- **Short-lived signed R2 URLs** (acceptable alternative): the dashboard
-  route validates the session and the requested key, then issues a
-  presigned `GetObject` URL with a short expiry (minutes, not hours) and
-  redirects the browser to it. This still requires the session/allowlist
-  check to happen *before* a URL is minted — an unauthenticated request
-  MUST NOT receive a signed URL back.
+- **Short-lived signed R2 URLs** (acceptable alternative, with a caveat):
+  the dashboard route validates the session and the requested key, then
+  issues a presigned `GetObject` URL with a short expiry (minutes, not
+  hours) and redirects the browser to it. This still requires the
+  session/allowlist check to happen *before* a URL is minted — an
+  unauthenticated request MUST NOT receive a signed URL back. **This
+  approach cannot be applied to `index.html` alone and stop there**:
+  `index.html` loads `data/*.json`, `plugins/` assets, and attachments via
+  relative URLs, which the browser resolves against the *R2 object's own
+  URL* once redirected there — not against the dashboard's origin. Those
+  follow-on requests never pass back through the dashboard's session check,
+  so signing only the entrypoint leaves every other asset in the bundle
+  reachable by anyone who can guess or observe an R2 object URL pattern.
+  Signed URLs are therefore only safe here if **every** asset the report
+  references is individually signed before the browser ever requests it —
+  in practice this means either (a) rewriting `index.html`'s asset
+  references at serve time to point at the dashboard's own per-asset signed-
+  URL endpoint (itself session-checked before minting each one), or (b)
+  proxying every asset per the streaming approach above and treating signed
+  URLs as, at most, an optimization for a small number of already-
+  individually-authorized large attachments — not a blanket substitute for
+  the streaming proxy.
 
-Either approach is acceptable; whichever is chosen MUST be applied
-uniformly to `index.html`, `data/*.json`, and every attachment — a report
-bundle is not "protected" if only the entrypoint is gated but a directly-
-guessable attachment key isn't. R2 bucket-level credential scoping
-(`research.md` §5) is necessary but not sufficient on its own: a raw,
-unauthenticated public URL handed to the browser would bypass the
-dashboard's own session check entirely, regardless of how narrowly the
-dashboard's *backend* R2 credentials are scoped.
+Whichever approach is chosen MUST be applied uniformly to `index.html`,
+`data/*.json`, `plugins/`, and every attachment — a report bundle is not
+"protected" if only the entrypoint is gated but a directly-guessable
+attachment key isn't, and testing (per Testing below) MUST exercise the
+full bundle including attachments, not just `index.html`'s own response. R2
+bucket-level credential scoping (`research.md` §5) is necessary but not
+sufficient on its own: a raw, unauthenticated public URL handed to the
+browser would bypass the dashboard's own session check entirely, regardless
+of how narrowly the dashboard's *backend* R2 credentials are scoped.
 
 ## Testing
 
