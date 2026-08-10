@@ -10,14 +10,16 @@ cp .env.example .env   # set PAYLOAD_SECRET to any string, if not already set
 npm run dev            # → http://localhost:3000, /admin
 ```
 
-Log in at `/admin/create-first-user` (or an existing account) before using the admin UI scenarios below.
+Log in at `/admin/create-first-user` (or an existing account) before using the admin UI scenarios below — note the email/password you use, since the token step below must log in as that same account.
 
-For the API scenarios, obtain an auth token first (same flow `e2e/global-setup.ts` uses for the e2e suite):
+For the API scenarios, obtain an auth token first (same flow `e2e/global-setup.ts` uses for the e2e suite — that script's default account is `admin@autoshoptakumi.com` / see `e2e/helpers.ts`'s `ADMIN_EMAIL`/`ADMIN_PASSWORD`, but any account created above works equally):
 
 ```bash
+ADMIN_EMAIL="admin@autoshoptakumi.com"   # match whatever account you created/logged in as above
+ADMIN_PASSWORD="<your admin password>"
 TOKEN=$(curl -s -X POST http://localhost:3000/api/users/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@autoshoptakumi.com", "password": "<your admin password>"}' \
+  -d "{\"email\": \"$ADMIN_EMAIL\", \"password\": \"$ADMIN_PASSWORD\"}" \
   | jq -r '.token')
 ```
 
@@ -99,6 +101,8 @@ Run before opening a PR, per this repo's testing rule:
 ```bash
 npm test
 npx tsc --noEmit
-npm run dev &          # if not already running
+npm run dev &          # if not already running — wait for the "Ready" log line before the next command
 npm run test:e2e
 ```
+
+(This mirrors this repo's own documented dev workflow in `CLAUDE.md`/`README.md`, which likewise runs the dev server in one terminal and `test:e2e` in another "once the server is up.")
