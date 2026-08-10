@@ -20,7 +20,7 @@ The Payload `vehicles` collection's `slug` field is schema-`required` even thoug
 
 **Testing**: Vitest + happy-dom (component/unit — new pure-function tests for slug generation and collision handling), Playwright (`e2e/admin.spec.ts` — update the existing vehicle-create coverage for the new minimum required fields, add a publish-gate case for make/model/year)
 
-**Target Platform**: Payload admin (`/admin/collections/vehicles`) and the `/api/vehicles` REST/Local API surface it shares with the public site's create/update path
+**Target Platform**: Payload admin (`/admin/collections/vehicles`) and the `/api/vehicles` REST/Local API surface it shares with the public site's create/update path. The hooks themselves run identically for both interfaces (same `CollectionConfig`), but the two interfaces' request/response shapes differ: REST (`POST`/`PATCH /api/vehicles...`) returns HTTP status codes and a `{ doc: ... }` / `{ errors: [...] }` envelope, documented in `contracts/vehicles-api.md`; the Local API (`payload.create()`/`payload.update()`, used server-side by the admin UI's own form submissions) returns the resulting document directly and throws a JS error on failure — no separate contract doc is needed for it since its behavior is identical to REST's, only its calling convention differs.
 
 **Project Type**: Web application (Next.js App Router + embedded Payload CMS) — single project, no frontend/backend split
 

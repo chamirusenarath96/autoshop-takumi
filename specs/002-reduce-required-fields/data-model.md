@@ -18,17 +18,22 @@ Only the fields whose constraints change are listed; all other existing fields a
 
 ### Validation rules
 
-- **Slug generation** (`beforeValidate`): if `data.slug` is blank/whitespace-only, derive a base slug from the title value via the existing `slugify()` util, then resolve collisions against currently-persisted vehicle slugs (excluding the document's own current ID on update) by appending an incrementing numeric suffix (`-2`, `-3`, ...) until unique. If `data.slug` already has a non-blank value (auto-generated on a prior save, or manually entered), it is left untouched.
-- **Publish gate** (`beforeChange`, extended): when `data.status === 'available'`, all of `heroImage`, `make`, `model`, and `year` must be present; if any are missing, the save is rejected with an error message naming the specific missing field(s). This check does not run for any other status value or transition.
+Both rules below operate on the vehicle's **effective** field values for this save — the incoming `data` merged over `originalDoc` (the full, currently-persisted document, present on updates; absent on create, where `data` already is the whole payload). This matters because Payload's `beforeValidate`/`beforeChange` hooks receive `data` as only the delta being submitted, not the full document — see research.md's "`originalDoc` merge" decision. `effective.<field>` below means `data.<field> ?? originalDoc?.<field>`.
+
+- **Slug generation** (`beforeValidate`): if `effective.slug` is blank/whitespace-only, derive a base slug from `effective.title` (or `effective.titleEn`, depending on schema — see spec Assumptions) via the existing `slugify()` util, then resolve collisions against currently-persisted vehicle slugs (excluding the document's own current ID on update) by appending an incrementing numeric suffix (`-2`, `-3`, ...) until unique, and assign the result to `data.slug`. If `effective.slug` already has a non-blank value (auto-generated on a prior save, manually entered, or simply not part of this save's payload but already persisted), it is left untouched — critically, an update that omits `slug` from its payload must NOT be treated as "slug is blank" just because `data.slug` is `undefined`.
+- **Publish gate** (`beforeChange`, extended): when `effective.status === 'available'`, all of `effective.heroImage`, `effective.make`, `effective.model`, and `effective.year` must be present; if any are missing, the save is rejected with an error message naming the specific missing field(s). This check does not run for any other destination status, and applies identically regardless of the vehicle's status *before* this save (`draft`, `reserved`, or `sold` are all treated the same way when the destination is `available`).
 
 ### State transitions affected
 
 ```
-draft ──(save, any completeness)──> draft            [always allowed]
-draft ──(save, missing any of heroImage/make/model/year)──> available   [BLOCKED — extended by this feature]
-draft ──(save, all of heroImage/make/model/year present)──> available   [ALLOWED — existing heroImage-only gate today; extended gate after this feature]
-available/reserved/sold ──(save)──> any status         [unaffected by this feature's gate — only the transition INTO 'available' is checked, per FR-011]
+draft ──(save, any completeness)──> draft                                    [always allowed]
+draft/reserved/sold ──(save, missing any of heroImage/make/model/year)──> available   [BLOCKED — extended by this feature]
+draft/reserved/sold ──(save, all of heroImage/make/model/year present)──> available   [ALLOWED — existing heroImage-only gate today for draft→available; extended gate after this feature, applied uniformly regardless of origin status]
+available ──(save, any change not touching status, or status unchanged)──> available  [unaffected by this feature's gate]
+any status ──(save, destination status ≠ 'available')──> draft/reserved/sold  [unaffected by this feature's gate, per FR-011 — e.g. available→reserved, draft→sold, or a same-status no-op save]
 ```
+
+**Note on the previous version of this diagram**: an earlier draft of this section only showed `draft→available` as gated and described `available/reserved/sold ──(save)──> any status` as uniformly "unaffected," which read as excluding `reserved→available` and `sold→available` from the gate — that was a documentation error, not the intended behavior. FR-009 has always been origin-agnostic ("prevent a vehicle's `status` from being changed to `available`," full stop); this revision corrects the diagram to match.
 
 ### Relationships
 
