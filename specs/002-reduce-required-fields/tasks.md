@@ -51,15 +51,15 @@ None. The slug auto-generation (US1) and the make/model/year publish gate (US2) 
 
 > Write these first; T002 must fail (module doesn't exist yet) before T006 is implemented.
 
-- [ ] T002 [P] [US1] Write unit tests for a `generateUniqueSlug(title, existingSlugs)` pure function in `src/lib/slug.test.ts` covering: a blank/whitespace-only title input (asserted to throw, not to silently return an empty string), the no-collision base case, a single collision producing a `-2` suffix, and multiple sequential collisions producing `-3`/`-4`
+- [ ] T002 [P] [US1] Write unit tests for a `generateUniqueSlug(title, existingSlugs)` pure function in `src/lib/slug.test.ts` covering: a blank/whitespace-only title input (asserted to throw, not to silently return an empty string), a non-blank title that normalizes to an empty string via `slugify()` (e.g. `"★★★"`) asserted to fall back to the `"vehicle"` base rather than throwing or returning empty, the no-collision base case, a single collision producing a `-2` suffix, and multiple sequential collisions producing `-3`/`-4`
 - [ ] T003 [US1] Update the existing `can create a draft vehicle via API` test in `e2e/admin.spec.ts` to omit `slug` from the `POST /api/vehicles?locale=en` request body and assert the response's `doc.slug` is a non-empty, URL-safe value derived from `title`
-- [ ] T004 [P] [US1] Add a new test in `e2e/admin.spec.ts` that creates two vehicles with the same title one after another via `POST /api/vehicles?locale=en` and asserts their resulting `slug` values are distinct (sequential collision auto-resolved, no `400`/unique-constraint error)
-- [ ] T005 [P] [US1] Add a new test in `e2e/admin.spec.ts` that takes an existing vehicle with an already-persisted `slug`, sends a `PATCH` that changes only an unrelated field (e.g. `price`) with `slug` entirely absent from the request body, and asserts the vehicle's `slug` is unchanged afterward — this specifically exercises the `originalDoc`-fallback behavior (an update that omits `slug` must not be misread as "slug is blank")
+- [ ] T004 [US1] Add a new test in `e2e/admin.spec.ts` that creates two vehicles with the same title one after another via `POST /api/vehicles?locale=en` and asserts their resulting `slug` values are distinct (sequential collision auto-resolved, no `400`/unique-constraint error) — write alongside T003/T005 but land sequentially, since all three edit the same `e2e/admin.spec.ts` region
+- [ ] T005 [US1] Add a new test in `e2e/admin.spec.ts` that takes an existing vehicle with an already-persisted `slug`, sends a `PATCH` that changes only an unrelated field (e.g. `price`) with `slug` entirely absent from the request body, and asserts the vehicle's `slug` is unchanged afterward — this specifically exercises the `originalDoc`-fallback behavior (an update that omits `slug` must not be misread as "slug is blank")
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Implement `generateUniqueSlug(title: string, existingSlugs: string[]): string` in `src/lib/slug.ts`, reusing `slugify()` from `src/lib/utils.ts` for formatting, throwing an error on a blank/whitespace-only `title`, and appending an incrementing numeric suffix (`-2`, `-3`, ...) until the result isn't in `existingSlugs` (makes T002 pass)
-- [ ] T007 [US1] Add a `beforeValidate` hook to the `vehicles` collection in `src/collections/Vehicles.ts` that: computes the effective slug as `data.slug ?? originalDoc?.slug` and no-ops if that's already non-blank; otherwise computes the effective title as `data.title ?? originalDoc?.title` (or `titleEn`, per spec Assumptions) scoped to the `en` locale, fetches currently-persisted vehicle slugs via the Payload Local API (excluding the current document's own id on update), calls `generateUniqueSlug()`, and assigns the result to `data.slug` (depends on T006; makes T005 pass by construction — an omitted `slug` falls back to `originalDoc.slug` and is treated as already-set)
+- [ ] T006 [US1] Implement `generateUniqueSlug(title: string, existingSlugs: string[]): string` in `src/lib/slug.ts`, reusing `slugify()` from `src/lib/utils.ts` for formatting, throwing an error on a blank/whitespace-only `title`, falling back to a fixed `"vehicle"` base when a non-blank title normalizes to an empty string, and appending an incrementing numeric suffix (`-2`, `-3`, ...) until the result isn't in `existingSlugs` (makes T002 pass)
+- [ ] T007 [US1] Add a `beforeValidate` hook to the `vehicles` collection in `src/collections/Vehicles.ts` that: computes the effective slug as `'slug' in data ? data.slug : originalDoc?.slug` (presence-based, not `??` — an explicit `data.slug: null` must be respected as a clear, not silently overridden by `originalDoc`) and no-ops if that's already non-blank; otherwise computes the effective title the same presence-based way from `data.title`/`originalDoc?.title` (or `titleEn`, per spec Assumptions) scoped to the `en` locale, fetches currently-persisted vehicle slugs via the Payload Local API (excluding the current document's own id on update), calls `generateUniqueSlug()`, and assigns the result to `data.slug` (depends on T006; makes T005 pass by construction — a `slug` key genuinely absent from `data` falls back to `originalDoc.slug` and is treated as already-set)
 - [ ] T008 [US1] Remove `required: true` from the `slug` field definition in `src/collections/Vehicles.ts` and update its `admin.description` to accurately describe the new auto-generation behavior instead of the current, inaccurate claim (depends on T007; makes T003/T004 pass)
 
 **Checkpoint**: User Story 1 is independently functional — T002–T005 pass, and a vehicle can be created and saved with only a title.
@@ -74,15 +74,15 @@ None. The slug auto-generation (US1) and the make/model/year publish gate (US2) 
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T009 [P] [US2] Extend `e2e/admin.spec.ts`'s existing `blocks publishing a vehicle without a hero image` coverage (or add sibling tests) asserting that a draft vehicle with `heroImage` set is blocked from `status: 'available'` when: each of `make`/`model`/`year` is missing individually (error names that one field); all three are missing at once (error names all three); two of the three are missing in combination (error names exactly those two) — and repeat the individually-missing case starting from `status: 'reserved'` and `status: 'sold'` (not just `draft`) to confirm the gate is origin-agnostic
-- [ ] T010 [P] [US2] Add a test in `e2e/admin.spec.ts` confirming `POST /api/vehicles` succeeds with `make`, `model`, and `year` all omitted from the request body (draft creation)
-- [ ] T011 [P] [US2] Add a test in `e2e/admin.spec.ts` confirming a `PATCH` that does not set `status: 'available'` (e.g. an unrelated field update, or a `draft`→`draft` no-op) on a vehicle missing `make`/`model`/`year` is never blocked by the new gate
+- [ ] T009 [US2] Extend `e2e/admin.spec.ts`'s existing `blocks publishing a vehicle without a hero image` coverage (or add sibling tests) asserting that a draft vehicle with `heroImage` set is blocked from `status: 'available'` when: each of `make`/`model`/`year` is missing individually (error names that one field); all three are missing at once (error names all three); two of the three are missing in combination (error names exactly those two) — and repeat the individually-missing case starting from `status: 'reserved'` and `status: 'sold'` (not just `draft`) to confirm the gate is origin-agnostic
+- [ ] T010 [US2] Add a test in `e2e/admin.spec.ts` confirming `POST /api/vehicles` succeeds with `make`, `model`, and `year` all omitted from the request body (draft creation) — write alongside T009/T011/T012 but land sequentially, since all four edit the same `e2e/admin.spec.ts` region
+- [ ] T011 [US2] Add a test in `e2e/admin.spec.ts` confirming a `PATCH` that does not set `status: 'available'` (e.g. an unrelated field update, or a `draft`→`draft` no-op) on a vehicle missing `make`/`model`/`year` is never blocked by the new gate
 - [ ] T012 [US2] Add a test in `e2e/admin.spec.ts` that takes a vehicle whose `make`/`model`/`year`/`heroImage` were already set via an earlier `PATCH`, then sends a *second* `PATCH` containing only `{"status": "available"}` (none of those four fields resubmitted), and asserts the publish succeeds — this specifically exercises the `originalDoc`-fallback behavior on the publish gate, mirroring T005 on the slug side
 
 ### Implementation for User Story 2
 
 - [ ] T013 [P] [US2] Remove `required: true` from the `make`, `model`, and `year` field definitions in `src/collections/Vehicles.ts` (makes T010 pass)
-- [ ] T014 [US2] Extend the existing `beforeChange` hook in `src/collections/Vehicles.ts` so that whenever the *effective* status (`data.status ?? originalDoc?.status`, but only actually gating when `data.status === 'available'` — i.e. this specific save is the one setting it) is `'available'`, it additionally requires the effective `make`/`model`/`year` (each as `data.<field> ?? originalDoc?.<field>`) alongside the existing effective `heroImage` check, with the thrown error message naming every specific field found missing; this fires identically regardless of the vehicle's status before this save (depends on T013; makes T009/T012 pass)
+- [ ] T014 [US2] Extend the existing `beforeChange` hook in `src/collections/Vehicles.ts` so that whenever `data.status === 'available'` (i.e. this specific save is the one setting it — a save that doesn't touch `status` at all never triggers this check, per FR-011), it requires the effective `heroImage`/`make`/`model`/`year` — each computed presence-based as `'<field>' in data ? data.<field> : originalDoc?.<field>`, not `??` (so an explicit clear, e.g. `data.make: null`, is correctly read as missing rather than silently falling back to the old value) — with the thrown error message naming every specific field found missing; this fires identically regardless of the vehicle's status before this save (depends on T013; makes T009/T012 pass)
 
 **Checkpoint**: User Stories 1 and 2 both independently functional — the full slug + draft-safety behavior described in spec.md works end-to-end.
 
@@ -116,32 +116,30 @@ None. The slug auto-generation (US1) and the make/model/year publish gate (US2) 
 
 ### Parallel Opportunities
 
-- T002, T004, T005 (different test cases / different files) can be written in parallel; T003 touches an existing test block others also extend, so sequence it relative to T004/T005 if they land in the same file region.
-- T009, T010, T011 (different test cases within `e2e/admin.spec.ts`, no shared state) can be written in parallel; T012 depends on T009's fixture pattern (a vehicle with all publish fields set) but not on its code directly.
-- T013 (field definitions) can be done in parallel with writing T009–T012, since it's a different concern within the same file than the `beforeChange` hook logic in T014.
-- Because User Story 1 and User Story 2 touch non-overlapping parts of `src/collections/Vehicles.ts` (one field + one hook each) and separate test cases, they can be implemented in either order or interleaved by a single implementer without conflict, despite sharing a file.
+- T002 (`src/lib/slug.test.ts`) is the only test task in User Story 1 marked `[P]` — it's a genuinely different file from T003/T004/T005, which all edit `e2e/admin.spec.ts` and must be sequenced relative to each other (see note above the task list) even though they're independent *in content*.
+- T013 (field definitions in `src/collections/Vehicles.ts`) can be done in parallel with authoring T009–T012, since it's a different file-region concern than those `e2e/admin.spec.ts` tests. T009–T012 themselves all edit `e2e/admin.spec.ts` and are sequenced relative to each other, same as T003–T005.
+- Because User Story 1 and User Story 2 touch non-overlapping parts of `src/collections/Vehicles.ts` (one field + one hook each), they can be implemented in either order or interleaved by a single implementer without conflict, despite sharing that file — but each story's own `e2e/admin.spec.ts` tests still land one at a time.
 
 ---
 
 ## Parallel Example: User Story 1
 
 ```bash
-# Launch independent test-authoring tasks together:
+# T002 is the only genuinely parallel task here (different file):
 Task: "Write unit tests for generateUniqueSlug() in src/lib/slug.test.ts"
-Task: "Add e2e/admin.spec.ts test for slug-collision auto-resolution"
-Task: "Add e2e/admin.spec.ts test for slug preservation on a PATCH that omits slug"
+
+# T003, T004, T005 all edit e2e/admin.spec.ts — author independently if useful,
+# but land/commit them one at a time to avoid overlapping edits to the same file.
 ```
 
 ## Parallel Example: User Story 2
 
 ```bash
-# Launch independent test-authoring tasks together:
-Task: "Extend e2e/admin.spec.ts publish-gate tests for make/model/year (individual, combined, and reserved/sold origin)"
-Task: "Add e2e/admin.spec.ts test asserting draft creation succeeds without make/model/year"
-Task: "Add e2e/admin.spec.ts test asserting a status-only PATCH is never blocked by the new gate"
-
-# Field-definition cleanup can proceed in parallel with test authoring:
+# T013 (different file) can run alongside the e2e/admin.spec.ts test authoring below:
 Task: "Remove required: true from make/model/year in src/collections/Vehicles.ts"
+
+# T009, T010, T011, T012 all edit e2e/admin.spec.ts — author independently if useful,
+# but land/commit them one at a time to avoid overlapping edits to the same file.
 ```
 
 ---
@@ -165,7 +163,7 @@ Task: "Remove required: true from make/model/year in src/collections/Vehicles.ts
 
 ## Notes
 
-- [P] tasks touch different files, or different non-overlapping regions of the same test/config file with no shared state.
+- [P] tasks touch different files only — tasks sharing a file (e.g. the several `e2e/admin.spec.ts` additions within each story) are left unmarked and should land one at a time, even when they're independent in content.
 - Every task in Phase 3/4 maps to a specific functional requirement or acceptance scenario in `spec.md` — see `research.md` and `data-model.md` for the underlying design decisions each implementation task follows.
 - This feature deliberately touches only `src/collections/Vehicles.ts`, one new file under `src/lib/`, and `e2e/admin.spec.ts` — no new routes, globals, or admin screens, per plan.md's Constitution Check (Principle VI).
 - Commit after each task or logical group, consistent with this repo's git workflow (feature branch, PR, CI, CodeRabbit review) once `/speckit-implement` picks this up.
