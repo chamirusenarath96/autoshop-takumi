@@ -44,22 +44,25 @@ npx tsx scripts/migrate-vehicle-fields.ts
 
 **Expected**: Fallback to the other language when one is blank, per field/sub-field, not per-listing; a fully-empty row is omitted.
 
-## Scenario 4 — Publish gate (FR-007)
+## Scenario 4 — Publish gate (FR-008)
 
-1. Create a new vehicle with no title in either language, no price fields set, `priceOnRequest` false. Attempt to set `status: 'available'`.
+**Precondition**: This vehicle already needs a `heroImage` uploaded to pass the collection's existing, unrelated publish check — that check is unchanged by this feature but still applies. Upload a hero image before attempting `status: 'available'` in every step below, otherwise the save will fail on the pre-existing `heroImage` requirement rather than exercising the new title/price check this scenario is validating.
+
+1. Create a new vehicle with a `heroImage` set, no title in either language, no price fields set, `priceOnRequest` false. Attempt to set `status: 'available'`.
 2. Confirm the save is rejected with an error naming the missing title/price requirement (see contracts/vehicles-api.md).
 3. Fill in `titleJa` only and set `priceOnRequest: true`. Retry setting `status: 'available'`.
 4. Confirm the save now succeeds, even though `titleEn`, `priceJpy`, and `priceUsd` remain blank.
+5. On a second, already-`available` vehicle that already has `titleJa` and `priceJpy` persisted from an earlier edit, send an update containing only `{ status: 'available' }` (no title/price fields in this particular request). Confirm it succeeds — the gate evaluates the record's effective (merged) state, not just this request's body.
 
-**Expected**: Publish requires only *a* title and *a* price condition (in any language/currency), not full bilingual/dual-currency completeness.
+**Expected**: Publish requires only *a* title and *a* price condition (in any language/currency), not full bilingual/dual-currency completeness, and the check correctly sees fields already persisted from earlier requests.
 
-## Scenario 5 — Migration integrity (FR-008, SC-003)
+## Scenario 5 — Migration integrity (FR-009, SC-003)
 
-1. Before migration, record the `titleJa`/`titleEn` (via `title` at `?locale=ja`/`?locale=en`), all other paired-field-source values, and `price`+`currency` for every existing vehicle document (e.g. via a `GET /api/vehicles?locale=ja` and `?locale=en` pair, or Local API `payload.find()` calls).
+1. Before migration, record the `titleJa`/`titleEn` (via `title` at `?locale=ja`/`?locale=en`), all other paired-field-source values, and `price`+`currency` for **every** existing vehicle document, keyed by document `id` — `payload.find()`/`GET /api/vehicles` default to 10 results per page, so this snapshot must paginate through every page (`page`/`limit` params, or `limit: 0`/`pagination: false` on the Local API) rather than reading only the first page.
 2. Run the migration script.
-3. Re-fetch every vehicle document's new paired fields and compare against the pre-migration snapshot.
+3. Re-fetch every vehicle document's new paired fields (again paginating through the full collection) and compare against the pre-migration snapshot, matched by `id`, not by list position (list order/pagination boundaries are not guaranteed stable across the two reads).
 
-**Expected**: Every value is present in its corresponding new field, byte-for-byte — zero listings show missing or altered content.
+**Expected**: Every document from the pre-migration snapshot has a matching post-migration document with every value present in its corresponding new field, byte-for-byte — zero listings show missing or altered content, and the pre/post document counts match.
 
 ## Automated checks (once implemented)
 

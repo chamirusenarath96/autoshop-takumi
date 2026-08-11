@@ -2,7 +2,9 @@
 
 No new endpoint is introduced. This documents the observable **REST** request/response contract changes to the existing, auto-generated Payload endpoints for the `vehicles` collection (`POST /api/vehicles`, `PATCH /api/vehicles/:id`, `GET /api/vehicles`, `GET /api/vehicles/:id`) that result from this feature's field changes.
 
-**Local API scope**: the Local API (`payload.create()`/`payload.update()`/`payload.find()`, used server-side by the public pages and admin UI) runs through the identical field/hook logic — same field names, same publish-gate behavior — but returns the resulting document(s) directly with no `{ doc: ... }`/`{ docs: ... }` wrapper and no HTTP status, and throws a JS error on failure rather than returning an `errors` array.
+**Local API scope**: the Local API (`payload.create()`/`payload.update()`/`payload.find()`, used server-side by the public pages and admin UI) runs through the identical field/hook logic — same field names, same publish-gate behavior — but its return shape differs by operation, and differs from REST's envelope:
+- `payload.create(...)` and a single-document `payload.update({ id, ... })` return the resulting document **directly** (no `{ doc: ... }` wrapper, no HTTP status), throwing a JS error on failure rather than returning an `errors` array.
+- `payload.find(...)` returns a **paginated result object** — `{ docs: [...], totalDocs, limit, page, totalPages, hasNextPage, hasPrevPage, ... }` — not an array of documents directly and not a `{ doc: ... }` shape. Code reading vehicle listings via `payload.find()` (the public listing page, the migration script) must read `.docs`, and the migration script in particular must paginate through every page (`payload.find()` defaults to 10 results per page) rather than assuming one call returns the full collection.
 
 **Locale scope removed**: before this feature, reading/writing the nine content fields required a `?locale=` query param (REST) or `{ locale: 'ja' | 'en' }` option (Local API) to select which language's value was returned — omitting it defaulted to `ja` (the collection's `defaultLocale`). After this feature, every request reads/writes both languages explicitly by field name (`titleJa`, `titleEn`, etc.) — `?locale=`/`{ locale }` no longer has any effect on this collection's own fields (it may still matter for relationship lookups into still-localized collections like `Makes`/`Models`, which are unaffected by this feature).
 
@@ -123,6 +125,22 @@ The publish-gate `beforeChange` hook additionally requires, evaluated against th
 }
 ```
 
-## Listing filter/sort query params (unchanged shape, new underlying field)
+## Listing filter/sort query params
 
-`GET /api/vehicles?where[make][equals]=...&sort=price` continues to accept the same query param names as today (`make`, `model`, `bodyType`, `transmission`, `sort=price`/`sort=-price`). Internally, `sort=price` now sorts by the `priceJpy` field (see research.md §4) rather than the old single `price` field — the query param name itself is unchanged, so no caller-visible contract break for filtering/sorting.
+`make`/`model`/`bodyType`/`transmission` filter query params are unchanged. Price filtering and sorting change field targets — this is a real, code-level change, not just an internal detail, since `src/app/(public)/[locale]/vehicles/page.tsx` currently constructs `where.price.greater_than_equal`/`less_than_equal` from `sp.priceFrom`/`sp.priceTo`, and maps `sp.sort` values `priceLow`/`priceHigh` to Payload `sort` values `'price'`/`'-price'` — all three target the field this feature removes.
+
+### Before this feature
+
+```
+GET /api/vehicles?where[price][greater_than_equal]=1000000&where[price][less_than_equal]=5000000&sort=price
+```
+
+### After this feature
+
+```
+GET /api/vehicles?where[priceJpy][greater_than_equal]=1000000&where[priceJpy][less_than_equal]=5000000&sort=priceJpy
+```
+
+The user-facing query param names the listing page itself accepts (`priceFrom`, `priceTo`, `sort=priceLow`/`priceHigh`) are unchanged — only the internal Payload `where`/`sort` field name they're translated into changes, from `price` to `priceJpy`.
+
+**Missing-`priceJpy` behavior** (a listing with a USD price but no JPY price, per research.md §4): such a listing is excluded from a `where[priceJpy]`-filtered result (there is no JPY value to compare against the range) and sorts after every JPY-priced listing under both `sort=priceJpy` and `sort=-priceJpy` — implementations must not rely on the database's native `NULL`-ordering default, since SQLite (local dev) and Postgres (production) order nulls differently by default. The listing remains visible via normal pagination when no price filter/sort is applied.
