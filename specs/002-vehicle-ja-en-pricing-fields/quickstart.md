@@ -16,6 +16,8 @@ If validating against pre-existing seed/local data created before this feature, 
 npx tsx scripts/migrate-vehicle-fields.ts
 ```
 
+**Deployment ordering note**: this command reads the old localized/`price`+`currency` fields to populate the new paired fields — it MUST run during the pre-cutover deployment/release step, before tasks.md's T036 (removal of the old fields from the schema) ships to that environment. Running it after the old fields are gone leaves it with nothing to read from.
+
 ## Scenario 1 — Staff edit both languages without a switch (User Story 1)
 
 1. Go to `/admin/collections/vehicles/create` (or edit an existing listing).
@@ -58,9 +60,9 @@ npx tsx scripts/migrate-vehicle-fields.ts
 
 ## Scenario 5 — Migration integrity (FR-009, SC-003)
 
-1. Before migration, record the `titleJa`/`titleEn` (via `title` at `?locale=ja`/`?locale=en`), all other paired-field-source values, and `price`+`currency` for **every** existing vehicle document, keyed by document `id` — `payload.find()`/`GET /api/vehicles` default to 10 results per page, so this snapshot must paginate through every page (`page`/`limit` params, or `limit: 0`/`pagination: false` on the Local API) rather than reading only the first page.
+1. Before migration, record the `titleJa`/`titleEn` (via `title` at locale `ja`/`en`), all other paired-field-source values, and `price`+`currency` for **every** existing vehicle document, keyed by document `id`. Use the **Local API** (`payload.find({ collection: 'vehicles', locale: ..., overrideAccess: true })`, its default) or an authenticated admin request for this snapshot — NOT a plain unauthenticated `GET /api/vehicles`, since this collection's public REST read only exposes `available`/`reserved`/`sold` listings (per README's API Reference); a plain public read would silently exclude every `draft` vehicle from the "zero data loss" check, which is exactly the kind of listing most likely to have incomplete/edge-case data worth verifying. `payload.find()` defaults to 10 results per page, so this snapshot must also paginate through every page (`page`/`limit`, or `limit: 0`/`pagination: false`) rather than reading only the first page.
 2. Run the migration script.
-3. Re-fetch every vehicle document's new paired fields (again paginating through the full collection) and compare against the pre-migration snapshot, matched by `id`, not by list position (list order/pagination boundaries are not guaranteed stable across the two reads).
+3. Re-fetch every vehicle document's new paired fields the same way (full-access, fully paginated) and compare against the pre-migration snapshot, matched by `id`, not by list position (list order/pagination boundaries are not guaranteed stable across the two reads).
 
 **Expected**: Every document from the pre-migration snapshot has a matching post-migration document with every value present in its corresponding new field, byte-for-byte — zero listings show missing or altered content, and the pre/post document counts match.
 
