@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
 
 export const Vehicles: CollectionConfig = {
   slug: 'vehicles',
@@ -10,9 +11,28 @@ export const Vehicles: CollectionConfig = {
     {
       name: 'title',
       type: 'text',
-      required: true,
+      // No longer required at the schema level — the paired titleJa/titleEn fields below are
+      // the fields staff actually fill in now; publish-readiness is enforced by the beforeChange
+      // hook instead (FR-008), and this field is removed entirely once the migration lands (T036).
       localized: true,
-      admin: { description: 'e.g. "1999 Toyota Supra RZ"' },
+      admin: { description: 'e.g. "1999 Toyota Supra RZ" (legacy — being replaced by Title (Japanese)/Title (English) below)' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'titleJa',
+          type: 'text',
+          label: 'Title (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'titleEn',
+          type: 'text',
+          label: 'Title (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
       name: 'slug',
@@ -67,7 +87,7 @@ export const Vehicles: CollectionConfig = {
         {
           name: 'price',
           type: 'number',
-          admin: { width: '50%' },
+          admin: { width: '50%', description: 'Legacy — being replaced by Price (JPY)/Price (USD) below' },
         },
         {
           name: 'priceOnRequest',
@@ -85,6 +105,23 @@ export const Vehicles: CollectionConfig = {
       options: [
         { label: 'JPY (¥)', value: 'JPY' },
         { label: 'USD ($)', value: 'USD' },
+      ],
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'priceJpy',
+          type: 'number',
+          label: 'Price (JPY)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'priceUsd',
+          type: 'number',
+          label: 'Price (USD)',
+          admin: { width: '50%' },
+        },
       ],
     },
     {
@@ -118,6 +155,24 @@ export const Vehicles: CollectionConfig = {
       name: 'exteriorColor',
       type: 'text',
       localized: true,
+      admin: { description: 'Legacy — being replaced by Exterior Color (Japanese)/(English) below' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'exteriorColorJa',
+          type: 'text',
+          label: 'Exterior Color (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'exteriorColorEn',
+          type: 'text',
+          label: 'Exterior Color (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
       name: 'shakenExpiry',
@@ -132,7 +187,24 @@ export const Vehicles: CollectionConfig = {
       name: 'summary',
       type: 'textarea',
       localized: true,
-      admin: { description: 'Short overview shown near the top of the detail page' },
+      admin: { description: 'Legacy (short overview) — being replaced by Summary (Japanese)/(English) below' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'summaryJa',
+          type: 'textarea',
+          label: 'Summary (Japanese)',
+          admin: { width: '50%', description: 'Short overview shown near the top of the detail page' },
+        },
+        {
+          name: 'summaryEn',
+          type: 'textarea',
+          label: 'Summary (English)',
+          admin: { width: '50%', description: 'Short overview shown near the top of the detail page' },
+        },
+      ],
     },
     {
       name: 'highlights',
@@ -142,8 +214,26 @@ export const Vehicles: CollectionConfig = {
         {
           name: 'text',
           type: 'text',
-          required: true,
+          // No longer required — see the paired textJa/textEn fields below (legacy field only).
           localized: true,
+          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'textJa',
+              type: 'text',
+              label: 'Text (Japanese)',
+              admin: { width: '50%' },
+            },
+            {
+              name: 'textEn',
+              type: 'text',
+              label: 'Text (English)',
+              admin: { width: '50%' },
+            },
+          ],
         },
       ],
     },
@@ -151,7 +241,17 @@ export const Vehicles: CollectionConfig = {
       name: 'description',
       type: 'richText',
       localized: true,
-      label: 'Long Description',
+      label: 'Long Description (legacy — being replaced by Description (Japanese)/(English) below)',
+    },
+    {
+      name: 'descriptionJa',
+      type: 'richText',
+      label: 'Description (Japanese)',
+    },
+    {
+      name: 'descriptionEn',
+      type: 'richText',
+      label: 'Description (English)',
     },
     {
       name: 'specs',
@@ -164,14 +264,50 @@ export const Vehicles: CollectionConfig = {
         {
           name: 'label',
           type: 'text',
-          required: true,
+          // No longer required — see the paired labelJa/labelEn fields below (legacy field only).
           localized: true,
+          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
         },
         {
           name: 'value',
           type: 'text',
-          required: true,
+          // No longer required — see the paired valueJa/valueEn fields below (legacy field only).
           localized: true,
+          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'labelJa',
+              type: 'text',
+              label: 'Label (Japanese)',
+              admin: { width: '50%' },
+            },
+            {
+              name: 'labelEn',
+              type: 'text',
+              label: 'Label (English)',
+              admin: { width: '50%' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'valueJa',
+              type: 'text',
+              label: 'Value (Japanese)',
+              admin: { width: '50%' },
+            },
+            {
+              name: 'valueEn',
+              type: 'text',
+              label: 'Value (English)',
+              admin: { width: '50%' },
+            },
+          ],
         },
       ],
     },
@@ -215,22 +351,74 @@ export const Vehicles: CollectionConfig = {
       name: 'seoTitle',
       type: 'text',
       localized: true,
-      admin: { description: 'Override the page <title> for SEO' },
+      admin: { description: 'Legacy — being replaced by SEO Title (Japanese)/(English) below' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'seoTitleJa',
+          type: 'text',
+          label: 'SEO Title (Japanese)',
+          admin: { width: '50%', description: 'Override the page <title> for SEO' },
+        },
+        {
+          name: 'seoTitleEn',
+          type: 'text',
+          label: 'SEO Title (English)',
+          admin: { width: '50%', description: 'Override the page <title> for SEO' },
+        },
+      ],
     },
     {
       name: 'seoDescription',
       type: 'textarea',
       localized: true,
-      admin: { description: 'Override the meta description for SEO' },
+      admin: { description: 'Legacy — being replaced by SEO Description (Japanese)/(English) below' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'seoDescriptionJa',
+          type: 'textarea',
+          label: 'SEO Description (Japanese)',
+          admin: { width: '50%', description: 'Override the meta description for SEO' },
+        },
+        {
+          name: 'seoDescriptionEn',
+          type: 'textarea',
+          label: 'SEO Description (English)',
+          admin: { width: '50%', description: 'Override the meta description for SEO' },
+        },
+      ],
     },
   ],
   hooks: {
     beforeChange: [
-      ({ data, operation }) => {
-        // Block publishing without a hero image
-        if (data.status === 'available' && !data.heroImage) {
+      ({ data, originalDoc }) => {
+        if (data.status !== 'available') return data
+
+        // Effective state: this request's data merged over what's already persisted, so a
+        // status-only PATCH against a record with fields already saved from an earlier edit
+        // still sees them (see spec 002-vehicle-ja-en-pricing-fields FR-008).
+        const effective = { ...(originalDoc ?? {}), ...data } as Record<string, unknown>
+
+        if (!effective.heroImage) {
           throw new Error('A hero image is required before a vehicle can be set to Available.')
         }
+
+        const hasTitle = isTextPresent(effective.titleJa) || isTextPresent(effective.titleEn)
+        const hasPrice =
+          isNumberPresent(effective.priceJpy) ||
+          isNumberPresent(effective.priceUsd) ||
+          effective.priceOnRequest === true
+        if (!hasTitle || !hasPrice) {
+          throw new Error(
+            'A title and a price (or "price on request") are required before a vehicle can be set to Available.',
+          )
+        }
+
         return data
       },
     ],
