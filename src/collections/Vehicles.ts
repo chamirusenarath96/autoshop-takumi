@@ -4,18 +4,17 @@ import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
 export const Vehicles: CollectionConfig = {
   slug: 'vehicles',
   admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'make', 'year', 'status', 'price'],
+    useAsTitle: 'displayTitle',
+    defaultColumns: ['displayTitle', 'make', 'year', 'status', 'priceJpy'],
   },
   fields: [
     {
-      name: 'title',
+      // Stored (not virtual — Payload's admin.useAsTitle only supports a virtual field when
+      // it's linked to a relationship) computed display title, kept in sync by the beforeChange
+      // hook below. Read-only — staff edit titleJa/titleEn instead.
+      name: 'displayTitle',
       type: 'text',
-      // No longer required at the schema level — the paired titleJa/titleEn fields below are
-      // the fields staff actually fill in now; publish-readiness is enforced by the beforeChange
-      // hook instead (FR-008), and this field is removed entirely once the migration lands (T036).
-      localized: true,
-      admin: { description: 'e.g. "1999 Toyota Supra RZ" (legacy — being replaced by Title (Japanese)/Title (English) below)' },
+      admin: { readOnly: true, description: 'Computed automatically from Title (Japanese)/(English) — not editable' },
     },
     {
       type: 'row',
@@ -85,32 +84,6 @@ export const Vehicles: CollectionConfig = {
       type: 'row',
       fields: [
         {
-          name: 'price',
-          type: 'number',
-          admin: { width: '50%', description: 'Legacy — being replaced by Price (JPY)/Price (USD) below' },
-        },
-        {
-          name: 'priceOnRequest',
-          type: 'checkbox',
-          label: 'Price on Request ("Contact for price")',
-          defaultValue: false,
-          admin: { width: '50%' },
-        },
-      ],
-    },
-    {
-      name: 'currency',
-      type: 'select',
-      defaultValue: 'JPY',
-      options: [
-        { label: 'JPY (¥)', value: 'JPY' },
-        { label: 'USD ($)', value: 'USD' },
-      ],
-    },
-    {
-      type: 'row',
-      fields: [
-        {
           name: 'priceJpy',
           type: 'number',
           label: 'Price (JPY)',
@@ -120,6 +93,13 @@ export const Vehicles: CollectionConfig = {
           name: 'priceUsd',
           type: 'number',
           label: 'Price (USD)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'priceOnRequest',
+          type: 'checkbox',
+          label: 'Price on Request ("Contact for price")',
+          defaultValue: false,
           admin: { width: '50%' },
         },
       ],
@@ -152,12 +132,6 @@ export const Vehicles: CollectionConfig = {
       ],
     },
     {
-      name: 'exteriorColor',
-      type: 'text',
-      localized: true,
-      admin: { description: 'Legacy — being replaced by Exterior Color (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -184,12 +158,6 @@ export const Vehicles: CollectionConfig = {
       },
     },
     {
-      name: 'summary',
-      type: 'textarea',
-      localized: true,
-      admin: { description: 'Legacy (short overview) — being replaced by Summary (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -212,13 +180,6 @@ export const Vehicles: CollectionConfig = {
       label: 'Highlights (bullet points)',
       fields: [
         {
-          name: 'text',
-          type: 'text',
-          // No longer required — see the paired textJa/textEn fields below (legacy field only).
-          localized: true,
-          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
-        },
-        {
           type: 'row',
           fields: [
             {
@@ -238,12 +199,6 @@ export const Vehicles: CollectionConfig = {
       ],
     },
     {
-      name: 'description',
-      type: 'richText',
-      localized: true,
-      label: 'Long Description (legacy — being replaced by Description (Japanese)/(English) below)',
-    },
-    {
       name: 'descriptionJa',
       type: 'richText',
       label: 'Description (Japanese)',
@@ -261,20 +216,6 @@ export const Vehicles: CollectionConfig = {
         description: 'Add rows for engine, suspension, brakes, wheels, tires, interior, remarks, etc.',
       },
       fields: [
-        {
-          name: 'label',
-          type: 'text',
-          // No longer required — see the paired labelJa/labelEn fields below (legacy field only).
-          localized: true,
-          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
-        },
-        {
-          name: 'value',
-          type: 'text',
-          // No longer required — see the paired valueJa/valueEn fields below (legacy field only).
-          localized: true,
-          admin: { description: 'Legacy — being replaced by the Japanese/English fields below' },
-        },
         {
           type: 'row',
           fields: [
@@ -348,12 +289,6 @@ export const Vehicles: CollectionConfig = {
       hasMany: true,
     },
     {
-      name: 'seoTitle',
-      type: 'text',
-      localized: true,
-      admin: { description: 'Legacy — being replaced by SEO Title (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -369,12 +304,6 @@ export const Vehicles: CollectionConfig = {
           admin: { width: '50%', description: 'Override the page <title> for SEO' },
         },
       ],
-    },
-    {
-      name: 'seoDescription',
-      type: 'textarea',
-      localized: true,
-      admin: { description: 'Legacy — being replaced by SEO Description (Japanese)/(English) below' },
     },
     {
       type: 'row',
@@ -397,12 +326,18 @@ export const Vehicles: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data, originalDoc }) => {
-        if (data.status !== 'available') return data
-
         // Effective state: this request's data merged over what's already persisted, so a
         // status-only PATCH against a record with fields already saved from an earlier edit
         // still sees them (see spec 002-vehicle-ja-en-pricing-fields FR-008).
         const effective = { ...(originalDoc ?? {}), ...data } as Record<string, unknown>
+
+        data.displayTitle = isTextPresent(effective.titleJa)
+          ? effective.titleJa
+          : isTextPresent(effective.titleEn)
+            ? effective.titleEn
+            : '(untitled)'
+
+        if (data.status !== 'available') return data
 
         if (!effective.heroImage) {
           throw new Error('A hero image is required before a vehicle can be set to Available.')

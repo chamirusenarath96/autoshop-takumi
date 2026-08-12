@@ -124,12 +124,28 @@ test('Vehicles list loads with Create New button', async ({ page }) => {
   await expect(page.getByRole('link', { name: /create new/i }).first()).toBeVisible()
 })
 
+test('Vehicles list view renders a real title via displayTitle after the legacy title/price fields were removed', async ({ page }) => {
+  const makeId = await createMake(page, 'List View', `lv-${Date.now()}`)
+  const modelId = await createModel(page, 'List Model', `lvm-${Date.now()}`, makeId)
+  const titleText = `List View Vehicle ${Date.now()}`
+
+  const res = await page.request.post('/api/vehicles', {
+    data: { titleEn: titleText, slug: `list-view-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2015 },
+  })
+  const { doc } = await res.json()
+  expect(doc.displayTitle).toBe(titleText)
+
+  await page.goto('/admin/collections/vehicles')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByText(titleText)).toBeVisible()
+})
+
 test('vehicle create form shows all key fields', async ({ page }) => {
   await page.goto('/admin/collections/vehicles/create')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Creating.*Vehicle/)
 
-  await expect(page.getByLabel('Title (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Title (Japanese)', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Slug*')).toBeVisible()
   await expect(page.getByLabel('Year*')).toBeVisible()
   // Use number input specifically to avoid the checkbox collision
@@ -148,8 +164,8 @@ test('vehicle create form shows both Japanese and English inputs for every paire
     ['SEO Title (Japanese)', 'SEO Title (English)'],
     ['SEO Description (Japanese)', 'SEO Description (English)'],
   ]) {
-    await expect(page.getByLabel(ja)).toBeVisible()
-    await expect(page.getByLabel(en)).toBeVisible()
+    await expect(page.getByLabel(ja, { exact: true })).toBeVisible()
+    await expect(page.getByLabel(en, { exact: true })).toBeVisible()
   }
 
   // Description (Japanese)/(English) are richText editors, not plain labeled inputs —
@@ -162,7 +178,7 @@ test('vehicle create form shows both Japanese and English inputs for every paire
   await expect(page.getByLabel('Text (Japanese)')).toBeVisible()
   await expect(page.getByLabel('Text (English)')).toBeVisible()
 
-  await page.getByRole('button', { name: /add spec table/i }).click()
+  await page.getByRole('button', { name: /^add spec$/i }).click()
   await expect(page.getByLabel('Label (Japanese)')).toBeVisible()
   await expect(page.getByLabel('Label (English)')).toBeVisible()
   await expect(page.getByLabel('Value (Japanese)')).toBeVisible()
@@ -223,19 +239,19 @@ test('can create a draft vehicle via API', async ({ page }) => {
 
   const res = await page.request.post('/api/vehicles', {
     data: {
-      title: '1995 Mazda RX-7 FD3S',
+      titleEn: '1995 Mazda RX-7 FD3S',
       slug: `rx7-e2e-${Date.now()}`,
       status: 'draft',
       make: makeId,
       model: modelId,
       year: 1995,
-      price: 4500000,
+      priceJpy: 4500000,
     },
   })
   const data = await res.json()
   expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
   expect(data.doc.status).toBe('draft')
-  expect(data.doc.title).toBe('1995 Mazda RX-7 FD3S')
+  expect(data.doc.titleEn).toBe('1995 Mazda RX-7 FD3S')
 })
 
 test('blocks publishing a vehicle without a hero image', async ({ page }) => {
@@ -243,7 +259,7 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   const modelId = await createModel(page, 'Impreza', `impreza-${Date.now()}`, makeId)
 
   const createRes = await page.request.post('/api/vehicles', {
-    data: { title: 'Test STI', slug: `sti-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2004 },
+    data: { titleEn: 'Test STI', slug: `sti-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2004 },
   })
   const createData = await createRes.json()
   expect(createRes.status(), JSON.stringify(createData.errors ?? createData)).toBe(201)
@@ -363,7 +379,7 @@ test('public inquiry API submission appears in admin inbox', async ({ page, base
   const makeId = await createMake(page, 'Mitsubishi', `mits-${Date.now()}`)
   const modelId = await createModel(page, 'Lancer', `lancer-${Date.now()}`, makeId)
   const vehicleRes = await page.request.post('/api/vehicles', {
-    data: { title: 'Lancer Evo E2E', slug: `evo-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2005 },
+    data: { titleEn: 'Lancer Evo E2E', slug: `evo-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2005 },
   })
   const vehicleData = await vehicleRes.json()
   expect(vehicleRes.status(), JSON.stringify(vehicleData.errors ?? vehicleData)).toBe(201)
