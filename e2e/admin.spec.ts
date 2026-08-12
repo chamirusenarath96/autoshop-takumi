@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { createMake, createModel, ADMIN_EMAIL, AUTH_STATE_PATH } from './helpers'
+import { createMake, createModel, uploadMedia, ADMIN_EMAIL, AUTH_STATE_PATH } from './helpers'
 
 test.use({ storageState: AUTH_STATE_PATH })
 
@@ -180,6 +180,95 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   const verifyRes = await page.request.get(`/api/vehicles/${createData.doc.id}`)
   const verifyData = await verifyRes.json()
   expect(verifyData.status).toBe('draft')
+})
+
+test('blocks publishing a vehicle with a hero image but no title/price in either language', async ({ page }) => {
+  const makeId = await createMake(page, 'Publish Gate', `pg-${Date.now()}`)
+  const modelId = await createModel(page, 'Gate Model', `pgm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: { slug: `gate-notitle-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2012, heroImage: mediaId },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  expect((await verifyRes.json()).status).toBe('draft')
+})
+
+test('allows publishing with only one language title and priceOnRequest set, no price fields', async ({ page }) => {
+  const makeId = await createMake(page, 'Gate Pass', `gp-${Date.now()}`)
+  const modelId = await createModel(page, 'Pass Model', `gpm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: 'ゲート合格テスト',
+      slug: `gate-pass-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2013,
+      heroImage: mediaId,
+      priceOnRequest: true,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
+})
+
+test('publish gate evaluates effective state — status-only PATCH succeeds when title/price were saved earlier', async ({ page }) => {
+  const makeId = await createMake(page, 'Effective State', `es-${Date.now()}`)
+  const modelId = await createModel(page, 'Effective Model', `esm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  // Title/price/heroImage set on create — a separate request from the publish attempt below.
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: '実効状態テスト',
+      priceJpy: 0, // exactly 0 must count as present, not missing
+      slug: `effective-state-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2014,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // This request sends only the status change — no title/price fields — yet must succeed
+  // because they're already persisted (effective-state merge, not just this request's body).
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
+})
+
+test('publish gate treats a title string of "0" as present, not missing', async ({ page }) => {
+  const makeId = await createMake(page, 'Zero Title', `zt-${Date.now()}`)
+  const modelId = await createModel(page, 'Zero Model', `ztm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: '0',
+      priceOnRequest: true,
+      slug: `zero-title-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2016,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
 })
 
 // ── Inquiries ──────────────────────────────────────────────────────────────
