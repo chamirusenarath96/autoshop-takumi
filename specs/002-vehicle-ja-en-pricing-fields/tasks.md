@@ -55,12 +55,12 @@ description: "Task list for paired JA/EN + JPY/USD vehicle fields"
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Order the new paired fields' admin field config in `src/collections/Vehicles.ts` so each language pair (e.g. `titleJa` next to `titleEn`) appears adjacently for staff, with clear field labels (e.g. "Title (Japanese)" / "Title (English)")
+- [X] T011 [US1] Order the new paired fields' admin field config in `src/collections/Vehicles.ts` so each language pair (e.g. `titleJa` next to `titleEn`) appears adjacently for staff, with clear field labels (e.g. "Title (Japanese)" / "Title (English)")
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] `e2e/admin.spec.ts`: add a case creating a vehicle and asserting both language inputs for every content field pair are visible/editable in a single form render, with no locale-switcher interaction (Acceptance Scenarios 1.1–1.2)
-- [ ] T013 [US1] `e2e/admin.spec.ts`: add a case saving a listing with only the Japanese half of every pair filled in, confirming it saves successfully as a draft (Acceptance Scenario 1.3)
+- [X] T012 [P] [US1] `e2e/admin.spec.ts`: add a case creating a vehicle and asserting both language inputs for every content field pair are visible/editable in a single form render, with no locale-switcher interaction (Acceptance Scenarios 1.1–1.2)
+- [X] T013 [US1] `e2e/admin.spec.ts`: add a case saving a listing with only the Japanese half of every pair filled in, confirming it saves successfully as a draft (Acceptance Scenario 1.3)
 
 **Checkpoint**: User Story 1 is independently functional and testable.
 
@@ -74,15 +74,15 @@ description: "Task list for paired JA/EN + JPY/USD vehicle fields"
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Simplify `formatPrice()` in `src/lib/utils.ts` to format a single already-resolved price + currency (JPY or USD), removing the old per-vehicle `currency`-selection parameter, per contracts/vehicles-api.md
-- [ ] T015 [US2] Update the vehicle detail page (`src/app/(public)/[locale]/vehicles/[slug]/page.tsx`) to display `priceJpy`/`priceUsd` via the updated `formatPrice()` — showing both when both are set, honoring `priceOnRequest` — identically regardless of the page's active site locale (spec FR-004: price display is currency-driven, not a locale-fallback concept)
-- [ ] T016 [P] [US2] Update `src/components/vehicles/VehicleCard.tsx` to display the resolved price(s) using the same logic
+- [X] T014 [US2] Simplify `formatPrice()` in `src/lib/utils.ts` to format a single already-resolved price + currency (JPY or USD), removing the old per-vehicle `currency`-selection parameter, per contracts/vehicles-api.md — plus a new `formatVehiclePrices()` composing both currencies + priceOnRequest, shared by VehicleCard and the detail page
+- [X] T015 [US2] Update the vehicle detail page (`src/app/(public)/[locale]/vehicles/[slug]/page.tsx`) to display `priceJpy`/`priceUsd` via the updated `formatPrice()` — showing both when both are set, honoring `priceOnRequest` — identically regardless of the page's active site locale (spec FR-004: price display is currency-driven, not a locale-fallback concept)
+- [X] T016 [P] [US2] Update `src/components/vehicles/VehicleCard.tsx` to display the resolved price(s) using the same logic
 
 ### Tests for User Story 2
 
-- [ ] T017 [P] [US2] Unit tests for the updated `formatPrice()` covering JPY-only, USD-only, both-set, and price-on-request suppression
-- [ ] T018 [P] [US2] `e2e/admin.spec.ts`: add a case saving a listing with only `priceJpy` set, confirming no `priceUsd` is required or auto-populated (Acceptance Scenarios 2.1–2.2)
-- [ ] T019 [P] [US2] `e2e/public.spec.ts`: add a case confirming a `priceOnRequest` listing shows neither price on the listing or detail pages (Acceptance Scenario 2.3)
+- [X] T017 [P] [US2] Unit tests for the updated `formatPrice()` covering JPY-only, USD-only, both-set, and price-on-request suppression
+- [X] T018 [P] [US2] `e2e/admin.spec.ts`: add a case saving a listing with only `priceJpy` set, confirming no `priceUsd` is required or auto-populated (Acceptance Scenarios 2.1–2.2)
+- [X] T019 [P] [US2] `e2e/public.spec.ts`: add a case confirming a `priceOnRequest` listing shows neither price on the listing or detail pages (Acceptance Scenario 2.3)
 
 **Checkpoint**: User Stories 1 and 2 are both independently functional.
 
@@ -96,19 +96,19 @@ description: "Task list for paired JA/EN + JPY/USD vehicle fields"
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Update the vehicle listing page (`src/app/(public)/[locale]/vehicles/page.tsx`) to resolve every displayed paired **content** field via `resolveLocalizedField()` instead of relying on Payload's `?locale=` read
-- [ ] T021 [US3] Update the vehicle detail page (`src/app/(public)/[locale]/vehicles/[slug]/page.tsx`) to resolve **title** (currently rendered directly as `{vehicle.title}` in the page's `<h1>`), summary, description, highlights, spec rows, and SEO title/description via `resolveLocalizedField()`, applying label/value fallback independently per spec row (per spec.md Edge Cases)
-- [ ] T022 [P] [US3] Update `src/components/vehicles/VehicleCard.tsx` to resolve title/exterior color via `resolveLocalizedField()`
-- [ ] T023 [US3] Update the vehicle listing page's price filter/sort query construction (currently `where.price.greater_than_equal`/`less_than_equal` from `sp.priceFrom`/`sp.priceTo`, and `sort: 'price'`/`'-price'` from `sp.sort` values `priceLow`/`priceHigh`, in `src/app/(public)/[locale]/vehicles/page.tsx`) to target `priceJpy` instead of `price` — a straight field-name swap, per research.md §4 (which explicitly does NOT require normalizing `NULL` ordering across databases: Payload has no native nulls-first/last control, and building one is out of scope for this feature); confirm `src/components/vehicles/VehicleFilters.tsx` itself needs no changes (it only builds the query params, doesn't reference `price` directly, per spec.md scope)
+- [X] T020 [US3] Update the vehicle listing page (`src/app/(public)/[locale]/vehicles/page.tsx`) to resolve every displayed paired **content** field via `resolveLocalizedField()` instead of relying on Payload's `?locale=` read — the listing page delegates all vehicle-field rendering to `VehicleCard` (T022), which already resolves fields; the page itself renders no raw vehicle field directly
+- [X] T021 [US3] Update the vehicle detail page (`src/app/(public)/[locale]/vehicles/[slug]/page.tsx`) to resolve **title** (currently rendered directly as `{vehicle.title}` in the page's `<h1>`), summary, description, highlights, spec rows, and SEO title/description via `resolveLocalizedField()`, applying label/value fallback independently per spec row (per spec.md Edge Cases) — also wires up a `generateMetadata()` export using the resolved SEO fields, since neither the old nor new SEO fields were previously read anywhere, and adds a `RichText` render of the resolved description (via `@payloadcms/richtext-lexical/react`), since `description` was defined in the schema but never rendered on the public site before this feature
+- [X] T022 [P] [US3] Update `src/components/vehicles/VehicleCard.tsx` to resolve title/exterior color via `resolveLocalizedField()` — exteriorColor is not currently rendered anywhere in the public UI (confirmed via repo-wide search), so only title fallback applies in practice
+- [X] T023 [US3] Update the vehicle listing page's price filter/sort query construction (currently `where.price.greater_than_equal`/`less_than_equal` from `sp.priceFrom`/`sp.priceTo`, and `sort: 'price'`/`'-price'` from `sp.sort` values `priceLow`/`priceHigh`, in `src/app/(public)/[locale]/vehicles/page.tsx`) to target `priceJpy` instead of `price` — a straight field-name swap, per research.md §4 (which explicitly does NOT require normalizing `NULL` ordering across databases: Payload has no native nulls-first/last control, and building one is out of scope for this feature); confirm `src/components/vehicles/VehicleFilters.tsx` itself needs no changes (it only builds the query params, doesn't reference `price` directly, per spec.md scope)
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] `e2e/public.spec.ts`: add a case with a USD-only-priced listing confirming it is excluded from a `priceFrom`/`priceTo`-filtered result, and remains visible via normal browsing with no price filter/sort applied — do not assert a specific sort position relative to JPY-priced listings under `sort=priceLow`/`priceHigh`, since that position is intentionally left to the local test database's native `NULL`-ordering (research.md §4), not a cross-environment guarantee
-- [ ] T025 [P] [US3] Component tests for `VehicleCard` covering one-language-blank fallback and both-languages-blank omission
-- [ ] T026 [P] [US3] `e2e/public.spec.ts`: add a case for a listing with only a Japanese description, confirming the English-locale page shows the Japanese description instead of blank (Acceptance Scenario 3.2)
-- [ ] T027 [P] [US3] `e2e/public.spec.ts`: add a case for a spec row with a Japanese label and an English value (mismatched languages), confirming both halves render together (Edge Cases)
-- [ ] T028 [US3] `e2e/public.spec.ts`: add a case for a spec row left fully blank in both languages, confirming it is omitted from the rendered spec table (Acceptance Scenario 3.5)
-- [ ] T029 [P] [US3] `e2e/public.spec.ts`: add a case confirming price display is currency-driven, not locale-driven — a JPY-only listing shows the same JPY price on both `/ja/...` and `/en/...`, and a listing with both prices set shows both on both locales (Acceptance Scenarios 3.3–3.4)
+- [X] T024 [P] [US3] `e2e/public.spec.ts`: add a case with a USD-only-priced listing confirming it is excluded from a `priceFrom`/`priceTo`-filtered result, and remains visible via normal browsing with no price filter/sort applied — do not assert a specific sort position relative to JPY-priced listings under `sort=priceLow`/`priceHigh`, since that position is intentionally left to the local test database's native `NULL`-ordering (research.md §4), not a cross-environment guarantee
+- [X] T025 [P] [US3] Component tests for `VehicleCard` covering one-language-blank fallback and both-languages-blank omission
+- [X] T026 [P] [US3] `e2e/public.spec.ts`: add a case for a listing with only a Japanese description, confirming the English-locale page shows the Japanese description instead of blank (Acceptance Scenario 3.2)
+- [X] T027 [P] [US3] `e2e/public.spec.ts`: add a case for a spec row with a Japanese label and an English value (mismatched languages), confirming both halves render together (Edge Cases)
+- [X] T028 [US3] `e2e/public.spec.ts`: add a case for a spec row left fully blank in both languages, confirming it is omitted from the rendered spec table (Acceptance Scenario 3.5)
+- [X] T029 [P] [US3] `e2e/public.spec.ts`: add a case confirming price display is currency-driven, not locale-driven — a JPY-only listing shows the same JPY price on both `/ja/...` and `/en/...`, and a listing with both prices set shows both on both locales (Acceptance Scenarios 3.3–3.4)
 
 **Checkpoint**: All three user stories are independently functional.
 

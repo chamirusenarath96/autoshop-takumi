@@ -129,12 +129,92 @@ test('vehicle create form shows all key fields', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Creating.*Vehicle/)
 
-  await expect(page.getByLabel('Title*— Japanese')).toBeVisible()
+  await expect(page.getByLabel('Title (Japanese)')).toBeVisible()
   await expect(page.getByLabel('Slug*')).toBeVisible()
   await expect(page.getByLabel('Year*')).toBeVisible()
   // Use number input specifically to avoid the checkbox collision
-  await expect(page.getByRole('spinbutton', { name: 'Price' })).toBeVisible()
+  await expect(page.getByRole('spinbutton', { name: 'Price (JPY)' })).toBeVisible()
   await expect(page.getByLabel('Mileage (km)')).toBeVisible()
+})
+
+test('vehicle create form shows both Japanese and English inputs for every paired content field, with no locale switch needed', async ({ page }) => {
+  await page.goto('/admin/collections/vehicles/create')
+  await page.waitForLoadState('networkidle')
+
+  for (const [ja, en] of [
+    ['Title (Japanese)', 'Title (English)'],
+    ['Exterior Color (Japanese)', 'Exterior Color (English)'],
+    ['Summary (Japanese)', 'Summary (English)'],
+    ['SEO Title (Japanese)', 'SEO Title (English)'],
+    ['SEO Description (Japanese)', 'SEO Description (English)'],
+  ]) {
+    await expect(page.getByLabel(ja)).toBeVisible()
+    await expect(page.getByLabel(en)).toBeVisible()
+  }
+
+  // Description (Japanese)/(English) are richText editors, not plain labeled inputs —
+  // assert by their rendered field-label text instead of getByLabel.
+  await expect(page.getByText('Description (Japanese)', { exact: true })).toBeVisible()
+  await expect(page.getByText('Description (English)', { exact: true })).toBeVisible()
+
+  // Add a highlight row and a spec row — each should expose both-language inputs too.
+  await page.getByRole('button', { name: /add highlight/i }).click()
+  await expect(page.getByLabel('Text (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Text (English)')).toBeVisible()
+
+  await page.getByRole('button', { name: /add spec table/i }).click()
+  await expect(page.getByLabel('Label (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Label (English)')).toBeVisible()
+  await expect(page.getByLabel('Value (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Value (English)')).toBeVisible()
+})
+
+test('can save a vehicle with only the Japanese half of every pair filled in, as a draft', async ({ page }) => {
+  const makeId = await createMake(page, 'US1 Draft', `us1-${Date.now()}`)
+  const modelId = await createModel(page, 'US1 Model', `us1m-${Date.now()}`, makeId)
+
+  const res = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: '日本語のみタイトル',
+      exteriorColorJa: '青',
+      summaryJa: '日本語の概要',
+      seoTitleJa: '日本語のSEOタイトル',
+      seoDescriptionJa: '日本語のSEO概要',
+      slug: `ja-only-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2017,
+      highlights: [{ textJa: '一番目のポイント' }],
+      specs: [{ labelJa: 'エンジン', valueJa: '直6' }],
+    },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.status).toBe('draft')
+  expect(data.doc.titleJa).toBe('日本語のみタイトル')
+  expect(data.doc.titleEn).toBeFalsy()
+})
+
+test('can save a vehicle with only priceJpy set, with no priceUsd required or auto-populated', async ({ page }) => {
+  const makeId = await createMake(page, 'US2 Price', `us2-${Date.now()}`)
+  const modelId = await createModel(page, 'US2 Model', `us2m-${Date.now()}`, makeId)
+
+  const res = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: 'JPY価格のみテスト',
+      slug: `jpy-only-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2018,
+      priceJpy: 4500000,
+    },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.priceJpy).toBe(4500000)
+  expect(data.doc.priceUsd).toBeFalsy()
 })
 
 test('can create a draft vehicle via API', async ({ page }) => {

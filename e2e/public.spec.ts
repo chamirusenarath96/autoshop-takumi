@@ -107,7 +107,8 @@ test.describe('Vehicle listing and detail', () => {
     expect(res.status()).toBe(200)
     const body = await res.json()
     expect(body.docs).toHaveLength(1)
-    expect(body.docs[0].title).toBe('1993 Toyota Supra RZ')
+    expect(body.docs[0].titleJa).toBe('1993 Toyota Supra RZ')
+    expect(body.docs[0].titleEn).toBe('1993 Toyota Supra RZ')
     expect(body.docs[0].status).toBe('available')
     await publicCtx.dispose()
   })
@@ -155,6 +156,244 @@ test.describe('Vehicle listing and detail', () => {
     await expect(page.getByText(/6,500,000/)).toBeVisible()
     // Mileage: 50,000 km from helper default
     await expect(page.getByText(/50,000/)).toBeVisible()
+  })
+
+  test('priceOnRequest listing shows neither price on listing or detail pages', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `por-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `PORMake-${ts}`, slug: `pormk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'POR Model', slug: `pormd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'por test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `Price On Request ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2019,
+        heroImage: mediaId,
+        priceOnRequest: true,
+      },
+    })
+
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('Contact for price')).toBeVisible()
+    await expect(page.getByText(/¥|\$/)).not.toBeVisible()
+
+    await page.goto('/en/vehicles')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText('Contact for price').first()).toBeVisible()
+  })
+
+  test('a listing with both JPY and USD prices shows both, identically on both site locales', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `dual-price-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `DualMake-${ts}`, slug: `dualmk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Dual Model', slug: `dualmd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'dual price test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `Dual Price ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2020,
+        heroImage: mediaId,
+        priceJpy: 4500000,
+        priceUsd: 30000,
+      },
+    })
+
+    // Currency-driven, not locale-driven (FR-004): both prices show on both locales.
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(/4,500,000/)).toBeVisible()
+    await expect(page.getByText(/30,000/)).toBeVisible()
+
+    await page.goto(`/ja/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(/4,500,000/)).toBeVisible()
+    await expect(page.getByText(/30,000/)).toBeVisible()
+  })
+
+  test('a JPY-only listing shows the same JPY price on both /ja and /en detail pages', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `jpy-only-detail-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `JpyOnlyMake-${ts}`, slug: `jpymk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Jpy Model', slug: `jpymd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'jpy only test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `JPY Only ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2021,
+        heroImage: mediaId,
+        priceJpy: 2200000,
+      },
+    })
+
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(/2,200,000/)).toBeVisible()
+
+    await page.goto(`/ja/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(/2,200,000/)).toBeVisible()
+  })
+
+  test('a USD-only listing is excluded from a price-filtered result but visible via normal browsing', async ({ page }) => {
+    const ts = Date.now()
+    const mkRes = await page.request.post('/api/makes', { data: { name: `UsdOnlyMake-${ts}`, slug: `usdmk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Usd Model', slug: `usdmd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'usd only test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+    const slug = `usd-only-${ts}`
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `USD Only ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2022,
+        heroImage: mediaId,
+        priceUsd: 25000,
+      },
+    })
+
+    // Excluded from a priceFrom/priceTo-filtered result — no JPY value to compare against.
+    await page.goto(`/en/vehicles?make=${makeId}&priceFrom=1&priceTo=999999999`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(`USD Only ${ts}`)).not.toBeVisible()
+
+    // Still visible via normal browsing with no price filter applied.
+    await page.goto(`/en/vehicles?make=${makeId}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(`USD Only ${ts}`)).toBeVisible()
+  })
+
+  test('a listing with only a Japanese description shows it on the English-locale detail page', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `desc-fallback-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `DescMake-${ts}`, slug: `descmk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Desc Model', slug: `descmd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'desc fallback test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+    const japaneseParagraphText = `日本語の説明文-${ts}`
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleJa: `説明フォールバックテスト ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2023,
+        heroImage: mediaId,
+        priceOnRequest: true,
+        descriptionJa: {
+          root: {
+            type: 'root',
+            children: [
+              {
+                type: 'paragraph',
+                children: [{ type: 'text', text: japaneseParagraphText, detail: 0, format: 0, mode: 'normal', style: '', version: 1 }],
+                direction: null,
+                format: '',
+                indent: 0,
+                version: 1,
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            version: 1,
+          },
+        },
+      },
+    })
+
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(japaneseParagraphText)).toBeVisible()
+  })
+
+  test('a spec row with a Japanese label and an English value renders both halves together', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `spec-mismatch-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `SpecMixMake-${ts}`, slug: `specmixmk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Spec Mix Model', slug: `specmixmd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const mediaRes = await page.request.post('/api/media', {
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'spec mismatch test' },
+    })
+    const mediaId = (await mediaRes.json()).doc.id
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `Spec Mismatch ${ts}`,
+        slug,
+        status: 'available',
+        make: makeId,
+        model: modelId,
+        year: 2024,
+        heroImage: mediaId,
+        priceOnRequest: true,
+        specs: [
+          { labelJa: `エンジン-${ts}`, valueEn: `Engine-${ts}` },
+          { labelJa: undefined, labelEn: undefined, valueJa: undefined, valueEn: undefined }, // fully blank row — must be omitted
+        ],
+      },
+    })
+
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(`エンジン-${ts}`)).toBeVisible()
+    await expect(page.getByText(`Engine-${ts}`)).toBeVisible()
+
+    // Exactly one spec row rendered — the fully-blank second row is omitted.
+    const specRows = page.locator('table tbody tr')
+    await expect(specRows).toHaveCount(1)
   })
 
   test('draft vehicle does NOT appear on public listing UI', async ({ page }) => {
@@ -273,10 +512,10 @@ test.describe('Vehicle filters', () => {
     const mediaId = (await mediaRes.json()).doc.id
 
     await page.request.post('/api/vehicles', {
-      data: { title: `Sort Cheap ${ts}`, slug: `sort-cheap-${ts}`, status: 'available', make: makeId, model: cheapModelId, year: 2020, price: 500000, heroImage: mediaId },
+      data: { titleEn: `Sort Cheap ${ts}`, slug: `sort-cheap-${ts}`, status: 'available', make: makeId, model: cheapModelId, year: 2020, priceJpy: 500000, heroImage: mediaId },
     })
     await page.request.post('/api/vehicles', {
-      data: { title: `Sort Expensive ${ts}`, slug: `sort-exp-${ts}`, status: 'available', make: makeId, model: expModelId, year: 2020, price: 9000000, heroImage: mediaId },
+      data: { titleEn: `Sort Expensive ${ts}`, slug: `sort-exp-${ts}`, status: 'available', make: makeId, model: expModelId, year: 2020, priceJpy: 9000000, heroImage: mediaId },
     })
 
     // Filter by this specific make + sort by price ascending

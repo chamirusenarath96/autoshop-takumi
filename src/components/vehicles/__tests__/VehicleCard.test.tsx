@@ -5,11 +5,12 @@ import { VehicleCard } from '../VehicleCard'
 const baseVehicle = {
   id: '1',
   slug: 'test-supra',
-  title: '1999 Toyota Supra RZ',
+  titleJa: '1999年式 トヨタ スープラ RZ',
+  titleEn: '1999 Toyota Supra RZ',
   year: 1999,
   status: 'available',
-  price: 3500000,
-  currency: 'JPY',
+  priceJpy: 3500000,
+  priceUsd: undefined,
   mileageKm: 85000,
   priceOnRequest: false,
   heroImage: {
@@ -19,14 +20,31 @@ const baseVehicle = {
 }
 
 describe('VehicleCard', () => {
-  it('renders the vehicle title', () => {
+  it('renders the vehicle title matching the active locale', () => {
     render(<VehicleCard vehicle={baseVehicle} locale="en" />)
     expect(screen.getByText('1999 Toyota Supra RZ')).toBeInTheDocument()
   })
 
-  it('formats price in JPY for Japanese locale', () => {
+  it('falls back to the other language when the active locale title is blank', () => {
+    render(<VehicleCard vehicle={{ ...baseVehicle, titleEn: undefined }} locale="en" />)
+    expect(screen.getByText('1999年式 トヨタ スープラ RZ')).toBeInTheDocument()
+  })
+
+  it('omits the title fallback only when both languages are blank', () => {
+    render(<VehicleCard vehicle={{ ...baseVehicle, titleJa: undefined, titleEn: undefined, title: undefined }} locale="en" />)
+    const heading = screen.getByRole('heading', { level: 3 })
+    expect(heading).toHaveTextContent('')
+  })
+
+  it('formats the JPY price for Japanese locale', () => {
     render(<VehicleCard vehicle={baseVehicle} locale="ja" />)
     expect(screen.getByText(/3,500,000/)).toBeInTheDocument()
+  })
+
+  it('shows both JPY and USD prices when both are set', () => {
+    render(<VehicleCard vehicle={{ ...baseVehicle, priceUsd: 23000 }} locale="en" />)
+    expect(screen.getByText(/3,500,000/)).toBeInTheDocument()
+    expect(screen.getByText(/23,000/)).toBeInTheDocument()
   })
 
   it('shows mileage', () => {
