@@ -1,4 +1,5 @@
-import { formatPrice } from '@/lib/utils'
+import { formatVehiclePrices } from '@/lib/utils'
+import { resolveLocalizedField, type VehicleLocale } from '@/lib/vehicle-locale'
 
 type Props = {
   vehicle: any
@@ -19,12 +20,19 @@ const statusLabels: Record<string, Record<string, string>> = {
 export function VehicleCard({ vehicle, locale }: Props) {
   const heroImage = typeof vehicle.heroImage === 'object' ? vehicle.heroImage : null
   const imgUrl = heroImage?.sizes?.card?.url ?? heroImage?.url ?? '/placeholder-car.svg'
+  const activeLocale = locale as VehicleLocale
 
+  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale) ?? vehicle.title
+
+  const priceParts = formatVehiclePrices(
+    vehicle.priceJpy,
+    vehicle.priceUsd,
+    vehicle.priceOnRequest,
+    locale === 'ja' ? 'ja-JP' : 'en-US',
+  )
   const price = vehicle.priceOnRequest
     ? locale === 'ja' ? '要お問い合わせ' : 'Contact for price'
-    : vehicle.price
-      ? formatPrice(vehicle.price, vehicle.currency ?? 'JPY', locale === 'ja' ? 'ja-JP' : 'en-US')
-      : ''
+    : priceParts.join(' / ')
 
   const statusLabel = statusLabels[locale]?.[vehicle.status] ?? vehicle.status
 
@@ -36,7 +44,7 @@ export function VehicleCard({ vehicle, locale }: Props) {
       <div className="relative aspect-[4/3] overflow-hidden bg-[hsl(var(--muted))]">
         <img
           src={imgUrl}
-          alt={vehicle.title ?? ''}
+          alt={title ?? ''}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
         {vehicle.status !== 'available' && (
@@ -46,7 +54,7 @@ export function VehicleCard({ vehicle, locale }: Props) {
         )}
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-base line-clamp-2">{vehicle.title}</h3>
+        <h3 className="font-semibold text-base line-clamp-2">{title}</h3>
         <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
           {vehicle.year}{locale === 'ja' ? '年' : ''}{vehicle.mileageKm ? ` · ${vehicle.mileageKm.toLocaleString()} km` : ''}
         </p>
