@@ -406,7 +406,7 @@ test.describe('Vehicle listing and detail', () => {
     const mdRes = await page.request.post('/api/models', { data: { name: 'DraftModel', slug: `draftmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     await page.request.post('/api/vehicles', {
-      data: { title: `Draft Vehicle Hidden ${ts}`, slug, status: 'draft', make: makeId, model: modelId, year: 2022 },
+      data: { titleEn: `Draft Vehicle Hidden ${ts}`, slug, status: 'draft', make: makeId, model: modelId, year: 2022 },
     })
 
     // The public listing page is server-rendered using Payload's access control WHERE clause.
