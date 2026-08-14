@@ -52,15 +52,19 @@ Presence/blank checks used by the locale-fallback helper (§ below) are **not** 
 
 ## Validation rules
 
-- All twenty-two paired fields (2 Makes/Models × 1 field, Media × 1 field, SiteSettings × 4 fields, Homepage × 5 fields including the `whyUsPoints[]` item pair, doubled for JA/EN) remain individually optional at the schema level (no `required: true`) — drafts and singleton globals must stay freely saveable incomplete, per Constitution Principle V. This matches current behavior where one locale's value can be blank while the other is filled.
-- No schema-level validation ties a field's `*Ja`/`*En` pair to each other — a Make, Model, Media item, or globals field may legitimately have only one language populated, same as today.
-- None of these five schemas has a publish-gate concept comparable to `Vehicles`' `status: 'available'` check — no new `beforeChange` gate is introduced by this feature (see plan.md Constitution Check, Principle V: PASS, no change).
+- Thirteen source fields become twenty-six paired fields: Makes 1 (`name`) → 2, Models 1 (`name`) → 2, Media 1 (`alt`) → 2, SiteSettings 4 (`shopName`, `address`, `defaultSeoTitle`, `defaultSeoDescription`) → 8, Homepage 6 (`heroHeading`, `heroSubheading`, `aboutBlurb`, `whyUsPoints[].heading`, `whyUsPoints[].body`, `contactSummary`) → 12. Total: 2+2+2+8+12 = 26.
+- **Most paired fields remain individually optional** at the schema level (no `required: true` on either half) — drafts and singleton globals must stay freely saveable incomplete, per Constitution Principle V. This matches current behavior for fields that are not schema-required today.
+- **Exception — four currently-required fields**: `Makes.name`, `Models.name`, `SiteSettings.shopName`, and `Homepage.whyUsPoints[].heading` are `required: true` in the schema today (verified against `src/collections/Makes.ts`, `src/collections/Models.ts`, `src/globals/SiteSettings.ts`, `src/globals/Homepage.ts`). Simply making both `nameJa`/`nameEn` (etc.) independently optional, with no replacement check, would silently permit a record with *neither* language filled in — a regression from today, where the field can never be entirely blank. Per spec FR-013, each of these four fields' paired replacement needs a validation step (a Payload field-level `validate` function on one half of the pair, or a collection/global-level `beforeValidate`/`beforeChange` hook) requiring at least one of the two language values be non-blank, using the same blank-detection rule as above (trimmed non-empty check — none of these four are richText fields). Each half remains individually editable/optional on its own — the constraint is "at least one of the two," not "both."
+- No schema-level validation otherwise ties a field's `*Ja`/`*En` pair to each other beyond the FR-013 exception above — a Make, Model, Media item, or globals field may legitimately have only one language populated, same as today.
+- None of these five schemas has a publish-gate concept comparable to `Vehicles`' `status: 'available'` check — no new `beforeChange` *publish* gate is introduced by this feature; the FR-013 at-least-one-language check above is a save-time field validation, not a status-transition gate (see plan.md Constitution Check, Principle V).
 
 ## Migration mapping (one-time, existing documents/globals only)
 
 For every existing Make, Model, and Media document, and the SiteSettings and Homepage globals, before the old fields are removed from their schemas:
 
-| Source (old, per-locale) | Target (new, paired) |
+**Critical**: `payload.config.ts` currently sets `fallback: true` on its `localization` config. Every locale-scoped read below MUST pass `fallbackLocale: false` (Payload's Local API option to disable this) — otherwise a genuinely-blank `en` value would silently resolve to the `ja` value instead of `null`/empty, and the migration would fabricate an English value that staff never actually entered (spec FR-014). This applies to every row in the table below.
+
+| Source (old, per-locale, read with `fallbackLocale: false`) | Target (new, paired) |
 |---|---|
 | `Makes.name` read with `locale: 'ja'` / `'en'` | `nameJa` / `nameEn` |
 | `Models.name` read with `locale: 'ja'` / `'en'` | `nameJa` / `nameEn` |
@@ -82,8 +86,10 @@ A source field with neither language populated (a pre-existing data gap) migrate
 
 ## Derived concept: Locale-resolved field (render time only, not persisted)
 
-Not a stored entity — a computed value produced by the shared `content-locale.ts` helper (see plan.md, research.md §2), reused identically by this feature's five schemas and issue #19's `Vehicles` migration:
+Not a stored entity — a computed value produced by the shared `content-locale.ts` helper (see plan.md, research.md §2), reused identically by this feature's five schemas and issue #19's `Vehicles` migration.
 
-- **Input**: a paired field's two values (`fieldJa`, `fieldEn`) and the active route locale (`'ja'` | `'en'`).
-- **Output**: the value matching the active locale if present (per the field-type-specific blank-detection rule above); otherwise the other language's value if present; otherwise `undefined`.
+**Canonical signature** (the one form every reference in this spec/plan/research/tasks set uses — resolving the value, not pre-selecting it, is the helper's job): `resolveLocalizedField(fieldJa: T, fieldEn: T, activeLocale: 'ja' | 'en'): T | undefined`
+
+- **Input**: a paired field's two raw values (`fieldJa`, `fieldEn`) and the active route locale — the caller does NOT pre-decide which value is "active" vs. "fallback"; the helper does that internally based on `activeLocale`.
+- **Output**: the value matching `activeLocale` if present (per the field-type-specific blank-detection rule above); otherwise the other language's value if present; otherwise `undefined`.
 - Applies independently per field — e.g. a `whyUsPoints[]` array item's heading and body each resolve independently, so an item can legitimately show a Japanese heading next to an English body if that's the only content that exists for each half.

@@ -27,7 +27,16 @@ npx tsx scripts/migrate-content-locale-fields.ts
 3. Repeat for a Model, a Media item's alt text, `/admin/globals/site-settings`, and `/admin/globals/homepage` (including a `whyUsPoints` array item's heading/body).
 4. Save a new Model with only `nameJa` filled in; confirm it saves successfully (independently-optional fields, matching current per-locale behavior).
 
-**Expected**: All twenty-two paired fields visible in one edit pass, across all five schemas; saving with only one language populated succeeds.
+**Expected**: All twenty-six paired fields visible in one edit pass, across all five schemas; saving with only one language populated succeeds (except `Makes.name`/`Models.name`/`SiteSettings.shopName`/`Homepage.whyUsPoints[].heading`, which require at least one language non-blank per spec FR-013 — see Scenario 1a below).
+
+## Scenario 1a — At-least-one-language required on four fields (FR-013)
+
+1. Attempt to save a new Make with both `nameJa` and `nameEn` left blank. Confirm the save is rejected (matching today's behavior, where `name` can never be entirely blank).
+2. Fill in only `nameEn` (leave `nameJa` blank) and retry. Confirm the save now succeeds.
+3. Repeat steps 1–2 for a Model's `name`, Site Settings' `shopName`, and a Homepage `whyUsPoints[]` item's `heading`.
+4. Confirm every *other* migrated field (e.g. `address`, `defaultSeoTitle`, `heroHeading`, `whyUsPoints[].body`) can still be saved with both languages blank — the FR-013 requirement is scoped to exactly these four fields.
+
+**Expected**: The four previously-required fields still cannot be saved fully blank; every other migrated field remains fully optional in both languages.
 
 ## Scenario 2 — Existing content survives the migration (Story 1, Acceptance Scenario 1/3; SC-001)
 
