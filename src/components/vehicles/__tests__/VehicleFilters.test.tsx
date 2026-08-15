@@ -33,6 +33,11 @@ describe('VehicleFilters mobile drawer', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('meets the 44px minimum tap-target height', () => {
+    renderFilters()
+    expect(screen.getByRole('button', { name: 'Filters' }).className).toMatch(/min-h-11/)
+  })
+
   it('closes on its close control', async () => {
     renderFilters()
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))

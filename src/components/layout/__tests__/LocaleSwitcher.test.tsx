@@ -20,7 +20,7 @@ describe('LocaleSwitcher', () => {
   it('highlights the active locale', () => {
     render(<LocaleSwitcher locale="en" />)
     const enBtn = screen.getByText('EN')
-    expect(enBtn.className).toMatch(/bg-\[hsl\(var\(--secondary\)\)\]/)
+    expect(enBtn.style.backgroundColor).toBe('var(--primary)')
   })
 
   it('switches to JA when JA is clicked', async () => {

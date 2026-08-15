@@ -10,12 +10,9 @@ export function Footer({ locale, siteSettings }: Props) {
   const tNav = useTranslations('nav')
 
   return (
-    <footer
-      className="mt-20 text-white"
-      style={{ backgroundColor: 'hsl(var(--secondary))' }}
-    >
+    <footer className="mt-20 text-white" style={{ backgroundColor: 'var(--nav-bg)' }}>
+      <div className="h-1" style={{ backgroundColor: 'var(--primary)' }} />
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-10">
-
         {/* Brand */}
         <div>
           <img src="/logo.png" alt={siteSettings.shopName || 'Autoshop Takumi'} className="h-8 w-auto object-contain mb-4" />
@@ -24,14 +21,14 @@ export function Footer({ locale, siteSettings }: Props) {
 
         {/* Navigation */}
         <div>
-          <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-4">{t('navigationHeading')}</p>
+          <p className="takumi-eyebrow text-white/50 mb-4">{t('navigationHeading')}</p>
           <nav className="space-y-2">
             {[
               { href: `/${locale}`, label: tNav('home') },
               { href: `/${locale}/vehicles`, label: tNav('vehicles') },
               { href: `/${locale}/about`, label: tNav('about') },
             ].map((l) => (
-              <a key={l.href} href={l.href} className="block text-sm text-white/60 hover:text-[hsl(var(--primary))] transition">
+              <a key={l.href} href={l.href} className="block text-sm text-white/60 transition hover:text-primary">
                 {l.label}
               </a>
             ))}
@@ -40,19 +37,22 @@ export function Footer({ locale, siteSettings }: Props) {
 
         {/* Contact */}
         <div>
-          <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-4">{t('contactHeading')}</p>
+          <p className="takumi-eyebrow text-white/50 mb-4">{t('contactHeading')}</p>
           <div className="space-y-1.5 text-sm text-white/60">
             {siteSettings.contactPhone && <p>{siteSettings.contactPhone}</p>}
             {siteSettings.contactEmail && <p>{siteSettings.contactEmail}</p>}
             {siteSettings.address && (
               <p className="leading-relaxed pt-1 whitespace-pre-line">{siteSettings.address}</p>
             )}
+            {siteSettings.businessHours && (
+              <p className="leading-relaxed pt-1 text-white/50">{siteSettings.businessHours}</p>
+            )}
             {siteSettings.instagramUrl && (
               <a
                 href={siteSettings.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 pt-2 text-white/70 hover:text-[hsl(var(--primary))] transition"
+                className="inline-flex items-center gap-2 pt-2 text-white/70 transition hover:text-primary"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>

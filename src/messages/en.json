@@ -9,7 +9,15 @@
     "closeMenu": "Close menu"
   },
   "hero": {
-    "cta": "View Inventory"
+    "cta": "View Inventory",
+    "ctaPrimary": "Browse vehicles",
+    "ctaSecondary": "Contact us"
+  },
+  "homepage": {
+    "servicesHeading": "Our Services",
+    "stepsHeading": "How It Works",
+    "featuredHeading": "From the Lot",
+    "viewAllVehicles": "View all vehicles"
   },
   "vehicles": {
     "title": "Vehicle Inventory",
@@ -61,6 +69,7 @@
     "phone": "Phone number (optional)",
     "message": "Message",
     "submit": "Send inquiry",
+    "sending": "Sending...",
     "success": "Thank you! Your inquiry has been received. We'll be in touch soon.",
     "error": "Something went wrong. Please try again."
   },
@@ -92,7 +101,10 @@
     },
     "hoursValue": "Please contact us for hours",
     "findUs": "Find Us",
-    "mapTitle": "Store location map"
+    "mapTitle": "Store location map",
+    "valuesHeading": "What We Value",
+    "teamHeading": "The Team",
+    "facilityHeading": "The Shop"
   },
   "footer": {
     "rights": "All rights reserved.",

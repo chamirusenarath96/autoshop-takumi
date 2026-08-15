@@ -53,27 +53,33 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
   ])
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-4xl font-bold mb-8">{t('title')}</h1>
-      <div className="flex flex-col lg:flex-row gap-8">
-        <aside className="w-full lg:w-64 shrink-0">
-          <VehicleFilters
-            makes={makesResult.docs}
-            models={modelsResult.docs}
-            currentFilters={sp}
-            locale={locale}
-          />
-        </aside>
-        <div className="flex-1">
-          {vehiclesResult.docs.length === 0 ? (
-            <p className="text-[hsl(var(--muted-foreground))] py-12 text-center">{t('noResults')}</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {vehiclesResult.docs.map((vehicle: any) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
-              ))}
-            </div>
-          )}
+    <div>
+      <div className="bg-black text-white">
+        <div className="max-w-7xl mx-auto px-6 py-14">
+          <h1 className="takumi-display text-4xl sm:text-5xl">{t('title')}</h1>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <aside className="w-full lg:w-64 shrink-0">
+            <VehicleFilters
+              makes={makesResult.docs}
+              models={modelsResult.docs}
+              currentFilters={sp}
+              locale={locale}
+            />
+          </aside>
+          <div className="flex-1">
+            {vehiclesResult.docs.length === 0 ? (
+              <p className="text-muted-foreground py-12 text-center">{t('noResults')}</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {vehiclesResult.docs.map((vehicle: any) => (
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

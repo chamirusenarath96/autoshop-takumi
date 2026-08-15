@@ -51,8 +51,8 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
   const fields = (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">{t('make')}</h2>
-        <button onClick={reset} className="text-xs text-[hsl(var(--primary))] hover:underline">
+        <h2 className="takumi-eyebrow text-foreground">{t('make')}</h2>
+        <button onClick={reset} className="text-xs text-primary hover:underline">
           {t('reset')}
         </button>
       </div>
@@ -128,7 +128,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
       <div className="lg:hidden">
         <button
           onClick={() => setDrawerOpen(true)}
-          className="w-full flex items-center justify-center gap-2 border border-[hsl(var(--border))] rounded px-4 py-2.5 text-sm font-medium bg-[hsl(var(--background))]"
+          className="w-full min-h-11 flex items-center justify-center gap-2 border border-input rounded-md px-4 py-2.5 text-sm font-medium bg-background text-foreground"
         >
           {t('openFilters')}
         </button>
@@ -140,7 +140,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
               className="absolute inset-0 bg-black/50"
               onClick={() => setDrawerOpen(false)}
             />
-            <div className="relative w-full max-w-xs h-full bg-[hsl(var(--background))] overflow-y-auto p-5 shadow-xl">
+            <div className="relative w-full max-w-xs h-full bg-background text-foreground overflow-y-auto p-5 shadow-xl">
               <div className="flex items-center justify-between mb-5">
                 <h2 id="filter-drawer-heading" className="font-semibold text-lg">{t('openFilters')}</h2>
                 <button
@@ -179,7 +179,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-[hsl(var(--border))] rounded px-3 py-2 text-sm bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
+        className="w-full min-h-11 border border-input rounded-md px-3 py-2 text-sm bg-background text-foreground"
       >
         <option value="">{allLabel}</option>
         {options.map((o) => (

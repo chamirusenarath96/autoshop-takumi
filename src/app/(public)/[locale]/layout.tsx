@@ -1,11 +1,15 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
+import { Inter, Anton } from 'next/font/google'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { getSiteSettings } from '@/lib/site-settings'
 import '../../globals.css'
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans-loaded', display: 'swap' })
+const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-display-loaded', display: 'swap' })
 
 type Props = {
   children: React.ReactNode
@@ -46,7 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const siteSettings = await getSiteSettings(locale as 'ja' | 'en')
 
   return (
-    <html lang={locale} data-public suppressHydrationWarning>
+    <html lang={locale} data-public suppressHydrationWarning className={`${inter.variable} ${anton.variable}`}>
       <head>
         {/* Blocking theme script — runs before paint to avoid flash of wrong theme.
             suppressHydrationWarning on <html> silences the expected data-theme mismatch

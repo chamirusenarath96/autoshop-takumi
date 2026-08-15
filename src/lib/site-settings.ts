@@ -5,6 +5,7 @@ export type SiteSettingsData = {
   contactEmail: string | null
   contactPhone: string | null
   address: string | null
+  businessHours: string | null
   instagramUrl: string | null
   instagramHandle: string | null
 }
@@ -27,6 +28,7 @@ export async function getSiteSettings(locale: 'ja' | 'en'): Promise<SiteSettings
     contactEmail: (settings.contactEmail as string) ?? null,
     contactPhone: (settings.contactPhone as string) ?? null,
     address: (settings.address as string) ?? null,
+    businessHours: (settings.businessHours as string) ?? null,
     instagramUrl,
     instagramHandle: instagramUrl ? extractInstagramHandle(instagramUrl) : null,
   }

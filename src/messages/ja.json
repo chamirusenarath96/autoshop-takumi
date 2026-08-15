@@ -9,7 +9,15 @@
     "closeMenu": "メニューを閉じる"
   },
   "hero": {
-    "cta": "在庫を見る"
+    "cta": "在庫を見る",
+    "ctaPrimary": "在庫を見る",
+    "ctaSecondary": "お問い合わせ"
+  },
+  "homepage": {
+    "servicesHeading": "サービス",
+    "stepsHeading": "ご利用の流れ",
+    "featuredHeading": "入荷車両",
+    "viewAllVehicles": "すべての在庫を見る"
   },
   "vehicles": {
     "title": "在庫車両",
@@ -61,6 +69,7 @@
     "phone": "電話番号（任意）",
     "message": "メッセージ",
     "submit": "送信する",
+    "sending": "送信中...",
     "success": "お問い合わせを受け付けました。担当者よりご連絡いたします。",
     "error": "送信に失敗しました。もう一度お試しください。"
   },
@@ -92,7 +101,10 @@
     },
     "hoursValue": "お問い合わせください",
     "findUs": "アクセス",
-    "mapTitle": "店舗地図"
+    "mapTitle": "店舗地図",
+    "valuesHeading": "大切にしていること",
+    "teamHeading": "スタッフ紹介",
+    "facilityHeading": "設備紹介"
   },
   "footer": {
     "rights": "無断転載を禁じます。",

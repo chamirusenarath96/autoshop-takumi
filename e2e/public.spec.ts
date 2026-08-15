@@ -8,7 +8,7 @@ import { AUTH_STATE_PATH, createPublishedVehicle } from './helpers'
 test.describe('Public site — navigation and pages', () => {
   test('landing page loads in English', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByRole('link', { name: /View Inventory/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /Browse vehicles/i })).toBeVisible()
     const header = page.getByRole('banner')
     await expect(header.getByRole('link', { name: /Inventory/i })).toBeVisible()
     await expect(header.getByRole('link', { name: /About/i })).toBeVisible()
@@ -57,12 +57,12 @@ test.describe('Public site — navigation and pages', () => {
 
   test('about page loads in both locales', async ({ page }) => {
     await page.goto('/en/about')
-    await expect(page.getByRole('heading', { name: /About Autoshop Takumi/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Built by hand, done right/i })).toBeVisible()
     await expect(page.getByText(/Company Profile/i).first()).toBeVisible()
     await expect(page.getByText('022-342-2285').first()).toBeVisible()
 
     await page.goto('/ja/about')
-    await expect(page.getByRole('heading', { name: /オートショップ匠/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /職人の手による/i })).toBeVisible()
     await expect(page.getByText(/会社概要/i).first()).toBeVisible()
   })
 
@@ -75,6 +75,18 @@ test.describe('Public site — navigation and pages', () => {
     await page.goto('/en/vehicles')
     await page.locator('header img[alt="Autoshop Takumi"]').click()
     await expect(page).toHaveURL(/\/en$|\/en\/$/)
+  })
+
+  test('homepage renders seeded services and steps from the CMS', async ({ page }) => {
+    await page.goto('/en')
+    await expect(page.getByText('Shaken & servicing')).toBeVisible()
+    await expect(page.getByText('Browse the lot')).toBeVisible()
+  })
+
+  test('about page renders seeded values and team from the CMS', async ({ page }) => {
+    await page.goto('/en/about')
+    await expect(page.getByText('Honest inspections')).toBeVisible()
+    await expect(page.getByText('Owner / Mechanic')).toBeVisible()
   })
 })
 
