@@ -128,7 +128,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
       <div className="lg:hidden">
         <button
           onClick={() => setDrawerOpen(true)}
-          className="w-full flex items-center justify-center gap-2 border border-input rounded-md px-4 py-2.5 text-sm font-medium bg-background text-foreground"
+          className="w-full min-h-11 flex items-center justify-center gap-2 border border-input rounded-md px-4 py-2.5 text-sm font-medium bg-background text-foreground"
         >
           {t('openFilters')}
         </button>

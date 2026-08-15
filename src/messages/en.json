@@ -11,7 +11,7 @@
   "hero": {
     "cta": "View Inventory",
     "ctaPrimary": "Browse vehicles",
-    "ctaSecondary": "Book a service"
+    "ctaSecondary": "Contact us"
   },
   "homepage": {
     "servicesHeading": "Our Services",
@@ -69,6 +69,7 @@
     "phone": "Phone number (optional)",
     "message": "Message",
     "submit": "Send inquiry",
+    "sending": "Sending...",
     "success": "Thank you! Your inquiry has been received. We'll be in touch soon.",
     "error": "Something went wrong. Please try again."
   },

@@ -90,7 +90,7 @@ export function Header({ locale, siteSettings }: Props) {
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? t('closeMenu') : t('menu')}
           aria-expanded={menuOpen}
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded transition hover:bg-white/10"
+          className="lg:hidden w-11 h-11 flex items-center justify-center rounded transition hover:bg-white/10"
           style={{ color: 'var(--nav-fg)' }}
         >
           {menuOpen ? <X size={22} /> : <Menu size={22} />}

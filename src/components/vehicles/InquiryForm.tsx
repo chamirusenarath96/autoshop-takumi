@@ -71,7 +71,7 @@ export function InquiryForm({ vehicleId, locale }: Props) {
       </div>
       {status === 'error' && <p className="text-destructive text-sm break-words">{t('error')}</p>}
       <Button type="submit" disabled={status === 'loading'}>
-        {status === 'loading' ? '...' : t('submit')}
+        {status === 'loading' ? t('sending') : t('submit')}
       </Button>
     </form>
   )

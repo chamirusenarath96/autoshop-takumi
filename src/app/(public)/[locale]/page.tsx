@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { getPayload } from '@/lib/payload'
+import { getSiteSettings } from '@/lib/site-settings'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { ServiceCard } from '@/components/homepage/ServiceCard'
 import { StepItem } from '@/components/homepage/StepItem'
@@ -15,10 +16,10 @@ export default async function HomePage({ params }: Props) {
   const tHome = await getTranslations('homepage')
   const payload = await getPayload()
 
-  const homepage = await payload.findGlobal({
-    slug: 'homepage',
-    locale: locale as 'ja' | 'en',
-  })
+  const [homepage, siteSettings] = await Promise.all([
+    payload.findGlobal({ slug: 'homepage', locale: locale as 'ja' | 'en' }),
+    getSiteSettings(locale as 'ja' | 'en'),
+  ])
 
   let featuredVehicles: any[] = []
   if (homepage.featuredVehicles && (homepage.featuredVehicles as any[]).length > 0) {
@@ -52,9 +53,11 @@ export default async function HomePage({ params }: Props) {
           />
         )}
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 w-full">
-          <p className="takumi-eyebrow text-primary mb-4">Autoshop Takumi</p>
-          <h1 className="takumi-display text-5xl sm:text-6xl mb-4">{homepage.heroHeading}</h1>
-          <p className="text-lg sm:text-xl mb-8 text-white/70 max-w-2xl">{homepage.heroSubheading}</p>
+          {siteSettings.shopName && <p className="takumi-eyebrow text-primary mb-4">{siteSettings.shopName}</p>}
+          <h1 className="takumi-display text-5xl sm:text-6xl mb-4">{homepage.heroHeading || t('cta')}</h1>
+          {homepage.heroSubheading && (
+            <p className="text-lg sm:text-xl mb-8 text-white/70 max-w-2xl">{homepage.heroSubheading}</p>
+          )}
           <div className="flex flex-wrap gap-3">
             <Link
               href={`/${locale}/vehicles`}

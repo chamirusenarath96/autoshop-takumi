@@ -28,7 +28,7 @@ export function ThemeToggle() {
     <button
       onClick={() => apply(theme === 'light' ? 'dark' : 'light')}
       aria-label={theme === 'light' ? t('switchToDark') : t('switchToLight')}
-      className="w-8 h-8 flex items-center justify-center rounded transition hover:bg-white/10"
+      className="w-11 h-11 flex items-center justify-center rounded transition hover:bg-white/10"
       style={{ color: 'var(--nav-fg)' }}
     >
       {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}

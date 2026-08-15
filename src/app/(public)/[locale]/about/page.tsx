@@ -52,16 +52,16 @@ export default async function AboutPage({ params }: Props) {
     },
   ].filter((row) => row.value)
 
-  const mapQuery = encodeURIComponent(siteSettings.address ?? 'Autoshop Takumi, Sendai, Miyagi, Japan')
-
   return (
     <div>
       {/* Hero */}
       <section className="bg-black text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="takumi-eyebrow text-primary mb-4">{t('title')}</p>
-          <h1 className="takumi-display text-4xl sm:text-5xl mb-4">{about.heroHeading}</h1>
-          <p className="text-lg text-white/70 max-w-xl mx-auto">{about.heroSubheading}</p>
+          <h1 className="takumi-display text-4xl sm:text-5xl mb-4">{about.heroHeading || t('title')}</h1>
+          {about.heroSubheading && (
+            <p className="text-lg text-white/70 max-w-xl mx-auto">{about.heroSubheading}</p>
+          )}
         </div>
       </section>
 
@@ -86,7 +86,7 @@ export default async function AboutPage({ params }: Props) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <img src="/logo.png" alt={siteSettings.shopName || 'Autoshop Takumi'} className="w-full max-w-xs object-contain" />
+              <img src="/logo.png" alt={siteSettings.shopName ?? ''} className="w-full max-w-xs object-contain" />
             )}
           </div>
         </div>
@@ -156,13 +156,14 @@ export default async function AboutPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Map embed */}
+      {/* Map embed — omitted entirely when no address is configured */}
+      {siteSettings.address && (
       <section className="max-w-4xl mx-auto px-6 pb-16">
         <div className="w-12 h-1 bg-primary mb-6" />
         <h2 className="takumi-display text-3xl mb-6">{t('findUs')}</h2>
         <div className="rounded-lg overflow-hidden border border-border aspect-video">
           <iframe
-            src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+            src={`https://www.google.com/maps?q=${encodeURIComponent(siteSettings.address)}&output=embed`}
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -173,12 +174,11 @@ export default async function AboutPage({ params }: Props) {
             title={t('mapTitle')}
           />
         </div>
-        {siteSettings.address && (
-          <p className="mt-3 text-sm text-muted-foreground whitespace-pre-line">
-            {siteSettings.address}
-          </p>
-        )}
+        <p className="mt-3 text-sm text-muted-foreground whitespace-pre-line">
+          {siteSettings.address}
+        </p>
       </section>
+      )}
     </div>
   )
 }

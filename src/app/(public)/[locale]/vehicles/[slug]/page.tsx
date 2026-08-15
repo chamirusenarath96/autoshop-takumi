@@ -21,6 +21,7 @@ export default async function VehicleDetailPage({ params }: Props) {
   const { locale, slug } = await params
   const t = await getTranslations('vehicle')
   const tInquiry = await getTranslations('inquiry')
+  const tStatus = await getTranslations('vehicles.status')
   const payload = await getPayload()
 
   const result = await payload.find({
@@ -73,7 +74,7 @@ export default async function VehicleDetailPage({ params }: Props) {
         <div className="text-right">
           <p className="text-3xl font-bold text-primary">{price}</p>
           <Badge variant={statusVariants[vehicle.status]} className="mt-1">
-            {vehicle.status}
+            {tStatus(vehicle.status)}
           </Badge>
         </div>
       </div>

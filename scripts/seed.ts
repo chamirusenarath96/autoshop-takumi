@@ -181,15 +181,12 @@ async function seed() {
         { text: "We've kept it small on purpose — every car we sell is sourced, inspected, and serviced in-house." },
       ],
       values: [
-        { title: 'Honest inspections', description: "We tell you what's good and what isn't, every time." },
-        { title: 'Customer first', description: "We don't move on until you're confident in the car." },
+        { icon: 'ShieldCheck', title: 'Honest inspections', description: "We tell you what's good and what isn't, every time." },
+        { icon: 'Handshake', title: 'Customer first', description: "We don't move on until you're confident in the car." },
       ],
-      // team.name is required but NOT localized — Payload replaces array fields
-      // wholesale per locale update (no row-id merge), so name must be repeated
-      // here identically or this write fails validation for the missing field.
       team: [
-        { name: '匠 一郎', role: 'Owner / Mechanic', specialty: 'Engine & drivetrain' },
-        { name: '匠 次郎', role: 'Bodywork & paint', specialty: 'Bodywork' },
+        { name: 'Ichiro Takumi', role: 'Owner / Mechanic', years: '22 years', specialty: 'Engine & drivetrain' },
+        { name: 'Jiro Takumi', role: 'Bodywork & paint', years: '15 years', specialty: 'Bodywork' },
       ],
       facility: [
         { caption: 'Four service bays' },

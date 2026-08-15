@@ -68,6 +68,7 @@ export const About: GlobalConfig = {
           name: 'name',
           type: 'text',
           required: true,
+          localized: true,
         },
         {
           name: 'role',
@@ -77,6 +78,7 @@ export const About: GlobalConfig = {
         {
           name: 'years',
           type: 'text',
+          localized: true,
         },
         {
           name: 'specialty',

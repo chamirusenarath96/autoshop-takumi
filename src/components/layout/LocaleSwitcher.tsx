@@ -22,7 +22,7 @@ export function LocaleSwitcher({ locale }: Props) {
         <button
           key={l}
           onClick={() => switchLocale(l)}
-          className="px-2.5 py-1 transition"
+          className="min-w-11 min-h-11 px-2.5 py-1 transition"
           style={
             locale === l
               ? { backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }
