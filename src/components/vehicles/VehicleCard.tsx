@@ -1,9 +1,15 @@
-import { formatVehiclePrices } from '@/lib/utils'
+import { formatVehiclePriceDisplay } from '@/lib/utils'
 import { resolveLocalizedField, type VehicleLocale } from '@/lib/vehicle-locale'
 
 type Props = {
   vehicle: any
   locale: string
+  priceOnRequestLabel?: string
+}
+
+const defaultPriceOnRequestLabel: Record<string, string> = {
+  ja: '要お問い合わせ',
+  en: 'Contact for price',
 }
 
 const statusColors: Record<string, string> = {
@@ -17,22 +23,20 @@ const statusLabels: Record<string, Record<string, string>> = {
   en: { available: 'Available', reserved: 'Reserved', sold: 'Sold' },
 }
 
-export function VehicleCard({ vehicle, locale }: Props) {
+export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
   const heroImage = typeof vehicle.heroImage === 'object' ? vehicle.heroImage : null
   const imgUrl = heroImage?.sizes?.card?.url ?? heroImage?.url ?? '/placeholder-car.svg'
   const activeLocale = locale as VehicleLocale
 
-  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale) ?? vehicle.title
+  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale)
 
-  const priceParts = formatVehiclePrices(
+  const price = formatVehiclePriceDisplay(
     vehicle.priceJpy,
     vehicle.priceUsd,
     vehicle.priceOnRequest,
     locale === 'ja' ? 'ja-JP' : 'en-US',
+    priceOnRequestLabel ?? defaultPriceOnRequestLabel[locale] ?? defaultPriceOnRequestLabel.en,
   )
-  const price = vehicle.priceOnRequest
-    ? locale === 'ja' ? '要お問い合わせ' : 'Contact for price'
-    : priceParts.join(' / ')
 
   const statusLabel = statusLabels[locale]?.[vehicle.status] ?? vehicle.status
 

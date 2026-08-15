@@ -344,6 +344,37 @@ test('publish gate evaluates effective state — status-only PATCH succeeds when
   expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
 })
 
+test('publish gate still applies on a field-only PATCH to an already-available vehicle', async ({ page }) => {
+  const makeId = await createMake(page, 'Field Only Gate', `fog-${Date.now()}`)
+  const modelId = await createModel(page, 'Field Only Model', `fogm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: 'Field Only Gate Test',
+      priceJpy: 3000000,
+      slug: `field-only-gate-${Date.now()}`,
+      status: 'available',
+      make: makeId,
+      model: modelId,
+      year: 2015,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+  expect(doc.status).toBe('available')
+
+  // No status field in this request — status stays 'available' via originalDoc, so the gate
+  // must still evaluate against the effective (post-merge) state and reject removing heroImage.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { heroImage: null } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  const verifyData = await verifyRes.json()
+  expect(verifyData.status).toBe('available')
+  expect(verifyData.heroImage).toBeTruthy()
+})
+
 test('publish gate treats a title string of "0" as present, not missing', async ({ page }) => {
   const makeId = await createMake(page, 'Zero Title', `zt-${Date.now()}`)
   const modelId = await createModel(page, 'Zero Model', `ztm-${Date.now()}`, makeId)

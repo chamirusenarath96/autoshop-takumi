@@ -151,7 +151,8 @@ export function mapLegacyVehicleFields(
     legacy.en.highlights?.length ?? 0,
   )
   if (rowCount > 0) {
-    update.highlights = Array.from({ length: rowCount }, (_, i) => {
+    let highlightsChanged = current.highlights?.length !== rowCount
+    const highlights = Array.from({ length: rowCount }, (_, i) => {
       const currentRow = current.highlights?.[i] ?? {}
       const text = mapTextField(
         currentRow.textJa,
@@ -159,16 +160,19 @@ export function mapLegacyVehicleFields(
         legacy.ja.highlights?.[i]?.text,
         legacy.en.highlights?.[i]?.text,
       )
+      if (text.ja !== undefined || text.en !== undefined) highlightsChanged = true
       return {
         textJa: text.ja !== undefined ? text.ja : currentRow.textJa,
         textEn: text.en !== undefined ? text.en : currentRow.textEn,
       }
     })
+    if (highlightsChanged) update.highlights = highlights
   }
 
   const specRowCount = Math.max(current.specs?.length ?? 0, legacy.ja.specs?.length ?? 0, legacy.en.specs?.length ?? 0)
   if (specRowCount > 0) {
-    update.specs = Array.from({ length: specRowCount }, (_, i) => {
+    let specsChanged = current.specs?.length !== specRowCount
+    const specs = Array.from({ length: specRowCount }, (_, i) => {
       const currentRow = current.specs?.[i] ?? {}
       const label = mapTextField(
         currentRow.labelJa,
@@ -182,6 +186,9 @@ export function mapLegacyVehicleFields(
         legacy.ja.specs?.[i]?.value,
         legacy.en.specs?.[i]?.value,
       )
+      if (label.ja !== undefined || label.en !== undefined || value.ja !== undefined || value.en !== undefined) {
+        specsChanged = true
+      }
       return {
         labelJa: label.ja !== undefined ? label.ja : currentRow.labelJa,
         labelEn: label.en !== undefined ? label.en : currentRow.labelEn,
@@ -189,6 +196,7 @@ export function mapLegacyVehicleFields(
         valueEn: value.en !== undefined ? value.en : currentRow.valueEn,
       }
     })
+    if (specsChanged) update.specs = specs
   }
 
   const price = mapPriceFields(current, legacy.priceSource)

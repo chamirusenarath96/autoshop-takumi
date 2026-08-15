@@ -103,10 +103,10 @@ describe('mapLegacyVehicleFields', () => {
     expect(update.priceJpy).toBeUndefined()
   })
 
-  it('is a true no-op against a fully-migrated document', () => {
+  it('is a true no-op against a fully-migrated document, including populated highlights/specs rows', () => {
     const source = legacy({
-      ja: { title: '日本語タイトル' },
-      en: { title: 'English Title' },
+      ja: { title: '日本語タイトル', highlights: [{ text: '一番目' }], specs: [{ label: 'エンジン', value: 'V8' }] },
+      en: { title: 'English Title', highlights: [{ text: 'First' }], specs: [{ label: 'Engine', value: 'V8' }] },
       priceSource: { price: 4500000, currency: 'JPY', priceOnRequest: false },
     })
     const fullyMigrated: VehicleCurrentFields = {
@@ -114,6 +114,8 @@ describe('mapLegacyVehicleFields', () => {
       titleEn: 'English Title',
       priceJpy: 4500000,
       priceOnRequest: false,
+      highlights: [{ textJa: '一番目', textEn: 'First' }],
+      specs: [{ labelJa: 'エンジン', labelEn: 'Engine', valueJa: 'V8', valueEn: 'V8' }],
     }
     const update = mapLegacyVehicleFields(source, fullyMigrated)
     expect(update).toEqual({})

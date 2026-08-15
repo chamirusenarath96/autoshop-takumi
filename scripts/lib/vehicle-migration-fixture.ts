@@ -75,4 +75,13 @@ export const VEHICLE_MIGRATION_FIXTURE: Array<{
     },
     current: { titleJa: '部分移行済み車両' },
   },
+  {
+    description: 'a document with legacy highlights and specs rows to migrate',
+    legacy: {
+      ja: { title: 'ハイライト車両', highlights: [{ text: '一番目' }], specs: [{ label: 'エンジン', value: 'V8' }] },
+      en: { title: 'Highlights Vehicle', highlights: [{ text: 'First' }], specs: [{ label: 'Engine', value: 'V8' }] },
+      priceSource: { price: 5000000, currency: 'JPY' },
+    },
+    current: {},
+  },
 ]

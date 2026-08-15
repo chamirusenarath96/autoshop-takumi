@@ -30,6 +30,19 @@ export function formatVehiclePrices(
   return [formatPrice(priceJpy, 'JPY', intlLocale), formatPrice(priceUsd, 'USD', intlLocale)].filter(Boolean)
 }
 
+/** Composes the final price display string, substituting `priceOnRequestLabel` when set. */
+export function formatVehiclePriceDisplay(
+  priceJpy: number | null | undefined,
+  priceUsd: number | null | undefined,
+  priceOnRequest: boolean | null | undefined,
+  intlLocale: string,
+  priceOnRequestLabel: string,
+): string {
+  return priceOnRequest
+    ? priceOnRequestLabel
+    : formatVehiclePrices(priceJpy, priceUsd, priceOnRequest, intlLocale).join(' / ')
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

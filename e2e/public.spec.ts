@@ -187,7 +187,9 @@ test.describe('Vehicle listing and detail', () => {
     await page.goto(`/en/vehicles/${slug}`)
     await page.waitForLoadState('networkidle')
     await expect(page.getByText('Contact for price')).toBeVisible()
-    await expect(page.getByText(/¥|\$/)).not.toBeVisible()
+    // .toHaveCount(0), not .not.toBeVisible() — the latter passes trivially when the locator
+    // matches nothing, so it wouldn't catch a stray currency symbol rendered elsewhere on the page.
+    await expect(page.getByText(/¥|\$/)).toHaveCount(0)
 
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
