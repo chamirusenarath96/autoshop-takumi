@@ -67,10 +67,79 @@ export default async function globalSetup() {
       socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
     },
   })
-  await apiCtx.dispose()
 
   if (!seedRes.ok()) {
-    throw new Error(`Site settings seed failed (${seedRes.status()}): ${await seedRes.text()}`)
+    const body = await seedRes.text()
+    await apiCtx.dispose()
+    throw new Error(`Site settings seed failed (${seedRes.status()}): ${body}`)
   }
   console.log('✓ Site settings seeded')
+
+  // Seed Homepage + About so the redesigned public pages — which now source
+  // their content entirely from these globals — have something to render
+  // for public.spec.ts's copy assertions. Payload's default locale is 'ja'
+  // (see payload.config.ts), and required localized fields (services.name,
+  // steps.title, storyParagraphs.text) are validated against the default
+  // locale on first create — so a minimal ja write must land before the
+  // real en content, or creation fails outright (same constraint documented
+  // in scripts/seed.ts).
+  const homepageJaRes = await apiCtx.post('/api/globals/homepage?locale=ja', {
+    data: {
+      services: [{ name: '車検・整備' }],
+      steps: [{ title: '車両を選ぶ' }],
+    },
+  })
+  if (!homepageJaRes.ok()) {
+    const body = await homepageJaRes.text()
+    await apiCtx.dispose()
+    throw new Error(`Homepage ja seed failed (${homepageJaRes.status()}): ${body}`)
+  }
+
+  const homepageRes = await apiCtx.post('/api/globals/homepage?locale=en', {
+    data: {
+      heroHeading: 'Handpicked JDM Classics',
+      heroSubheading: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      heroStats: [{ value: '22', label: 'years in business' }],
+      services: [{ icon: 'Wrench', name: 'Shaken & servicing', description: 'Certified inspection and legal maintenance.', priceFrom: 'From ¥8,000' }],
+      steps: [{ title: 'Browse the lot', description: 'Find a car you like from our current inventory.' }],
+      shopSection: { heading: 'Four bays, no guesswork.', body: 'Servicing and custom work all happen in-house.', linkText: 'See the shop' },
+      ctaBanner: { heading: 'Looking for your next car?', body: "Tell us what you're after.", buttonText: 'Get in touch' },
+    },
+  })
+  if (!homepageRes.ok()) {
+    const body = await homepageRes.text()
+    await apiCtx.dispose()
+    throw new Error(`Homepage seed failed (${homepageRes.status()}): ${body}`)
+  }
+
+  const aboutJaRes = await apiCtx.post('/api/globals/about?locale=ja', {
+    data: {
+      heroHeading: '職人の手による、確かな一台。',
+      storyParagraphs: [{ text: 'オートショップ匠は2003年に創業しました。' }],
+    },
+  })
+  if (!aboutJaRes.ok()) {
+    const body = await aboutJaRes.text()
+    await apiCtx.dispose()
+    throw new Error(`About ja seed failed (${aboutJaRes.status()}): ${body}`)
+  }
+
+  const aboutRes = await apiCtx.post('/api/globals/about?locale=en', {
+    data: {
+      heroHeading: 'Built by hand, done right.',
+      heroSubheading: 'Since 2003. A small Sendai workshop specializing in JDM classics.',
+      storyHeading: 'Our story',
+      storyParagraphs: [{ text: 'Autoshop Takumi started in 2003 out of a small garage in Sendai.' }],
+      values: [{ title: 'Honest inspections', description: "We tell you what's good and what isn't, every time." }],
+      team: [{ name: 'Ichiro Takumi', role: 'Owner / Mechanic', specialty: 'Engine & drivetrain' }],
+      facility: [{ caption: 'Four service bays' }],
+    },
+  })
+  if (!aboutRes.ok()) {
+    const body = await aboutRes.text()
+    await apiCtx.dispose()
+    throw new Error(`About seed failed (${aboutRes.status()}): ${body}`)
+  }
+  await apiCtx.dispose()
+  console.log('✓ Homepage + About seeded')
 }
