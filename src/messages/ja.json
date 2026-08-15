@@ -52,7 +52,8 @@
     "related": "関連車両",
     "shaken": "車検",
     "inquiry": "お問い合わせ",
-    "shakenExpiry": "車検有効期限"
+    "shakenExpiry": "車検有効期限",
+    "priceOnRequest": "要お問い合わせ"
   },
   "inquiry": {
     "title": "この車についてお問い合わせ",

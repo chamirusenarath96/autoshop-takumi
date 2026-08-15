@@ -337,7 +337,7 @@ export const Vehicles: CollectionConfig = {
             ? effective.titleEn
             : '(untitled)'
 
-        if (data.status !== 'available') return data
+        if (effective.status !== 'available') return data
 
         if (!effective.heroImage) {
           throw new Error('A hero image is required before a vehicle can be set to Available.')

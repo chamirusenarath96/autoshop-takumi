@@ -10,6 +10,7 @@ type Props = {
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
   const t = await getTranslations('hero')
+  const tVehicle = await getTranslations('vehicle')
   const payload = await getPayload()
 
   // Fetch homepage global
@@ -64,7 +65,7 @@ export default async function HomePage({ params }: Props) {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredVehicles.map((vehicle: any) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
+              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
             ))}
           </div>
         </section>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, formatPrice, formatVehiclePrices, slugify } from '../utils'
+import { cn, formatPrice, formatVehiclePriceDisplay, formatVehiclePrices, slugify } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -59,6 +59,23 @@ describe('formatVehiclePrices', () => {
 
   it('returns an empty array when neither price is set and priceOnRequest is false', () => {
     expect(formatVehiclePrices(undefined, undefined, false)).toEqual([])
+  })
+
+  it('treats a JPY price of exactly 0 as present', () => {
+    expect(formatVehiclePrices(0, undefined, false)).toEqual([expect.stringMatching(/0/)])
+  })
+})
+
+describe('formatVehiclePriceDisplay', () => {
+  it('returns the priceOnRequest label when priceOnRequest is true, ignoring stored prices', () => {
+    expect(formatVehiclePriceDisplay(4500000, 30000, true, 'ja-JP', '要お問い合わせ')).toBe('要お問い合わせ')
+  })
+
+  it('joins the formatted price parts with " / " when priceOnRequest is false', () => {
+    const display = formatVehiclePriceDisplay(4500000, 30000, false, 'ja-JP', 'Contact for price')
+    expect(display).toMatch(/4,500,000/)
+    expect(display).toMatch(/30,000/)
+    expect(display).toContain(' / ')
   })
 })
 

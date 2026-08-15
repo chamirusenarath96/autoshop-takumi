@@ -12,6 +12,7 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
   const { locale } = await params
   const sp = await searchParams
   const t = await getTranslations('vehicles')
+  const tVehicle = await getTranslations('vehicle')
   const payload = await getPayload()
 
   // Build filter query from search params
@@ -73,7 +74,7 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {vehiclesResult.docs.map((vehicle: any) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
+                <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
               ))}
             </div>
           )}

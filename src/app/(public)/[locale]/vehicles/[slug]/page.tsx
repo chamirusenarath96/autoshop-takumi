@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
@@ -6,14 +7,14 @@ import { getPayload } from '@/lib/payload'
 import { VehicleGallery } from '@/components/vehicles/VehicleGallery'
 import { InquiryForm } from '@/components/vehicles/InquiryForm'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
-import { formatVehiclePrices } from '@/lib/utils'
+import { formatVehiclePriceDisplay } from '@/lib/utils'
 import { resolveLocalizedField, resolveLocalizedRichText, type VehicleLocale } from '@/lib/vehicle-locale'
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>
 }
 
-async function findVehicleBySlug(locale: string, slug: string) {
+const findVehicleBySlug = cache(async (locale: string, slug: string) => {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'vehicles',
@@ -23,7 +24,7 @@ async function findVehicleBySlug(locale: string, slug: string) {
     depth: 2,
   })
   return result.docs[0] as any | undefined
-}
+})
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params
@@ -33,8 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const activeLocale = locale as VehicleLocale
   const title =
     resolveLocalizedField(vehicle.seoTitleJa, vehicle.seoTitleEn, activeLocale) ??
-    resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale) ??
-    vehicle.title
+    resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale)
   const description =
     resolveLocalizedField(vehicle.seoDescriptionJa, vehicle.seoDescriptionEn, activeLocale) ??
     resolveLocalizedField(vehicle.summaryJa, vehicle.summaryEn, activeLocale)
@@ -52,7 +52,7 @@ export default async function VehicleDetailPage({ params }: Props) {
   if (!vehicle) notFound()
 
   const activeLocale = locale as VehicleLocale
-  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale) ?? vehicle.title
+  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale)
   const summary = resolveLocalizedField(vehicle.summaryJa, vehicle.summaryEn, activeLocale)
   const description = resolveLocalizedRichText(vehicle.descriptionJa, vehicle.descriptionEn, activeLocale)
   const highlights = (vehicle.highlights ?? [])
@@ -65,9 +65,14 @@ export default async function VehicleDetailPage({ params }: Props) {
     }))
     .filter((s: { label?: string; value?: string }) => s.label !== undefined || s.value !== undefined)
 
-  const priceOnRequestLabel = locale === 'ja' ? '要お問い合わせ' : 'Contact for price'
-  const priceParts = formatVehiclePrices(vehicle.priceJpy, vehicle.priceUsd, vehicle.priceOnRequest, locale === 'ja' ? 'ja-JP' : 'en-US')
-  const price = vehicle.priceOnRequest ? priceOnRequestLabel : priceParts.join(' / ')
+  const priceOnRequestLabel = t('priceOnRequest')
+  const price = formatVehiclePriceDisplay(
+    vehicle.priceJpy,
+    vehicle.priceUsd,
+    vehicle.priceOnRequest,
+    locale === 'ja' ? 'ja-JP' : 'en-US',
+    priceOnRequestLabel,
+  )
 
   // Related vehicles
   let related: any[] = []
@@ -168,7 +173,7 @@ export default async function VehicleDetailPage({ params }: Props) {
           <h2 className="text-xl font-semibold mb-4">{t('related')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {related.map((v: any) => (
-              <VehicleCard key={v.id} vehicle={v} locale={locale} />
+              <VehicleCard key={v.id} vehicle={v} locale={locale} priceOnRequestLabel={priceOnRequestLabel} />
             ))}
           </div>
         </section>

@@ -88,6 +88,7 @@ describe('resolveLocalizedField', () => {
   it('falls back to the other language when the active one is blank', () => {
     expect(resolveLocalizedField('日本語タイトル', undefined, 'en')).toBe('日本語タイトル')
     expect(resolveLocalizedField(undefined, 'English Title', 'ja')).toBe('English Title')
+    expect(resolveLocalizedField('日本語タイトル', '   ', 'en')).toBe('日本語タイトル')
   })
 
   it('returns undefined when both languages are blank', () => {

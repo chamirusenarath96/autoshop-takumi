@@ -33,7 +33,7 @@ describe('VehicleCard', () => {
   it('omits the title fallback only when both languages are blank', () => {
     render(<VehicleCard vehicle={{ ...baseVehicle, titleJa: undefined, titleEn: undefined, title: undefined }} locale="en" />)
     const heading = screen.getByRole('heading', { level: 3 })
-    expect(heading).toHaveTextContent('')
+    expect(heading).toBeEmptyDOMElement()
   })
 
   it('formats the JPY price for Japanese locale', () => {
