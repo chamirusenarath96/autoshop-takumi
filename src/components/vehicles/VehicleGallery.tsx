@@ -46,7 +46,7 @@ export function VehicleGallery({ heroImage, gallery }: Props) {
       <div
         data-testid="gallery-main"
         data-active-index={active}
-        className="relative aspect-[16/9] rounded-lg overflow-hidden bg-[hsl(var(--muted))] cursor-pointer"
+        className="relative aspect-[16/9] rounded-lg overflow-hidden bg-muted cursor-pointer"
         onClick={() => setLightbox(true)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -64,7 +64,7 @@ export function VehicleGallery({ heroImage, gallery }: Props) {
               <button
                 key={i}
                 onClick={() => setActive(i)}
-                className={`shrink-0 w-20 h-14 rounded overflow-hidden border-2 transition ${i === active ? 'border-[hsl(var(--primary))]' : 'border-transparent'}`}
+                className={`shrink-0 w-20 h-14 rounded overflow-hidden border-2 transition ${i === active ? 'border-primary' : 'border-transparent'}`}
               >
                 <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
               </button>

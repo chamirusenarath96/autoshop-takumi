@@ -72,6 +72,12 @@ export const SiteSettings: GlobalConfig = {
       label: 'Show sold vehicles on the listing page (as social proof)',
     },
     {
+      name: 'businessHours',
+      type: 'text',
+      localized: true,
+      admin: { description: 'e.g. "Mon–Sat 9:00–18:00, closed Sundays"' },
+    },
+    {
       name: 'defaultSeoTitle',
       type: 'text',
       localized: true,

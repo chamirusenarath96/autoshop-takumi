@@ -5,6 +5,13 @@ import { VehicleGallery } from '@/components/vehicles/VehicleGallery'
 import { InquiryForm } from '@/components/vehicles/InquiryForm'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { formatPrice } from '@/lib/utils'
+import { Badge, type BadgeProps } from '@/components/ui/badge'
+
+const statusVariants: Record<string, BadgeProps['variant']> = {
+  available: 'success',
+  reserved: 'warning',
+  sold: 'secondary',
+}
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>
@@ -57,17 +64,17 @@ export default async function VehicleDetailPage({ params }: Props) {
       {/* Header */}
       <div className="mt-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-3xl font-bold break-words">{vehicle.title}</h1>
-          <p className="text-[hsl(var(--muted-foreground))] mt-1">
+          <h1 className="takumi-display text-3xl break-words">{vehicle.title}</h1>
+          <p className="text-muted-foreground mt-1">
             {vehicle.year}{locale === 'ja' ? '年' : ''} ·{' '}
             {vehicle.mileageKm?.toLocaleString()} km
           </p>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-[hsl(var(--primary))]">{price}</p>
-          <span className="inline-block mt-1 text-sm px-2 py-0.5 rounded bg-[hsl(var(--muted))]">
+          <p className="text-3xl font-bold text-primary">{price}</p>
+          <Badge variant={statusVariants[vehicle.status]} className="mt-1">
             {vehicle.status}
-          </span>
+          </Badge>
         </div>
       </div>
 
@@ -94,13 +101,13 @@ export default async function VehicleDetailPage({ params }: Props) {
             <table className="w-full text-sm border-collapse">
               <tbody>
                 {vehicle.shakenExpiry && (
-                  <tr className="border-b border-[hsl(var(--border))]">
+                  <tr className="border-b border-border">
                     <td className="py-2 pr-4 font-medium w-1/3 break-words">{t('shakenExpiry')}</td>
                     <td className="py-2 break-words">{new Date(vehicle.shakenExpiry).toLocaleDateString(locale === 'ja' ? 'ja-JP' : 'en-US', { year: 'numeric', month: 'long' })}</td>
                   </tr>
                 )}
                 {vehicle.specs.map((spec: any, i: number) => (
-                  <tr key={i} className="border-b border-[hsl(var(--border))]">
+                  <tr key={i} className="border-b border-border">
                     <td className="py-2 pr-4 font-medium w-1/3 break-words">{spec.label}</td>
                     <td className="py-2 break-words">{spec.value}</td>
                   </tr>
@@ -112,7 +119,7 @@ export default async function VehicleDetailPage({ params }: Props) {
       )}
 
       {/* Inquiry form */}
-      <section className="mt-12 bg-[hsl(var(--muted))] rounded-lg p-6">
+      <section className="mt-12 bg-muted rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">{tInquiry('title')}</h2>
         <InquiryForm vehicleId={vehicle.id} locale={locale} />
       </section>

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 
-type Props = { locale: string; dark?: boolean }
+type Props = { locale: string }
 
 // Language names are shown as their own endonym/abbreviation regardless of the
 // active UI locale (same convention as "Deutsch" or "日本語" switchers elsewhere),
@@ -17,16 +17,17 @@ export function LocaleSwitcher({ locale }: Props) {
   }
 
   return (
-    <div className="flex items-center text-sm font-medium border border-[hsl(var(--border))] rounded overflow-hidden">
+    <div className="flex items-center text-sm font-medium rounded-full overflow-hidden border" style={{ borderColor: 'var(--nav-border)' }}>
       {(['ja', 'en'] as const).map((l) => (
         <button
           key={l}
           onClick={() => switchLocale(l)}
-          className={`px-2.5 py-1 transition ${
+          className="px-2.5 py-1 transition"
+          style={
             locale === l
-              ? 'bg-[hsl(var(--secondary))] text-white'
-              : 'text-[hsl(var(--nav-fg))] hover:bg-[hsl(var(--muted))]'
-          }`}
+              ? { backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }
+              : { color: 'var(--nav-fg)' }
+          }
         >
           {l.toUpperCase()}
         </button>

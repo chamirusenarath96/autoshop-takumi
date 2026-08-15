@@ -16,6 +16,7 @@ import { Vehicles } from './src/collections/Vehicles'
 import { Inquiries } from './src/collections/Inquiries'
 import { SiteSettings } from './src/globals/SiteSettings'
 import { Homepage } from './src/globals/Homepage'
+import { About } from './src/globals/About'
 import { resolveDatabaseConfig, resolveR2Config } from './src/lib/deploymentConfig'
 
 const filename = fileURLToPath(import.meta.url)
@@ -85,7 +86,7 @@ export default buildConfig({
   },
 
   collections: [Users, Makes, Models, Media, Vehicles, Inquiries],
-  globals: [SiteSettings, Homepage],
+  globals: [SiteSettings, Homepage, About],
 
   editor: lexicalEditor(),
 

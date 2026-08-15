@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   vehicleId: string
@@ -40,25 +42,22 @@ export function InquiryForm({ vehicleId, locale }: Props) {
   }
 
   if (status === 'success') {
-    return <p className="text-green-700 font-medium">{t('success')}</p>
+    return <p className="text-success font-medium">{t('success')}</p>
   }
-
-  const inputClass =
-    'w-full min-h-11 border border-[hsl(var(--border))] rounded px-3 py-2 text-base sm:text-sm'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="inquiry-name" className="block text-sm font-medium mb-1">{t('name')}</label>
-        <input id="inquiry-name" name="name" required className={inputClass} />
+        <Input id="inquiry-name" name="name" required />
       </div>
       <div>
         <label htmlFor="inquiry-email" className="block text-sm font-medium mb-1">{t('email')}</label>
-        <input id="inquiry-email" name="email" type="email" required className={inputClass} />
+        <Input id="inquiry-email" name="email" type="email" required />
       </div>
       <div>
         <label htmlFor="inquiry-phone" className="block text-sm font-medium mb-1">{t('phone')}</label>
-        <input id="inquiry-phone" name="phone" type="tel" className={inputClass} />
+        <Input id="inquiry-phone" name="phone" type="tel" />
       </div>
       <div>
         <label htmlFor="inquiry-message" className="block text-sm font-medium mb-1">{t('message')}</label>
@@ -67,17 +66,13 @@ export function InquiryForm({ vehicleId, locale }: Props) {
           name="message"
           required
           rows={4}
-          className="w-full min-h-32 border border-[hsl(var(--border))] rounded px-3 py-2 text-base sm:text-sm"
+          className="w-full min-h-32 border border-input rounded-md px-3 py-2 text-base bg-background text-foreground sm:text-sm"
         />
       </div>
-      {status === 'error' && <p className="text-red-600 text-sm break-words">{t('error')}</p>}
-      <button
-        type="submit"
-        disabled={status === 'loading'}
-        className="min-h-11 min-w-11 bg-[hsl(var(--primary))] text-white px-6 py-2 rounded font-semibold hover:opacity-90 transition disabled:opacity-50"
-      >
+      {status === 'error' && <p className="text-destructive text-sm break-words">{t('error')}</p>}
+      <Button type="submit" disabled={status === 'loading'}>
         {status === 'loading' ? '...' : t('submit')}
-      </button>
+      </Button>
     </form>
   )
 }
