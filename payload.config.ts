@@ -40,7 +40,10 @@ if (databaseConfig.type === 'sqlite') {
 
 const db =
   databaseConfig.type === 'postgres'
-    ? postgresAdapter({ pool: { connectionString: databaseConfig.connectionString } })
+    ? postgresAdapter({
+        pool: { connectionString: databaseConfig.connectionString },
+        migrationDir: path.resolve(dirname, 'migrations'),
+      })
     : sqliteAdapter({ client: { url: `file:${databaseConfig.filePath}` } })
 
 const r2Config = resolveR2Config(process.env)
