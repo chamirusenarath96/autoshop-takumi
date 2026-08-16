@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { createMake, createModel, ADMIN_EMAIL, AUTH_STATE_PATH } from './helpers'
+import { createMake, createModel, uploadMedia, ADMIN_EMAIL, AUTH_STATE_PATH } from './helpers'
 
 test.use({ storageState: AUTH_STATE_PATH })
 
@@ -124,17 +124,113 @@ test('Vehicles list loads with Create New button', async ({ page }) => {
   await expect(page.getByRole('link', { name: /create new/i }).first()).toBeVisible()
 })
 
+test('Vehicles list view renders a real title via displayTitle after the legacy title/price fields were removed', async ({ page }) => {
+  const makeId = await createMake(page, 'List View', `lv-${Date.now()}`)
+  const modelId = await createModel(page, 'List Model', `lvm-${Date.now()}`, makeId)
+  const titleText = `List View Vehicle ${Date.now()}`
+
+  const res = await page.request.post('/api/vehicles', {
+    data: { titleEn: titleText, slug: `list-view-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2015 },
+  })
+  const { doc } = await res.json()
+  expect(doc.displayTitle).toBe(titleText)
+
+  await page.goto('/admin/collections/vehicles')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByText(titleText)).toBeVisible()
+})
+
 test('vehicle create form shows all key fields', async ({ page }) => {
   await page.goto('/admin/collections/vehicles/create')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Creating.*Vehicle/)
 
-  await expect(page.getByLabel('Title*— Japanese')).toBeVisible()
+  await expect(page.getByLabel('Title (Japanese)', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Slug*')).toBeVisible()
   await expect(page.getByLabel('Year*')).toBeVisible()
   // Use number input specifically to avoid the checkbox collision
-  await expect(page.getByRole('spinbutton', { name: 'Price' })).toBeVisible()
+  await expect(page.getByRole('spinbutton', { name: 'Price (JPY)' })).toBeVisible()
   await expect(page.getByLabel('Mileage (km)')).toBeVisible()
+})
+
+test('vehicle create form shows both Japanese and English inputs for every paired content field, with no locale switch needed', async ({ page }) => {
+  await page.goto('/admin/collections/vehicles/create')
+  await page.waitForLoadState('networkidle')
+
+  for (const [ja, en] of [
+    ['Title (Japanese)', 'Title (English)'],
+    ['Exterior Color (Japanese)', 'Exterior Color (English)'],
+    ['Summary (Japanese)', 'Summary (English)'],
+    ['SEO Title (Japanese)', 'SEO Title (English)'],
+    ['SEO Description (Japanese)', 'SEO Description (English)'],
+  ]) {
+    await expect(page.getByLabel(ja, { exact: true })).toBeVisible()
+    await expect(page.getByLabel(en, { exact: true })).toBeVisible()
+  }
+
+  // Description (Japanese)/(English) are richText editors, not plain labeled inputs —
+  // assert by their rendered field-label text instead of getByLabel.
+  await expect(page.getByText('Description (Japanese)', { exact: true })).toBeVisible()
+  await expect(page.getByText('Description (English)', { exact: true })).toBeVisible()
+
+  // Add a highlight row and a spec row — each should expose both-language inputs too.
+  await page.getByRole('button', { name: /add highlight/i }).click()
+  await expect(page.getByLabel('Text (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Text (English)')).toBeVisible()
+
+  await page.getByRole('button', { name: /^add spec$/i }).click()
+  await expect(page.getByLabel('Label (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Label (English)')).toBeVisible()
+  await expect(page.getByLabel('Value (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Value (English)')).toBeVisible()
+})
+
+test('can save a vehicle with only the Japanese half of every pair filled in, as a draft', async ({ page }) => {
+  const makeId = await createMake(page, 'US1 Draft', `us1-${Date.now()}`)
+  const modelId = await createModel(page, 'US1 Model', `us1m-${Date.now()}`, makeId)
+
+  const res = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: '日本語のみタイトル',
+      exteriorColorJa: '青',
+      summaryJa: '日本語の概要',
+      seoTitleJa: '日本語のSEOタイトル',
+      seoDescriptionJa: '日本語のSEO概要',
+      slug: `ja-only-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2017,
+      highlights: [{ textJa: '一番目のポイント' }],
+      specs: [{ labelJa: 'エンジン', valueJa: '直6' }],
+    },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.status).toBe('draft')
+  expect(data.doc.titleJa).toBe('日本語のみタイトル')
+  expect(data.doc.titleEn).toBeFalsy()
+})
+
+test('can save a vehicle with only priceJpy set, with no priceUsd required or auto-populated', async ({ page }) => {
+  const makeId = await createMake(page, 'US2 Price', `us2-${Date.now()}`)
+  const modelId = await createModel(page, 'US2 Model', `us2m-${Date.now()}`, makeId)
+
+  const res = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: 'JPY価格のみテスト',
+      slug: `jpy-only-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2018,
+      priceJpy: 4500000,
+    },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.priceJpy).toBe(4500000)
+  expect(data.doc.priceUsd).toBeFalsy()
 })
 
 test('can create a draft vehicle via API', async ({ page }) => {
@@ -143,19 +239,19 @@ test('can create a draft vehicle via API', async ({ page }) => {
 
   const res = await page.request.post('/api/vehicles', {
     data: {
-      title: '1995 Mazda RX-7 FD3S',
+      titleEn: '1995 Mazda RX-7 FD3S',
       slug: `rx7-e2e-${Date.now()}`,
       status: 'draft',
       make: makeId,
       model: modelId,
       year: 1995,
-      price: 4500000,
+      priceJpy: 4500000,
     },
   })
   const data = await res.json()
   expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
   expect(data.doc.status).toBe('draft')
-  expect(data.doc.title).toBe('1995 Mazda RX-7 FD3S')
+  expect(data.doc.titleEn).toBe('1995 Mazda RX-7 FD3S')
 })
 
 test('blocks publishing a vehicle without a hero image', async ({ page }) => {
@@ -163,7 +259,7 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   const modelId = await createModel(page, 'Impreza', `impreza-${Date.now()}`, makeId)
 
   const createRes = await page.request.post('/api/vehicles', {
-    data: { title: 'Test STI', slug: `sti-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2004 },
+    data: { titleEn: 'Test STI', slug: `sti-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2004 },
   })
   const createData = await createRes.json()
   expect(createRes.status(), JSON.stringify(createData.errors ?? createData)).toBe(201)
@@ -182,6 +278,126 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   expect(verifyData.status).toBe('draft')
 })
 
+test('blocks publishing a vehicle with a hero image but no title/price in either language', async ({ page }) => {
+  const makeId = await createMake(page, 'Publish Gate', `pg-${Date.now()}`)
+  const modelId = await createModel(page, 'Gate Model', `pgm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: { slug: `gate-notitle-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2012, heroImage: mediaId },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  expect((await verifyRes.json()).status).toBe('draft')
+})
+
+test('allows publishing with only one language title and priceOnRequest set, no price fields', async ({ page }) => {
+  const makeId = await createMake(page, 'Gate Pass', `gp-${Date.now()}`)
+  const modelId = await createModel(page, 'Pass Model', `gpm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: 'ゲート合格テスト',
+      slug: `gate-pass-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2013,
+      heroImage: mediaId,
+      priceOnRequest: true,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
+})
+
+test('publish gate evaluates effective state — status-only PATCH succeeds when title/price were saved earlier', async ({ page }) => {
+  const makeId = await createMake(page, 'Effective State', `es-${Date.now()}`)
+  const modelId = await createModel(page, 'Effective Model', `esm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  // Title/price/heroImage set on create — a separate request from the publish attempt below.
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleJa: '実効状態テスト',
+      priceJpy: 0, // exactly 0 must count as present, not missing
+      slug: `effective-state-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2014,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // This request sends only the status change — no title/price fields — yet must succeed
+  // because they're already persisted (effective-state merge, not just this request's body).
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
+})
+
+test('publish gate still applies on a field-only PATCH to an already-available vehicle', async ({ page }) => {
+  const makeId = await createMake(page, 'Field Only Gate', `fog-${Date.now()}`)
+  const modelId = await createModel(page, 'Field Only Model', `fogm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: 'Field Only Gate Test',
+      priceJpy: 3000000,
+      slug: `field-only-gate-${Date.now()}`,
+      status: 'available',
+      make: makeId,
+      model: modelId,
+      year: 2015,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+  expect(doc.status).toBe('available')
+
+  // No status field in this request — status stays 'available' via originalDoc, so the gate
+  // must still evaluate against the effective (post-merge) state and reject removing heroImage.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { heroImage: null } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  const verifyData = await verifyRes.json()
+  expect(verifyData.status).toBe('available')
+  expect(verifyData.heroImage).toBeTruthy()
+})
+
+test('publish gate treats a title string of "0" as present, not missing', async ({ page }) => {
+  const makeId = await createMake(page, 'Zero Title', `zt-${Date.now()}`)
+  const modelId = await createModel(page, 'Zero Model', `ztm-${Date.now()}`, makeId)
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: '0',
+      priceOnRequest: true,
+      slug: `zero-title-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2016,
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status(), JSON.stringify(await patchRes.json())).toBe(200)
+})
+
 // ── Inquiries ──────────────────────────────────────────────────────────────
 
 test('Inquiries inbox loads', async ({ page }) => {
@@ -194,7 +410,7 @@ test('public inquiry API submission appears in admin inbox', async ({ page, base
   const makeId = await createMake(page, 'Mitsubishi', `mits-${Date.now()}`)
   const modelId = await createModel(page, 'Lancer', `lancer-${Date.now()}`, makeId)
   const vehicleRes = await page.request.post('/api/vehicles', {
-    data: { title: 'Lancer Evo E2E', slug: `evo-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2005 },
+    data: { titleEn: 'Lancer Evo E2E', slug: `evo-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2005 },
   })
   const vehicleData = await vehicleRes.json()
   expect(vehicleRes.status(), JSON.stringify(vehicleData.errors ?? vehicleData)).toBe(201)
