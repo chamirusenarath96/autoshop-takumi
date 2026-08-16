@@ -16,7 +16,7 @@ test.describe('Public site — navigation and pages', () => {
 
   test('landing page loads in Japanese', async ({ page }) => {
     await page.goto('/ja')
-    await expect(page.getByRole('link', { name: /在庫を見る/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /在庫を見る/ }).first()).toBeVisible()
     const header = page.getByRole('banner')
     await expect(header.getByRole('link', { name: /在庫車両/ })).toBeVisible()
   })
