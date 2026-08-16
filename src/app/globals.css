@@ -40,21 +40,23 @@
   --red-500: #dc2626;
   --blue-500: #2563eb;
 
-  /* ── shadcn-shaped semantic surface tokens (light) ── */
-  --background: var(--takumi-white);
-  --foreground: var(--neutral-950);
-  --card: var(--takumi-white);
-  --card-foreground: var(--neutral-950);
-  --popover: var(--takumi-white);
-  --popover-foreground: var(--neutral-950);
+  /* ── shadcn-shaped semantic surface tokens ──
+     The public site is dark-only by design (no light/dark toggle) — these
+     are the design system's dark values, used unconditionally. */
+  --background: var(--takumi-ink);
+  --foreground: var(--neutral-50);
+  --card: #141416;
+  --card-foreground: var(--neutral-50);
+  --popover: #141416;
+  --popover-foreground: var(--neutral-50);
   --primary: var(--takumi-orange);
-  --primary-foreground: var(--takumi-white);
-  --secondary: var(--neutral-100);
-  --secondary-foreground: var(--neutral-900);
-  --muted: var(--neutral-100);
-  --muted-foreground: var(--neutral-500);
-  --accent: var(--takumi-orange-50);
-  --accent-foreground: var(--takumi-orange-700);
+  --primary-foreground: var(--takumi-black);
+  --secondary: #1f1f22;
+  --secondary-foreground: var(--neutral-100);
+  --muted: #1f1f22;
+  --muted-foreground: var(--neutral-400);
+  --accent: #2a1a10;
+  --accent-foreground: var(--takumi-orange);
   --destructive: var(--red-500);
   --destructive-foreground: var(--takumi-white);
   --success: var(--green-500);
@@ -63,8 +65,8 @@
   --warning-foreground: var(--takumi-white);
   --info: var(--blue-500);
   --info-foreground: var(--takumi-white);
-  --border: var(--neutral-200);
-  --input: var(--neutral-200);
+  --border: #2a2a2e;
+  --input: #2a2a2e;
   --ring: var(--takumi-orange);
 
   /* ── Nav (always near-black, matches the mockup's header/footer) ── */
@@ -88,32 +90,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-}
-
-/* ── Dark mode ─────────────────────────────────────────────────────────────
-   Same token names — component code is identical in both modes.           */
-[data-theme="dark"] {
-  --background: var(--takumi-ink);
-  --foreground: var(--neutral-50);
-  --card: #141416;
-  --card-foreground: var(--neutral-50);
-  --popover: #141416;
-  --popover-foreground: var(--neutral-50);
-  --primary: var(--takumi-orange);
-  --primary-foreground: var(--takumi-black);
-  --secondary: #1f1f22;
-  --secondary-foreground: var(--neutral-100);
-  --muted: #1f1f22;
-  --muted-foreground: var(--neutral-400);
-  --accent: #2a1a10;
-  --accent-foreground: var(--takumi-orange);
-  --border: #2a2a2e;
-  --input: #2a2a2e;
-  --ring: var(--takumi-orange);
-
-  --nav-bg: var(--takumi-black);
-  --nav-fg: var(--takumi-white);
-  --nav-border: var(--neutral-800);
 }
 
 /* ── Map semantic tokens to real Tailwind utilities (bg-primary, text-muted-foreground, etc.) ── */
@@ -160,7 +136,6 @@
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 [data-public] .takumi-display {
