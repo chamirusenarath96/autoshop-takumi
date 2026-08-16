@@ -1,17 +1,10 @@
-import { formatVehiclePriceDisplay } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
-import { resolveLocalizedField, type VehicleLocale } from '@/lib/vehicle-locale'
 
 type Props = {
   vehicle: any
   locale: string
-  priceOnRequestLabel?: string
-}
-
-const defaultPriceOnRequestLabel: Record<string, string> = {
-  ja: '要お問い合わせ',
-  en: 'Contact for price',
 }
 
 const statusVariants: Record<string, BadgeProps['variant']> = {
@@ -25,20 +18,15 @@ const statusLabels: Record<string, Record<string, string>> = {
   en: { available: 'Available', reserved: 'Reserved', sold: 'Sold' },
 }
 
-export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
+export function VehicleCard({ vehicle, locale }: Props) {
   const heroImage = typeof vehicle.heroImage === 'object' ? vehicle.heroImage : null
   const imgUrl = heroImage?.sizes?.card?.url ?? heroImage?.url ?? '/placeholder-car.svg'
-  const activeLocale = locale as VehicleLocale
 
-  const title = resolveLocalizedField(vehicle.titleJa, vehicle.titleEn, activeLocale)
-
-  const price = formatVehiclePriceDisplay(
-    vehicle.priceJpy,
-    vehicle.priceUsd,
-    vehicle.priceOnRequest,
-    locale === 'ja' ? 'ja-JP' : 'en-US',
-    priceOnRequestLabel ?? defaultPriceOnRequestLabel[locale] ?? defaultPriceOnRequestLabel.en,
-  )
+  const price = vehicle.priceOnRequest
+    ? locale === 'ja' ? '要お問い合わせ' : 'Contact for price'
+    : vehicle.price
+      ? formatPrice(vehicle.price, vehicle.currency ?? 'JPY', locale === 'ja' ? 'ja-JP' : 'en-US')
+      : ''
 
   const statusLabel = statusLabels[locale]?.[vehicle.status] ?? vehicle.status
 
@@ -48,7 +36,7 @@ export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
             src={imgUrl}
-            alt={title ?? ''}
+            alt={vehicle.title ?? ''}
             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
           />
           {vehicle.status !== 'available' && (
@@ -58,7 +46,7 @@ export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
           )}
         </div>
         <div className="p-4">
-          <h3 className="font-semibold text-base line-clamp-2">{title}</h3>
+          <h3 className="font-semibold text-base line-clamp-2">{vehicle.title}</h3>
           <p className="text-sm text-muted-foreground mt-1">
             {vehicle.year}{locale === 'ja' ? '年' : ''}{vehicle.mileageKm ? ` · ${vehicle.mileageKm.toLocaleString()} km` : ''}
           </p>

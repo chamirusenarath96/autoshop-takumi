@@ -14,7 +14,6 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params
   const t = await getTranslations('hero')
   const tHome = await getTranslations('homepage')
-  const tVehicle = await getTranslations('vehicle')
   const payload = await getPayload()
 
   const [homepage, siteSettings] = await Promise.all([
@@ -110,7 +109,7 @@ export default async function HomePage({ params }: Props) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredVehicles.map((vehicle: any) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
+              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
             ))}
           </div>
         </section>

@@ -145,14 +145,14 @@ test.describe('Vehicles API', () => {
     const modelId = await createModel(page, 'IS300', `is300-${Date.now()}`, makeId)
     const res = await page.request.post('/api/vehicles', {
       data: {
-        titleJa: '2003年式 レクサス IS300',
-        titleEn: '2003 Lexus IS300',
+        title: '2003 Lexus IS300',
         slug: `lexus-is300-${Date.now()}`,
         status: 'draft',
         make: makeId,
         model: modelId,
         year: 2003,
-        priceJpy: 1800000,
+        price: 1800000,
+        currency: 'JPY',
         mileageKm: 95000,
         transmission: 'MT',
         bodyType: 'sedan',
@@ -160,10 +160,10 @@ test.describe('Vehicles API', () => {
     })
     expect(res.status()).toBe(201)
     const body = await res.json()
-    expect(body.doc.titleEn).toBe('2003 Lexus IS300')
+    expect(body.doc.title).toBe('2003 Lexus IS300')
     expect(body.doc.status).toBe('draft')
     expect(body.doc.year).toBe(2003)
-    expect(body.doc.priceJpy).toBe(1800000)
+    expect(body.doc.price).toBe(1800000)
   })
 
   test('GET /api/vehicles — access control: admin sees drafts, public query filters to published only', async ({ page, baseURL }) => {
@@ -171,7 +171,7 @@ test.describe('Vehicles API', () => {
     const modelId = await createModel(page, 'AC Model', `acm-${Date.now()}`, makeId)
     const slug = `ac-draft-${Date.now()}`
     await page.request.post('/api/vehicles', {
-      data: { titleEn: 'AC Draft', slug, status: 'draft', make: makeId, model: modelId, year: 2020 },
+      data: { title: 'AC Draft', slug, status: 'draft', make: makeId, model: modelId, year: 2020 },
     })
 
     // Admin (authenticated) can see the draft
@@ -193,7 +193,7 @@ test.describe('Vehicles API', () => {
     const modelId = await createModel(page, 'Admin Model', `adminm-${Date.now()}`, makeId)
     const slug = `admin-draft-${Date.now()}`
     await page.request.post('/api/vehicles', {
-      data: { titleEn: 'Admin Draft Vehicle', slug, status: 'draft', make: makeId, model: modelId, year: 2021 },
+      data: { title: 'Admin Draft Vehicle', slug, status: 'draft', make: makeId, model: modelId, year: 2021 },
     })
 
     const res = await page.request.get(`/api/vehicles?where[slug][equals]=${slug}`)
@@ -207,7 +207,7 @@ test.describe('Vehicles API', () => {
     const makeId = await createMake(page, 'Block Test', `block-${Date.now()}`)
     const modelId = await createModel(page, 'Block Model', `bm-${Date.now()}`, makeId)
     const createRes = await page.request.post('/api/vehicles', {
-      data: { titleEn: 'Block Test Car', slug: `block-car-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2010 },
+      data: { title: 'Block Test Car', slug: `block-car-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2010 },
     })
     const { doc } = await createRes.json()
 
@@ -243,7 +243,7 @@ test.describe('Inquiries API', () => {
     const makeId = await createMake(page, 'Inq Make', `inq-make-${Date.now()}`)
     const modelId = await createModel(page, 'Inq Model', `inq-mod-${Date.now()}`, makeId)
     const vRes = await page.request.post('/api/vehicles', {
-      data: { titleEn: 'Inq Vehicle', slug: `inq-v-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2018 },
+      data: { title: 'Inq Vehicle', slug: `inq-v-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2018 },
     })
     const { doc: vehicle } = await vRes.json()
 
@@ -290,7 +290,7 @@ test.describe('Inquiries API', () => {
     const makeId = await createMake(page, 'Status Make', `stmk-${Date.now()}`)
     const modelId = await createModel(page, 'Status Mod', `stmd-${Date.now()}`, makeId)
     const vRes = await page.request.post('/api/vehicles', {
-      data: { titleEn: 'Status Car', slug: `stcar-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2015 },
+      data: { title: 'Status Car', slug: `stcar-${Date.now()}`, status: 'draft', make: makeId, model: modelId, year: 2015 },
     })
     const { doc: vehicle } = await vRes.json()
 
