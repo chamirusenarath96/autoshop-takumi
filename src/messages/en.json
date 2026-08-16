@@ -60,7 +60,8 @@
     "related": "Related Vehicles",
     "shaken": "Shaken (車検)",
     "inquiry": "Make an Inquiry",
-    "shakenExpiry": "Shaken expiry"
+    "shakenExpiry": "Shaken expiry",
+    "priceOnRequest": "Contact for price"
   },
   "inquiry": {
     "title": "Inquire about this vehicle",

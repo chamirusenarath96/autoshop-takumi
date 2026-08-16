@@ -12,6 +12,7 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
   const { locale } = await params
   const sp = await searchParams
   const t = await getTranslations('vehicles')
+  const tVehicle = await getTranslations('vehicle')
   const payload = await getPayload()
 
   // Build filter query from search params
@@ -28,15 +29,18 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
     if (sp.yearTo) where.year.less_than_equal = parseInt(sp.yearTo)
   }
   if (sp.priceFrom || sp.priceTo) {
-    where.price = {}
-    if (sp.priceFrom) where.price.greater_than_equal = parseInt(sp.priceFrom)
-    if (sp.priceTo) where.price.less_than_equal = parseInt(sp.priceTo)
+    // priceJpy is the canonical sort/filter key (spec FR-012) — a listing with only a USD
+    // price is excluded from a price-range-filtered result, but remains visible via normal
+    // browsing when no price filter/sort is applied (see research.md §4).
+    where.priceJpy = {}
+    if (sp.priceFrom) where.priceJpy.greater_than_equal = parseInt(sp.priceFrom)
+    if (sp.priceTo) where.priceJpy.less_than_equal = parseInt(sp.priceTo)
   }
 
   const sortMap: Record<string, string> = {
     newest: '-createdAt',
-    priceLow: 'price',
-    priceHigh: '-price',
+    priceLow: 'priceJpy',
+    priceHigh: '-priceJpy',
   }
   const sort = sortMap[sp.sort ?? 'newest'] ?? '-createdAt'
 
@@ -75,7 +79,7 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {vehiclesResult.docs.map((vehicle: any) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} />
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
                 ))}
               </div>
             )}
