@@ -37,16 +37,11 @@ test.describe('Public site — navigation and pages', () => {
     await expect(instaLink).toHaveAttribute('href', /instagram\.com\/autoshop_takumi/)
   })
 
-  test('dark/light theme toggle works', async ({ page }) => {
+  test('site is dark-themed with no light/dark toggle', async ({ page }) => {
     await page.goto('/en')
-    const html = page.locator('html')
-    const toggle = page.getByRole('button', { name: /switch to dark mode|switch to light mode/i })
-    await expect(toggle).toBeVisible()
-
-    const initialTheme = await html.getAttribute('data-theme')
-    await toggle.click()
-    const newTheme = await html.getAttribute('data-theme')
-    expect(newTheme).not.toBe(initialTheme)
+    await expect(page.getByRole('button', { name: /switch to dark mode|switch to light mode/i })).toHaveCount(0)
+    const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    expect(bg).not.toBe('rgb(255, 255, 255)')
   })
 
   test('vehicle listing page loads', async ({ page }) => {
@@ -304,20 +299,12 @@ test.describe('Vehicle filters', () => {
     expect(cheapIdx).toBeLessThan(expIdx)
   })
 
-  test('filter selects adapt to dark mode (background not hardcoded white)', async ({ page }) => {
+  test('filter selects use the dark theme (background not hardcoded white)', async ({ page }) => {
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
 
-    // Don't assume the page starts in light mode — only toggle if it isn't already dark.
-    const currentTheme = await page.locator('html').getAttribute('data-theme')
-    if (currentTheme !== 'dark') {
-      await page.getByRole('button', { name: /switch to dark mode/i }).click()
-    }
-    await page.waitForTimeout(300)
-
     const select = page.locator('select').first()
     const bg = await select.evaluate((el) => getComputedStyle(el).backgroundColor)
-    // In dark mode the background should not be pure white (rgb(255, 255, 255))
     expect(bg).not.toBe('rgb(255, 255, 255)')
   })
 })

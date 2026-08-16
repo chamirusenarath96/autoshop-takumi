@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { LocaleSwitcher } from './LocaleSwitcher'
-import { ThemeToggle } from './ThemeToggle'
 import type { SiteSettingsData } from '@/lib/site-settings'
 
 type Props = { locale: string; siteSettings: SiteSettingsData }
@@ -53,9 +52,9 @@ export function Header({ locale, siteSettings }: Props) {
     >
       <div className="h-1" style={{ backgroundColor: 'var(--primary)' }} />
       <div className="max-w-7xl mx-auto px-6 h-18 flex items-center gap-6" style={{ height: '72px' }}>
-        {/* Logo */}
-        <a href={`/${locale}`} className="shrink-0 flex items-center">
-          <img src="/logo.png" alt="Autoshop Takumi" className="h-9 w-auto object-contain" />
+        {/* Logo — wide (8:1) lockup, so it's scaled down on narrow viewports to avoid overflow */}
+        <a href={`/${locale}`} className="shrink-0 flex items-center min-w-0">
+          <img src="/logo.png" alt="Autoshop Takumi" className="h-6 sm:h-8 lg:h-9 w-auto max-w-full object-contain" />
         </a>
 
         {/* Desktop nav links + right side (unchanged at lg+) */}
@@ -81,8 +80,6 @@ export function Header({ locale, siteSettings }: Props) {
           <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
           <div className="w-px h-4" style={{ backgroundColor: 'var(--nav-border)' }} />
           <LocaleSwitcher locale={locale} />
-          <div className="w-px h-4" style={{ backgroundColor: 'var(--nav-border)' }} />
-          <ThemeToggle />
         </div>
 
         {/* Mobile/tablet: hamburger toggle */}
@@ -123,10 +120,7 @@ export function Header({ locale, siteSettings }: Props) {
 
           <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--nav-border)' }}>
             <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
-            <div className="flex items-center gap-3">
-              <LocaleSwitcher locale={locale} />
-              <ThemeToggle />
-            </div>
+            <LocaleSwitcher locale={locale} />
           </div>
         </div>
       )}

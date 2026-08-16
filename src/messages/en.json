@@ -112,9 +112,5 @@
     "slogan": "Driven by Precision. Powered by Trust. Delivered by Takumi.",
     "navigationHeading": "Navigation",
     "contactHeading": "Contact"
-  },
-  "theme": {
-    "switchToDark": "Switch to dark mode",
-    "switchToLight": "Switch to light mode"
   }
 }
