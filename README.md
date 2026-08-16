@@ -285,7 +285,24 @@ Local dev works with only `PAYLOAD_SECRET` set. All other variables are producti
 1. Create accounts: [Neon](https://neon.tech) (Postgres), [Cloudflare R2](https://developers.cloudflare.com/r2/) (storage), [Resend](https://resend.com) (email)
 2. Connect this GitHub repo to a new Vercel project (Vercel dashboard → Add New Project → Import Git Repository — this step needs to happen in the dashboard so Vercel's GitHub App gets the OAuth grant it needs to auto-deploy on push)
 3. Add all environment variables from the block above in Vercel project settings — `payload.config.ts` picks up Postgres/R2/Resend automatically the moment they're set, no further code changes needed
-4. Push to `master` — CI runs, then Vercel auto-deploys
+4. Add a `DATABASE_URI` **GitHub Actions** secret (repo Settings → Secrets and variables → Actions) pointing at the same Neon connection string — this is separate from the Vercel env var above and is what the `migrate` CI job (below) uses
+5. Push to `master` — CI runs (including the `migrate` job), then Vercel auto-deploys
+
+### Database Migrations
+
+Local dev and CI use SQLite, which Payload auto-syncs to the collection config on every boot (`push: true`) — no migration step is ever needed there. **Production Postgres does not auto-sync.** Any change to a collection's fields needs an explicit migration or the deployed code will query columns that don't exist yet.
+
+- **Generate a migration** after changing a collection/global's fields, with a real `DATABASE_URI` set (ideally a Neon branch, not production directly, so you can inspect the generated SQL before it touches real data):
+  ```bash
+  DATABASE_URI=postgres://... npm run migrate:create
+  ```
+  This diffs the current Payload config against the target database's actual schema and writes the result to `migrations/`. Commit the generated file.
+- **Apply pending migrations** manually against a given database:
+  ```bash
+  DATABASE_URI=postgres://... npm run migrate
+  ```
+- **In CI**: the `migrate` job in `.github/workflows/ci.yml` runs `npm run migrate` automatically on every push to `master`, once all other checks pass, using the repo's `DATABASE_URI` secret (step 4 above). It's a no-op (with a warning) if that secret isn't set yet.
+- Every PR that changes a collection/global's field shape must include the generated migration file in the same PR — this mirrors the "every code change ships with a test" rule from [CLAUDE.md](./CLAUDE.md), just for schema instead of behavior.
 
 ---
 

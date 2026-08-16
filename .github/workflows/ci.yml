@@ -112,3 +112,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  migrate:
+    name: Database Migrations
+    runs-on: ubuntu-latest
+    needs: [test, typecheck, e2e, build]
+    # Only apply migrations once code has actually merged to master — never on
+    # a PR, which would otherwise run pending migrations against production
+    # before the corresponding code is even deployed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run pending migrations against production
+        env:
+          DATABASE_URI: ${{ secrets.DATABASE_URI }}
+        run: |
+          if [ -z "$DATABASE_URI" ]; then
+            echo "::warning::DATABASE_URI secret is not set on this repo — skipping production migration. Add it under Settings > Secrets and variables > Actions to enable this step."
+            exit 0
+          fi
+          npm run migrate
