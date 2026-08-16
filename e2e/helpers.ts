@@ -92,14 +92,13 @@ export async function createPublishedVehicle(
 
   const res = await page.request.post('/api/vehicles', {
     data: {
-      titleJa: opts.title,
-      titleEn: opts.title,
+      title: opts.title,
       slug: opts.slug,
       status: 'available',
       make: makeId,
       model: modelId,
       year: opts.year ?? 2020,
-      priceJpy: opts.price ?? 2000000,
+      price: opts.price ?? 2000000,
       mileageKm: 50000,
       heroImage: mediaId,
       bodyType: opts.bodyType,
@@ -109,7 +108,7 @@ export async function createPublishedVehicle(
   })
   const data = await res.json()
   if (res.status() !== 201) throw new Error(`createPublishedVehicle failed: ${JSON.stringify(data.errors ?? data)}`)
-  return { id: data.doc.id, slug: data.doc.slug, title: data.doc.titleJa }
+  return { id: data.doc.id, slug: data.doc.slug, title: data.doc.title }
 }
 
 /**
