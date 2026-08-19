@@ -17,9 +17,30 @@ export const Media: CollectionConfig = {
   },
   fields: [
     {
+      // Deprecated — superseded by altJa/altEn below. Kept (not localized) until
+      // scripts/migrate-content-locale-fields.ts has run against production and every consumer
+      // reads the paired fields instead; see specs/003-remove-payload-localization.
       name: 'alt',
       type: 'text',
       localized: true,
+      admin: { readOnly: true, description: 'Deprecated — use Alt Text (Japanese)/(English) below' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'altJa',
+          type: 'text',
+          label: 'Alt Text (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'altEn',
+          type: 'text',
+          label: 'Alt Text (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
       name: 'uploadedBy',
