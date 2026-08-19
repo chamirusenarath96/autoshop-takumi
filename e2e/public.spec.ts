@@ -83,6 +83,20 @@ test.describe('Public site — navigation and pages', () => {
     await expect(page.getByText('Honest inspections')).toBeVisible()
     await expect(page.getByText('Owner / Mechanic')).toBeVisible()
   })
+
+  test('landing page renders hero heading/subheading and Why Us points correctly in both locales (spec 003, US2 Scenario 2.2)', async ({ page }) => {
+    await page.goto('/en')
+    await expect(page.getByRole('heading', { name: 'Handpicked JDM Classics' })).toBeVisible()
+    await expect(page.getByText('Quality inspected vehicles. Bilingual service. Worldwide shipping.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Thoroughly Inspected' })).toBeVisible()
+    await expect(page.getByText('Every vehicle is inspected.')).toBeVisible()
+
+    await page.goto('/ja')
+    await expect(page.getByRole('heading', { name: '厳選されたJDMクラシックス' })).toBeVisible()
+    await expect(page.getByText('品質検査済み車両。バイリンガルサービス。全世界発送対応。')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '徹底検査済み' })).toBeVisible()
+    await expect(page.getByText('すべての車両は検査済みです。')).toBeVisible()
+  })
 })
 
 // ── Vehicle listing + detail — requires admin auth to seed data ────────────
@@ -161,9 +175,9 @@ test.describe('Vehicle listing and detail', () => {
   test('priceOnRequest listing shows neither price on listing or detail pages', async ({ page }) => {
     const ts = Date.now()
     const slug = `por-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `PORMake-${ts}`, slug: `pormk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `PORMake-${ts}`, nameEn: `PORMake-${ts}`, slug: `pormk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'POR Model', slug: `pormd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'POR Model', nameEn: 'POR Model', slug: `pormd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -199,9 +213,9 @@ test.describe('Vehicle listing and detail', () => {
   test('a listing with both JPY and USD prices shows both, identically on both site locales', async ({ page }) => {
     const ts = Date.now()
     const slug = `dual-price-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `DualMake-${ts}`, slug: `dualmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `DualMake-${ts}`, nameEn: `DualMake-${ts}`, slug: `dualmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Dual Model', slug: `dualmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Dual Model', nameEn: 'Dual Model', slug: `dualmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -238,9 +252,9 @@ test.describe('Vehicle listing and detail', () => {
   test('a JPY-only listing shows the same JPY price on both /ja and /en detail pages', async ({ page }) => {
     const ts = Date.now()
     const slug = `jpy-only-detail-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `JpyOnlyMake-${ts}`, slug: `jpymk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `JpyOnlyMake-${ts}`, nameEn: `JpyOnlyMake-${ts}`, slug: `jpymk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Jpy Model', slug: `jpymd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Jpy Model', nameEn: 'Jpy Model', slug: `jpymd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -272,9 +286,9 @@ test.describe('Vehicle listing and detail', () => {
 
   test('a USD-only listing is excluded from a price-filtered result but visible via normal browsing', async ({ page }) => {
     const ts = Date.now()
-    const mkRes = await page.request.post('/api/makes', { data: { name: `UsdOnlyMake-${ts}`, slug: `usdmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `UsdOnlyMake-${ts}`, nameEn: `UsdOnlyMake-${ts}`, slug: `usdmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Usd Model', slug: `usdmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Usd Model', nameEn: 'Usd Model', slug: `usdmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -310,9 +324,9 @@ test.describe('Vehicle listing and detail', () => {
   test('a listing with only a Japanese description shows it on the English-locale detail page', async ({ page }) => {
     const ts = Date.now()
     const slug = `desc-fallback-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `DescMake-${ts}`, slug: `descmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `DescMake-${ts}`, nameEn: `DescMake-${ts}`, slug: `descmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Desc Model', slug: `descmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Desc Model', nameEn: 'Desc Model', slug: `descmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -361,9 +375,9 @@ test.describe('Vehicle listing and detail', () => {
   test('a spec row with a Japanese label and an English value renders both halves together', async ({ page }) => {
     const ts = Date.now()
     const slug = `spec-mismatch-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `SpecMixMake-${ts}`, slug: `specmixmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `SpecMixMake-${ts}`, nameEn: `SpecMixMake-${ts}`, slug: `specmixmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Spec Mix Model', slug: `specmixmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Spec Mix Model', nameEn: 'Spec Mix Model', slug: `specmixmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
@@ -403,9 +417,9 @@ test.describe('Vehicle listing and detail', () => {
     const slug = `draft-invisible-${ts}`
 
     // Create as draft (no heroImage needed)
-    const mkRes = await page.request.post('/api/makes', { data: { name: 'DraftMake', slug: `draftmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: 'DraftMake', nameEn: 'DraftMake', slug: `draftmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'DraftModel', slug: `draftmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'DraftModel', nameEn: 'DraftModel', slug: `draftmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
     await page.request.post('/api/vehicles', {
       data: { titleEn: `Draft Vehicle Hidden ${ts}`, slug, status: 'draft', make: makeId, model: modelId, year: 2022 },
@@ -426,6 +440,31 @@ test.describe('Vehicle listing and detail', () => {
 test.describe('Vehicle filters', () => {
   test.use({ storageState: AUTH_STATE_PATH })
 
+  test('make filter label shows the correct language on both locales, and falls back when only one language is set (spec 003, US2 Scenario 2.1 / FR-012)', async ({ page }) => {
+    const ts = Date.now()
+    const mkRes = await page.request.post('/api/makes', {
+      data: { nameJa: `フィルターメーカー-${ts}`, nameEn: `FilterLabelMake-${ts}`, slug: `filter-label-mk-${ts}` },
+    })
+    expect(mkRes.status()).toBe(201)
+
+    // Japanese-only fallback make — no nameEn set.
+    const fallbackRes = await page.request.post('/api/makes', {
+      data: { nameJa: `フォールバックのみ-${ts}`, slug: `filter-fallback-mk-${ts}` },
+    })
+    expect(fallbackRes.status()).toBe(201)
+    const fallbackName = `フォールバックのみ-${ts}`
+
+    await page.goto('/en/vehicles')
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('select', { hasText: `FilterLabelMake-${ts}` })).toBeVisible()
+    // Fallback: an English-locale page shows the Japanese name rather than a blank option.
+    await expect(page.locator('select', { hasText: fallbackName })).toBeVisible()
+
+    await page.goto('/ja/vehicles')
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('select', { hasText: `フィルターメーカー-${ts}` })).toBeVisible()
+  })
+
   test('make filter shows only vehicles of the selected make', async ({ page }) => {
     const ts = Date.now()
     // Create two vehicles from different makes
@@ -445,7 +484,7 @@ test.describe('Vehicle filters', () => {
     })
 
     // Get the make ID for FilterMakeA via API
-    const makesRes = await page.request.get(`/api/makes?where[name][equals]=FilterMakeA-${ts}`)
+    const makesRes = await page.request.get(`/api/makes?where[nameJa][equals]=FilterMakeA-${ts}`)
     const makesBody = await makesRes.json()
     const makeAId = makesBody.docs[0].id
 
@@ -500,10 +539,10 @@ test.describe('Vehicle filters', () => {
   test('sort by price low to high reorders cards', async ({ page }) => {
     const ts = Date.now()
     // Both vehicles share the same make so we can filter the listing to just these two
-    const mkRes = await page.request.post('/api/makes', { data: { name: `SortMake-${ts}`, slug: `sortmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `SortMake-${ts}`, nameEn: `SortMake-${ts}`, slug: `sortmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdCheap = await page.request.post('/api/models', { data: { name: 'Cheap Model', slug: `sort-cheap-md-${ts}`, make: makeId } })
-    const mdExp = await page.request.post('/api/models', { data: { name: 'Exp Model', slug: `sort-exp-md-${ts}`, make: makeId } })
+    const mdCheap = await page.request.post('/api/models', { data: { nameJa: 'Cheap Model', nameEn: 'Cheap Model', slug: `sort-cheap-md-${ts}`, make: makeId } })
+    const mdExp = await page.request.post('/api/models', { data: { nameJa: 'Exp Model', nameEn: 'Exp Model', slug: `sort-exp-md-${ts}`, make: makeId } })
     const cheapModelId = (await mdCheap.json()).doc.id
     const expModelId = (await mdExp.json()).doc.id
 

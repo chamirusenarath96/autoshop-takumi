@@ -39,7 +39,7 @@ export async function loginAsAdmin(browser: Browser, baseURL = 'http://localhost
 
 /** Create a Make via REST API (authenticated). Returns the created ID. */
 export async function createMake(page: Page, name: string, slug: string): Promise<number> {
-  const res = await page.request.post('/api/makes', { data: { name, slug } })
+  const res = await page.request.post('/api/makes', { data: { nameJa: name, nameEn: name, slug } })
   const data = await res.json()
   if (!res.ok()) throw new Error(`createMake failed (${res.status()}): ${JSON.stringify(data.errors ?? data)}`)
   return data.doc.id
@@ -47,7 +47,7 @@ export async function createMake(page: Page, name: string, slug: string): Promis
 
 /** Create a Model via REST API (authenticated). Returns the created ID. */
 export async function createModel(page: Page, name: string, slug: string, makeId: number): Promise<number> {
-  const res = await page.request.post('/api/models', { data: { name, slug, make: makeId } })
+  const res = await page.request.post('/api/models', { data: { nameJa: name, nameEn: name, slug, make: makeId } })
   const data = await res.json()
   if (!res.ok()) throw new Error(`createModel failed (${res.status()}): ${JSON.stringify(data.errors ?? data)}`)
   return data.doc.id
