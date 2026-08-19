@@ -135,7 +135,7 @@ description: "Task list for retiring Payload localization on Makes/Models/Media/
 - [X] T042 [P] Regenerate `payload-types.ts` again after old-field removal and resolve any resulting type errors (`npx tsc --noEmit`)
 - [X] T043 Update CLAUDE.md/README.md's i18n section describing `localized: true` to describe the paired-field pattern instead (spec's "Update work items" from issue #20), covering both this feature and issue #19's equivalent `Vehicles` change
 - [X] T044 If T029–T034 (Phase 5) were skipped, re-run T029's gate now. If it still fails (issue #19 not yet merged, or `Vehicles.gallery[].caption` still `localized: true` per the unresolved scope gap), proceed to T045 without Phase 5 completed — do not block this feature's other five phases indefinitely on a gap that isn't this feature's alone to resolve; note the skip in the PR description
-- [ ] T045 Run the full suite (`npm test`, `npx tsc --noEmit`, `npm run test:e2e`) and confirm all green, per this repo's CLAUDE.md workflow
+- [X] T045 Run the full suite (`npm test`, `npx tsc --noEmit`, `npm run test:e2e`) and confirm all green, per this repo's CLAUDE.md workflow
 
 ---
 
