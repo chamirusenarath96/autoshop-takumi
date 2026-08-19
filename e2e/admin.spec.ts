@@ -134,7 +134,11 @@ test('a Model saves successfully with only the Japanese name filled in (spec 003
   await page.waitForLoadState('networkidle')
   await page.getByLabel('Name (Japanese)').fill('ロードスター')
   await page.getByLabel('Slug').fill(`roadster-e2e-${Date.now()}`)
-  await page.getByLabel('Make', { exact: true }).click()
+  // Payload's relationship field is a react-select combobox, not a native <select> — it has no
+  // accessible <label>, so target its combobox role instead of getByLabel. The visible
+  // "Select a value" placeholder text sits behind an overlapping input-container div that
+  // intercepts pointer events, so click the combobox itself rather than the placeholder text.
+  await page.getByRole('combobox').click()
   await page.getByRole('option', { name: makeName }).click()
   await page.getByRole('button', { name: /save/i }).click()
 
