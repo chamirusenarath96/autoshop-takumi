@@ -8,13 +8,6 @@ export const Homepage: GlobalConfig = {
   },
   fields: [
     {
-      // Deprecated — superseded by heroHeadingJa/heroHeadingEn below.
-      name: 'heroHeading',
-      type: 'text',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use Hero Heading (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -30,13 +23,6 @@ export const Homepage: GlobalConfig = {
           admin: { width: '50%' },
         },
       ],
-    },
-    {
-      // Deprecated — superseded by heroSubheadingJa/heroSubheadingEn below.
-      name: 'heroSubheading',
-      type: 'text',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use Hero Subheading (Japanese)/(English) below' },
     },
     {
       type: 'row',
@@ -59,15 +45,6 @@ export const Homepage: GlobalConfig = {
       name: 'heroImage',
       type: 'upload',
       relationTo: 'media',
-    },
-    {
-      // Deprecated — superseded by aboutBlurbJa/aboutBlurbEn below. Not currently rendered by
-      // any page consumer (see research.md's equivalent note for defaultSeoTitle/Description) —
-      // this migration covers its storage only.
-      name: 'aboutBlurb',
-      type: 'richText',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use About Blurb (Japanese)/(English) below' },
     },
     {
       name: 'aboutBlurbJa',
@@ -94,13 +71,6 @@ export const Homepage: GlobalConfig = {
       label: 'Why Us / Trust Signals',
       fields: [
         {
-          // Deprecated — superseded by headingJa/headingEn below.
-          name: 'heading',
-          type: 'text',
-          localized: true,
-          admin: { readOnly: true, description: 'Deprecated — use Heading (Japanese)/(English) below' },
-        },
-        {
           type: 'row',
           fields: [
             {
@@ -122,13 +92,6 @@ export const Homepage: GlobalConfig = {
           ],
         },
         {
-          // Deprecated — superseded by bodyJa/bodyEn below.
-          name: 'body',
-          type: 'text',
-          localized: true,
-          admin: { readOnly: true, description: 'Deprecated — use Body (Japanese)/(English) below' },
-        },
-        {
           type: 'row',
           fields: [
             {
@@ -146,15 +109,6 @@ export const Homepage: GlobalConfig = {
           ],
         },
       ],
-    },
-    {
-      // Deprecated — superseded by contactSummaryJa/contactSummaryEn below. Not currently
-      // rendered by any page consumer (see research.md's equivalent note for
-      // defaultSeoTitle/Description) — this migration covers its storage only.
-      name: 'contactSummary',
-      type: 'richText',
-      localized: true,
-      label: 'Hours / Location blurb (shown above footer) — deprecated, use paired fields below',
     },
     {
       name: 'contactSummaryJa',

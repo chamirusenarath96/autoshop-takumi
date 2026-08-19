@@ -15,15 +15,6 @@ export const Makes: CollectionConfig = {
       admin: { readOnly: true, description: 'Computed automatically from Name (Japanese)/(English) — not editable' },
     },
     {
-      // Deprecated — superseded by nameJa/nameEn below. Kept (not required, not localized)
-      // until scripts/migrate-content-locale-fields.ts has run against production and every
-      // consumer reads the paired fields instead; see specs/003-remove-payload-localization.
-      name: 'name',
-      type: 'text',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use Name (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {

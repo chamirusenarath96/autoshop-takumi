@@ -8,15 +8,6 @@ export const SiteSettings: GlobalConfig = {
   },
   fields: [
     {
-      // Deprecated — superseded by shopNameJa/shopNameEn below. Kept (not required, not
-      // localized) until scripts/migrate-content-locale-fields.ts has run against production
-      // and every consumer reads the paired fields instead; see specs/003-remove-payload-localization.
-      name: 'shopName',
-      type: 'text',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use Shop Name (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -49,13 +40,6 @@ export const SiteSettings: GlobalConfig = {
     {
       name: 'contactPhone',
       type: 'text',
-    },
-    {
-      // Deprecated — superseded by addressJa/addressEn below.
-      name: 'address',
-      type: 'textarea',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use Address (Japanese)/(English) below' },
     },
     {
       type: 'row',
@@ -124,13 +108,6 @@ export const SiteSettings: GlobalConfig = {
       admin: { description: 'e.g. "Mon–Sat 9:00–18:00, closed Sundays"' },
     },
     {
-      // Deprecated — superseded by defaultSeoTitleJa/defaultSeoTitleEn below.
-      name: 'defaultSeoTitle',
-      type: 'text',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use SEO Title (Japanese)/(English) below' },
-    },
-    {
       type: 'row',
       fields: [
         {
@@ -146,13 +123,6 @@ export const SiteSettings: GlobalConfig = {
           admin: { width: '50%' },
         },
       ],
-    },
-    {
-      // Deprecated — superseded by defaultSeoDescriptionJa/defaultSeoDescriptionEn below.
-      name: 'defaultSeoDescription',
-      type: 'textarea',
-      localized: true,
-      admin: { readOnly: true, description: 'Deprecated — use SEO Description (Japanese)/(English) below' },
     },
     {
       type: 'row',

@@ -4,43 +4,39 @@ async function seed() {
   const payload = await getPayload()
 
   console.log('Seeding makes...')
+  // nameJa/nameEn are plain (non-localized) fields — a single create sets both languages.
   const toyota = await payload.create({
     collection: 'makes',
-    data: { name: 'Toyota', slug: 'toyota' },
-    locale: 'en',
+    data: { nameJa: 'トヨタ', nameEn: 'Toyota', slug: 'toyota' },
   })
-  await payload.update({ collection: 'makes', id: toyota.id, data: { name: 'トヨタ' }, locale: 'ja' })
-
   const nissan = await payload.create({
     collection: 'makes',
-    data: { name: 'Nissan', slug: 'nissan' },
-    locale: 'en',
+    data: { nameJa: 'ニッサン', nameEn: 'Nissan', slug: 'nissan' },
   })
-  await payload.update({ collection: 'makes', id: nissan.id, data: { name: 'ニッサン' }, locale: 'ja' })
 
   console.log('Seeding models...')
   const supra = await payload.create({
     collection: 'models',
-    data: { name: 'Supra', slug: 'supra', make: toyota.id, chassisCode: 'JZA80' },
-    locale: 'en',
+    data: { nameJa: 'スープラ', nameEn: 'Supra', slug: 'supra', make: toyota.id, chassisCode: 'JZA80' },
   })
-  await payload.update({ collection: 'models', id: supra.id, data: { name: 'スープラ' }, locale: 'ja' })
-
   const skyline = await payload.create({
     collection: 'models',
-    data: { name: 'Skyline GT-R', slug: 'skyline-gt-r', make: nissan.id, chassisCode: 'BNR34' },
-    locale: 'en',
+    data: { nameJa: 'スカイライン GT-R', nameEn: 'Skyline GT-R', slug: 'skyline-gt-r', make: nissan.id, chassisCode: 'BNR34' },
   })
-  await payload.update({ collection: 'models', id: skyline.id, data: { name: 'スカイライン GT-R' }, locale: 'ja' })
 
   console.log('Seeding site settings...')
+  // shopNameJa/En and addressJa/En are plain (non-localized) fields — set once. businessHours
+  // remains localized (out of scope for specs/003-remove-payload-localization), so it still
+  // needs the two per-locale writes below.
   await payload.updateGlobal({
     slug: 'site-settings',
     data: {
-      shopName: 'Autoshop Takumi',
+      shopNameJa: 'オートショップ匠',
+      shopNameEn: 'Autoshop Takumi',
       contactEmail: 'takumitradings@gmail.com',
       contactPhone: '022-342-2285',
-      address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+      addressJa: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1',
+      addressEn: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
       socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
       showSoldVehicles: true,
       businessHours: 'Mon–Sat 9:00–18:00, closed Sundays',
@@ -50,8 +46,6 @@ async function seed() {
   await payload.updateGlobal({
     slug: 'site-settings',
     data: {
-      shopName: 'オートショップ匠',
-      address: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1',
       businessHours: '月〜土 9:00〜18:00（日曜定休）',
     },
     locale: 'ja',
@@ -65,13 +59,6 @@ async function seed() {
   await payload.updateGlobal({
     slug: 'homepage',
     data: {
-      heroHeading: '厳選されたJDMクラシックス',
-      heroSubheading: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-      whyUsPoints: [
-        { heading: '徹底検査済み', body: 'すべての車両は出品前に100項目の検査を受けています。' },
-        { heading: 'バイリンガル対応', body: '日本語と英語で完全サポート。' },
-        { heading: '輸出対応', body: '海外のお客様向けの書類手続きも承ります。' },
-      ],
       heroStats: [
         { value: '22', label: '年の実績' },
         { value: '4', label: 'リフト完備' },
@@ -104,12 +91,17 @@ async function seed() {
   await payload.updateGlobal({
     slug: 'homepage',
     data: {
-      heroHeading: 'Handpicked JDM Classics',
-      heroSubheading: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      // heroHeadingJa/En, heroSubheadingJa/En, and whyUsPoints[].headingJa/En/bodyJa/En are
+      // plain, non-localized fields (see specs/003-remove-payload-localization) — set once here
+      // rather than split across the ja/en calls like the still-localized fields below.
+      heroHeadingJa: '厳選されたJDMクラシックス',
+      heroHeadingEn: 'Handpicked JDM Classics',
+      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
+      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
       whyUsPoints: [
-        { heading: 'Thoroughly Inspected', body: 'Every vehicle goes through a 100-point inspection before listing.' },
-        { heading: 'Bilingual Service', body: 'Full support in Japanese and English.' },
-        { heading: 'Export Ready', body: 'We handle documentation for international buyers.' },
+        { headingJa: '徹底検査済み', headingEn: 'Thoroughly Inspected', bodyJa: 'すべての車両は出品前に100項目の検査を受けています。', bodyEn: 'Every vehicle goes through a 100-point inspection before listing.' },
+        { headingJa: 'バイリンガル対応', headingEn: 'Bilingual Service', bodyJa: '日本語と英語で完全サポート。', bodyEn: 'Full support in Japanese and English.' },
+        { headingJa: '輸出対応', headingEn: 'Export Ready', bodyJa: '海外のお客様向けの書類手続きも承ります。', bodyEn: 'We handle documentation for international buyers.' },
       ],
       heroStats: [
         { value: '22', label: 'years in business' },
