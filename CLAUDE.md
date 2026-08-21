@@ -78,7 +78,7 @@ CodeRabbit AI reviews every PR automatically once the GitHub App is installed. C
 
 - **No hardcoded strings in components** — all UI text via `next-intl` `useTranslations()`
 - **No shop content in code** — addresses, phone numbers, copy go in Payload `SiteSettings`/`Homepage` globals
-- **Localized fields** — any guest-facing text field needs `localized: true` in the collection
+- **Bilingual fields** — any guest-facing text field needs an explicit `<field>Ja`/`<field>En` paired-field pattern (e.g. `titleJa`/`titleEn`, `nameJa`/`nameEn`), not Payload's `localized: true` — see README's "Bilingual content: paired fields, not `localized: true`". Public consumers resolve the active-locale value via `resolveLocalizedField()`/`resolveLocalizedRichText()` (`src/lib/content-locale.ts`), falling back to the other language when blank. A handful of fields (`SiteSettings.businessHours`, `Homepage.heroStats`/`services`/`steps`/`shopSection`/`ctaBanner`, the `About` global, `Vehicles.gallery[].caption`) still use the older `localized: true` pattern and haven't been migrated yet.
 - **Brand token** — primary orange is `hsl(18 99% 50%)` (`#fe4d03`), sampled from real logo
 - **Commits** — Conventional Commits style: `feat:`, `fix:`, `chore:`, `docs:`
 

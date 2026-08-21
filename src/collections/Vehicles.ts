@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
+import { isNumberPresent, isTextPresent } from '@/lib/content-locale'
 
 export const Vehicles: CollectionConfig = {
   slug: 'vehicles',

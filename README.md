@@ -84,7 +84,8 @@ An earlier version of `e2e/api.spec.ts` had two tests (`GET /api/globals/site-se
 
 - **Dynamic rendering is required, not optional, on the public locale layout.** `src/app/(public)/[locale]/layout.tsx` declares `generateStaticParams()` for the two locales; combined with `getSiteSettings()` calling no dynamic API on its own, Next.js would otherwise be free to statically cache the layout's render — meaning Header/Footer content could get frozen at whatever `SiteSettings` looked like at first build/request, silently ignoring later admin edits. `export const dynamic = 'force-dynamic'` on that file exists specifically to prevent this.
 - **CMS-driven, not hardcoded, shop identity.** Contact info and social links live in `SiteSettings` and are read via `src/lib/site-settings.ts`'s `getSiteSettings(locale)` helper, passed down from the locale layout into `Header`/`Footer`. Adding a new social platform or changing the phone number needs zero code changes.
-- **Localized-required-field ordering matters on first write.** `payload.config.ts` sets `defaultLocale: 'ja'`. For a field that's both `required: true` and `localized: true` (e.g. `Homepage.whyUsPoints[].heading`), Payload validates against the default locale on the document's first creation — writing the non-default locale (`en`) first with the default locale (`ja`) left empty will fail validation. `scripts/seed.ts` writes `ja` first for exactly this reason.
+- **Localized-required-field ordering matters on first write.** `payload.config.ts` sets `defaultLocale: 'ja'`. For a field that's both `required: true` and `localized: true` (e.g. `Homepage.services[].name`, `Homepage.steps[].title`), Payload validates against the default locale on the document's first creation — writing the non-default locale (`en`) first with the default locale (`ja`) left empty will fail validation. `scripts/seed.ts` writes `ja` first for exactly this reason.
+- **Guest-facing bilingual content is moving from `localized: true` to explicit paired fields.** `Vehicles` (issue #19) and `Makes`/`Models`/`Media`/`SiteSettings`/`Homepage`'s `heroHeading`/`heroSubheading`/`aboutBlurb`/`whyUsPoints`/`contactSummary` (issue #20) now use explicit `nameJa`/`nameEn`-style paired fields instead of Payload's per-field locale switcher — see "Data Model" below. `SiteSettings.businessHours`, `Homepage.heroStats`/`services`/`steps`/`shopSection`/`ctaBanner`, and the `About` global still use `localized: true` and haven't been migrated yet.
 
 ---
 
@@ -103,39 +104,67 @@ Homepage      (global singleton)
 Users         (auth collection)
 ```
 
+### Bilingual content: paired fields, not `localized: true`
+
+`Vehicles` (issue #19) and `Makes`/`Models`/`Media` plus `SiteSettings`/`Homepage`'s shop-name/
+address/SEO/hero/why-us/contact-summary fields (issue #20) all use explicit `<field>Ja`/
+`<field>En` sibling fields (e.g. `titleJa`/`titleEn`, `nameJa`/`nameEn`) rather than Payload's
+per-field `localized: true` + admin-wide locale switcher. Both languages are always visible and
+independently editable on one form. Public pages resolve the field for the visitor's route
+locale via `resolveLocalizedField()`/`resolveLocalizedRichText()` (`src/lib/content-locale.ts`),
+falling back to the other language when the active one is blank — never a silent empty value.
+`SiteSettings.businessHours`, `Homepage.heroStats`/`services`/`steps`/`shopSection`/`ctaBanner`,
+and the `About` global still use `localized: true` and haven't been migrated to this pattern yet.
+
 ### Vehicles collection (key fields)
 
 | Field | Type | Notes |
 |---|---|---|
-| `title` | text (localized) | e.g. "1999 Toyota Supra RZ" / "1999 トヨタ スープラ RZ" |
+| `titleJa` / `titleEn` | text | e.g. "1999 トヨタ スープラ RZ" / "1999 Toyota Supra RZ"; `displayTitle` (read-only) is computed from these for the admin list view |
 | `slug` | text, unique | URL slug |
 | `status` | select | `draft` / `available` / `reserved` / `sold` |
 | `make` / `model` | relationship | Editable taxonomy — not a hardcoded enum |
 | `year`, `mileageKm` | number | |
-| `price` / `priceOnRequest` | number / checkbox | When `priceOnRequest` is true, shows "Contact for price" |
+| `priceJpy` / `priceUsd` / `priceOnRequest` | number / number / checkbox | When `priceOnRequest` is true, shows "Contact for price" |
 | `transmission` / `bodyType` | select | MT/AT/CVT; sedan/coupe/SUV/wagon/kei/other |
 | `shakenExpiry` | date | 車検 expiry — hidden on frontend if blank |
-| `summary` | textarea (localized) | Short overview at top of detail page |
-| `highlights` | array (localized) | Bullet point list |
-| `description` | richText (localized) | Long narrative |
-| `specs` | array of label/value (localized) | Flexible spec table |
-| `heroImage` / `gallery` | upload → Media | Not schema-required; `beforeChange` hook blocks only `status: 'available'` without a `heroImage` |
+| `summaryJa` / `summaryEn` | textarea | Short overview at top of detail page |
+| `highlights[].textJa` / `textEn` | array | Bullet point list |
+| `descriptionJa` / `descriptionEn` | richText | Long narrative |
+| `specs[].labelJa/En`, `valueJa/En` | array | Flexible spec table |
+| `heroImage` / `gallery` | upload → Media | Not schema-required; `beforeChange` hook blocks only `status: 'available'` without a `heroImage`. `gallery[].caption` remains `localized: true` — not yet migrated (out of scope for issue #19) |
 | `featured` | checkbox | Surfaces on homepage featured section |
 | `relatedVehicles` | relationship, hasMany | |
-| `seoTitle` / `seoDescription` | text (localized) | Per-vehicle SEO overrides |
+| `seoTitleJa/En` / `seoDescriptionJa/En` | text / textarea | Per-vehicle SEO overrides |
+
+### Makes / Models collections (key fields)
+
+| Field | Type | Notes |
+|---|---|---|
+| `nameJa` / `nameEn` | text | At least one required (custom `validate`); `displayName` (read-only) is computed from these for the admin list view |
+| `slug` | text, unique | URL slug |
+| `make` (Models only) | relationship | |
+| `chassisCode` (Models only) | text | Optional, e.g. "JZA80" |
+
+### Media collection (key fields)
+
+| Field | Type | Notes |
+|---|---|---|
+| `altJa` / `altEn` | text | Not currently rendered by any page consumer — storage only, ready for a future feature to wire in |
 
 ### SiteSettings global (key fields)
 
 | Field | Type | Notes |
 |---|---|---|
-| `shopName` | text (localized) | |
+| `shopNameJa` / `shopNameEn` | text | At least one required (custom `validate`) |
 | `logo` | upload → Media | |
 | `contactEmail` / `contactPhone` | email / text | Not localized |
-| `address` | textarea (localized) | |
+| `addressJa` / `addressEn` | textarea | |
 | `socialLinks` | array of `{platform, url}` | `platform` is a select (Instagram/Facebook/X/YouTube/LINE); Header/Footer/About currently only render Instagram |
 | `notificationEmails` | array of email | Who gets notified on new inquiries (needs `RESEND_API_KEY` to actually send) |
 | `showSoldVehicles` | checkbox | |
-| `defaultSeoTitle` / `defaultSeoDescription` | text/textarea (localized) | |
+| `businessHours` | text (localized) | Not yet migrated to paired fields — out of scope for issue #20 |
+| `defaultSeoTitleJa/En` / `defaultSeoDescriptionJa/En` | text/textarea | Storage only — not currently wired into `getSiteSettings()` or page metadata |
 
 ---
 

@@ -58,12 +58,17 @@ export default async function globalSetup() {
 
   // Seed SiteSettings once so pages that now source contact info / social
   // links from the CMS (Header, Footer, About) have something to render.
+  // shopNameJa/En and addressJa/En (not shopName/address — deprecated, no longer read by
+  // getSiteSettings(), see specs/003-remove-payload-localization) are plain, non-localized
+  // fields, so a single write with no `locale` param sets both languages' actual display value.
   const seedRes = await apiCtx.post('/api/globals/site-settings', {
     data: {
-      shopName: 'Autoshop Takumi',
+      shopNameJa: 'オートショップ匠',
+      shopNameEn: 'Autoshop Takumi',
       contactEmail: 'takumitradings@gmail.com',
       contactPhone: '022-342-2285',
-      address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+      addressJa: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1',
+      addressEn: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
       socialLinks: [{ platform: 'instagram', url: 'https://www.instagram.com/autoshop_takumi/' }],
     },
   })
@@ -97,8 +102,17 @@ export default async function globalSetup() {
 
   const homepageRes = await apiCtx.post('/api/globals/homepage?locale=en', {
     data: {
-      heroHeading: 'Handpicked JDM Classics',
-      heroSubheading: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      // heroHeadingJa/En, heroSubheadingJa/En, and whyUsPoints[].headingJa/En/bodyJa/En are
+      // plain, non-localized fields (see specs/003-remove-payload-localization) — set here in
+      // the same request as the still-localized `en` fields below since ?locale has no effect
+      // on them.
+      heroHeadingJa: '厳選されたJDMクラシックス',
+      heroHeadingEn: 'Handpicked JDM Classics',
+      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
+      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      whyUsPoints: [
+        { headingJa: '徹底検査済み', headingEn: 'Thoroughly Inspected', bodyJa: 'すべての車両は検査済みです。', bodyEn: 'Every vehicle is inspected.' },
+      ],
       heroStats: [{ value: '22', label: 'years in business' }],
       services: [{ icon: 'Wrench', name: 'Shaken & servicing', description: 'Certified inspection and legal maintenance.', priceFrom: 'From ¥8,000' }],
       steps: [{ title: 'Browse the lot', description: 'Find a car you like from our current inventory.' }],

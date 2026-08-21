@@ -99,12 +99,78 @@ test('can create a Make', async ({ page }) => {
   await page.goto('/admin/collections/makes/create')
   await page.waitForLoadState('networkidle')
 
-  await page.getByLabel('Name').fill('Nissan')
+  await page.getByLabel('Name (Japanese)').fill('ニッサン')
+  await page.getByLabel('Name (English)').fill('Nissan')
   await page.getByLabel('Slug').fill(`nissan-e2e-${Date.now()}`)
   await page.getByRole('button', { name: /save/i }).click()
 
   await expect(page).toHaveURL(/\/admin\/collections\/makes\/\d+/)
-  await expect(page.getByLabel('Name')).toHaveValue('Nissan')
+  await expect(page.getByLabel('Name (Japanese)')).toHaveValue('ニッサン')
+  await expect(page.getByLabel('Name (English)')).toHaveValue('Nissan')
+})
+
+test('Make/Model paired-language fields render together in one form, with no locale-switcher interaction required (spec 003, US1 Scenario 1)', async ({ page }) => {
+  // Regression guard for specs/003-remove-payload-localization: both languages must be visible
+  // and independently editable in a single form render, without ever touching the admin-wide
+  // locale switcher (still present in the nav — Payload's `localization` config isn't removed
+  // until Phase 5/#20, gated on issue #19's Vehicles migration and the Vehicles.gallery[].caption
+  // scope gap — see this feature's tasks.md T029).
+  await page.goto('/admin/collections/makes/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Name (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Name (English)')).toBeVisible()
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Name (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Name (English)')).toBeVisible()
+})
+
+test('a Model saves successfully with only the Japanese name filled in (spec 003, US1 Scenario 2)', async ({ page }) => {
+  const makeName = `Mazda E2E ${Date.now()}`
+  await createMake(page, makeName, `mazda-e2e-${Date.now()}`)
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Name (Japanese)').fill('ロードスター')
+  await page.getByLabel('Slug').fill(`roadster-e2e-${Date.now()}`)
+  // Payload's relationship field is a react-select combobox, not a native <select> — it has no
+  // accessible <label>, so target its combobox role instead of getByLabel. The visible
+  // "Select a value" placeholder text sits behind an overlapping input-container div that
+  // intercepts pointer events, so click the combobox itself rather than the placeholder text.
+  await page.getByRole('combobox').click()
+  await page.getByRole('option', { name: makeName }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  await expect(page).toHaveURL(/\/admin\/collections\/models\/\d+/)
+  await expect(page.getByLabel('Name (Japanese)')).toHaveValue('ロードスター')
+})
+
+test('rejects a Make with both Name (Japanese) and Name (English) left blank, per spec FR-013', async ({ page }) => {
+  await page.goto('/admin/collections/makes/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Slug').fill(`blank-name-e2e-${Date.now()}`)
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Save is rejected — still on the create form, not redirected to the new doc's edit URL.
+  await expect(page).not.toHaveURL(/\/admin\/collections\/makes\/\d+/)
+  await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
+})
+
+test('rejects a Model with both Name (Japanese) and Name (English) left blank, per spec FR-013', async ({ page }) => {
+  const makeName = `Subaru E2E ${Date.now()}`
+  await createMake(page, makeName, `subaru-e2e-${Date.now()}`)
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Slug').fill(`blank-model-name-e2e-${Date.now()}`)
+  await page.getByRole('combobox').click()
+  await page.getByRole('option', { name: makeName }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Save is rejected — still on the create form, not redirected to the new doc's edit URL.
+  await expect(page).not.toHaveURL(/\/admin\/collections\/models\/\d+/)
+  await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
 })
 
 // ── Models ─────────────────────────────────────────────────────────────────
@@ -445,17 +511,74 @@ test('Site Settings loads with expected fields', async ({ page }) => {
   await page.goto('/admin/globals/site-settings')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Site Settings/)
-  await expect(page.getByLabel(/shop name/i)).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Shop Name (Japanese)')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Shop Name (English)')).toBeVisible()
   await expect(page.getByLabel(/contact email/i)).toBeVisible()
   await expect(page.getByLabel(/show sold vehicles/i)).toBeVisible()
+})
+
+test('Site Settings — Address, SEO Title, and SEO Description paired-language fields render together (spec 003, US1 Scenario 3)', async ({ page }) => {
+  await page.goto('/admin/globals/site-settings')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Address (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Address (English)')).toBeVisible()
+  await expect(page.getByLabel('SEO Title (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('SEO Title (English)')).toBeVisible()
+  await expect(page.getByLabel('SEO Description (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('SEO Description (English)')).toBeVisible()
+})
+
+test('rejects Site Settings with both Shop Name (Japanese) and Shop Name (English) left blank, per spec FR-013', async ({ page }) => {
+  await page.goto('/admin/globals/site-settings')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Shop Name (Japanese)').fill('')
+  await page.getByLabel('Shop Name (English)').fill('')
+  await page.getByRole('button', { name: /save/i }).click()
+  await expect(page.getByText(/at least one of shop name \(japanese\) or shop name \(english\)/i)).toBeVisible()
 })
 
 test('Homepage global loads with expected fields', async ({ page }) => {
   await page.goto('/admin/globals/homepage')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Homepage/)
-  await expect(page.getByLabel(/hero heading/i)).toBeVisible({ timeout: 10000 })
-  await expect(page.getByLabel(/hero subheading/i)).toBeVisible()
+  await expect(page.getByLabel('Hero Heading (Japanese)')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Hero Heading (English)')).toBeVisible()
+  await expect(page.getByLabel('Hero Subheading (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Hero Subheading (English)')).toBeVisible()
+})
+
+test('Homepage — Why Us paired-language fields render together, with an at-least-one-language guard on Heading (spec 003, US1 Scenario 3 / FR-013)', async ({ page }) => {
+  await page.goto('/admin/globals/homepage')
+  await page.waitForLoadState('networkidle')
+  const rowCountBefore = await page.getByLabel('Heading (Japanese)').count()
+  await page.getByRole('button', { name: /add why us/i }).click()
+  // global-setup.ts seeds one existing Why Us row, so `.first()` would still
+  // match it (and pass) even if the newly added row never rendered — assert
+  // the row count grew, then check the new row specifically via `.last()`.
+  await expect(page.getByLabel('Heading (Japanese)')).toHaveCount(rowCountBefore + 1)
+  await expect(page.getByLabel('Heading (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Heading (English)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (English)').last()).toBeVisible()
+})
+
+test('rejects a Homepage Why Us item with both Heading (Japanese) and Heading (English) left blank, per spec FR-013', async ({ page }) => {
+  // Asserted against the save endpoint the admin form posts to, rather than by driving the form:
+  // Payload surfaces an array subfield's own validate() message only in the rejected response and
+  // an auto-dismissing toast, never as persistent DOM the UI can assert on.
+  const before = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+
+  const res = await page.request.post('/api/globals/homepage', {
+    data: { whyUsPoints: [{ bodyJa: 'テスト本文' }] },
+  })
+  expect(res.status()).toBe(400)
+  expect(JSON.stringify(await res.json())).toContain(
+    'At least one of Heading (Japanese) or Heading (English) is required.',
+  )
+
+  // The rejected save left the existing content untouched.
+  const after = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+  expect(after.whyUsPoints).toEqual(before.whyUsPoints)
 })
 
 // ── Media ──────────────────────────────────────────────────────────────────
@@ -465,4 +588,11 @@ test('Media library loads', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Media/)
   await expect(page.getByRole('link', { name: /create new/i }).first()).toBeVisible()
+})
+
+test('Media create form shows Alt Text (Japanese)/(English) paired fields (spec 003, US1 Scenario 3)', async ({ page }) => {
+  await page.goto('/admin/collections/media/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Alt Text (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Alt Text (English)')).toBeVisible()
 })
