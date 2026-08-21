@@ -27,7 +27,9 @@ describe('content migration mapping — fixture validation (quickstart.md Scenar
   it('migrates every Named (Makes/Models) fixture entry without dropping a populated legacy value', () => {
     for (const entry of NAMED_MIGRATION_FIXTURE) {
       const update = mapLegacyNamedFields(entry.legacy, entry.current)
-      expect(() => update, entry.description).not.toThrow()
+      const effective = { ...entry.current, ...update }
+      if (entry.legacy.ja?.name) expect(effective.nameJa, entry.description).toBe(entry.legacy.ja.name)
+      if (entry.legacy.en?.name) expect(effective.nameEn, entry.description).toBe(entry.legacy.en.name)
     }
   })
 
@@ -69,10 +71,10 @@ describe('content migration mapping — fixture validation (quickstart.md Scenar
     const { legacy, current } = SITE_SETTINGS_MIGRATION_FIXTURE
     const update = mapLegacySiteSettingsFields(legacy, current)
     expect(update).toEqual({
-      shopNameJa: 'オートショップ匠',
-      shopNameEn: 'Autoshop Takumi',
-      addressJa: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1',
-      addressEn: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan',
+      shopNameJa: 'テスト自動車',
+      shopNameEn: 'Test Motors',
+      addressJa: '〒000-0000 テスト県テスト市テスト町1-2-3',
+      addressEn: '1-2-3 Test-cho, Test City, Test 000-0000, Japan',
     })
     expect(update.defaultSeoTitleJa).toBeUndefined()
   })

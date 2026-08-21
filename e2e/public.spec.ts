@@ -181,7 +181,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'por test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'por test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
 
@@ -219,7 +219,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'dual price test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'dual price test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
 
@@ -258,7 +258,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'jpy only test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'jpy only test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
 
@@ -292,7 +292,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'usd only test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'usd only test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
     const slug = `usd-only-${ts}`
@@ -330,7 +330,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'desc fallback test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'desc fallback test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
     const japaneseParagraphText = `日本語の説明文-${ts}`
@@ -381,7 +381,7 @@ test.describe('Vehicle listing and detail', () => {
     const modelId = (await mdRes.json()).doc.id
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'spec mismatch test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'spec mismatch test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
 
@@ -463,6 +463,28 @@ test.describe('Vehicle filters', () => {
     await page.goto('/ja/vehicles')
     await page.waitForLoadState('networkidle')
     await expect(page.locator('select', { hasText: `フィルターメーカー-${ts}` })).toBeVisible()
+  })
+
+  test('model filter label shows the correct language on both locales (spec 003, US2 Scenario 2.1 / FR-012)', async ({ page }) => {
+    const ts = Date.now()
+    const mkRes = await page.request.post('/api/makes', {
+      data: { nameJa: `モデルフィルターメーカー-${ts}`, nameEn: `ModelFilterMake-${ts}`, slug: `model-filter-mk-${ts}` },
+    })
+    expect(mkRes.status()).toBe(201)
+    const makeId = (await mkRes.json()).doc.id
+
+    const mdRes = await page.request.post('/api/models', {
+      data: { nameJa: `モデルフィルター-${ts}`, nameEn: `ModelFilterLabel-${ts}`, slug: `model-filter-md-${ts}`, make: makeId },
+    })
+    expect(mdRes.status()).toBe(201)
+
+    await page.goto('/en/vehicles')
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('select', { hasText: `ModelFilterLabel-${ts}` })).toBeVisible()
+
+    await page.goto('/ja/vehicles')
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('select', { hasText: `モデルフィルター-${ts}` })).toBeVisible()
   })
 
   test('make filter shows only vehicles of the selected make', async ({ page }) => {
@@ -548,7 +570,7 @@ test.describe('Vehicle filters', () => {
 
     const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
     const mediaRes = await page.request.post('/api/media', {
-      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, alt: 'sort test' },
+      multipart: { file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'sort test' }) },
     })
     const mediaId = (await mediaRes.json()).doc.id
 

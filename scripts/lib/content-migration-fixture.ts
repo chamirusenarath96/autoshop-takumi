@@ -62,8 +62,8 @@ export const SITE_SETTINGS_MIGRATION_FIXTURE: {
 } = {
   description: 'SiteSettings with shopName/address set in both languages, SEO fields blank',
   legacy: {
-    ja: { shopName: 'オートショップ匠', address: '〒983-0013 宮城県仙台市宮城野区中野字神明148-1' },
-    en: { shopName: 'Autoshop Takumi', address: '148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan' },
+    ja: { shopName: 'テスト自動車', address: '〒000-0000 テスト県テスト市テスト町1-2-3' },
+    en: { shopName: 'Test Motors', address: '1-2-3 Test-cho, Test City, Test 000-0000, Japan' },
   },
   current: {},
 }

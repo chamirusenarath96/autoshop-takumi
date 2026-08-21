@@ -63,7 +63,7 @@ export async function uploadMedia(page: Page): Promise<number> {
   const res = await page.request.post('/api/media', {
     multipart: {
       file: { name: 'logo.png', mimeType: 'image/png', buffer: imgBytes },
-      alt: 'Test vehicle photo',
+      _payload: JSON.stringify({ altJa: 'テスト車両写真', altEn: 'Test vehicle photo' }),
     },
   })
   const data = await res.json()

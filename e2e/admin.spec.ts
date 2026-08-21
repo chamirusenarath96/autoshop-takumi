@@ -157,6 +157,22 @@ test('rejects a Make with both Name (Japanese) and Name (English) left blank, pe
   await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
 })
 
+test('rejects a Model with both Name (Japanese) and Name (English) left blank, per spec FR-013', async ({ page }) => {
+  const makeName = `Subaru E2E ${Date.now()}`
+  await createMake(page, makeName, `subaru-e2e-${Date.now()}`)
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Slug').fill(`blank-model-name-e2e-${Date.now()}`)
+  await page.getByRole('combobox').click()
+  await page.getByRole('option', { name: makeName }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Save is rejected — still on the create form, not redirected to the new doc's edit URL.
+  await expect(page).not.toHaveURL(/\/admin\/collections\/models\/\d+/)
+  await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
+})
+
 // ── Models ─────────────────────────────────────────────────────────────────
 
 test('Models list loads', async ({ page }) => {
@@ -539,6 +555,15 @@ test('Homepage — Why Us paired-language fields render together, with an at-lea
   await expect(page.getByLabel('Heading (English)').first()).toBeVisible()
   await expect(page.getByLabel('Body (Japanese)').first()).toBeVisible()
   await expect(page.getByLabel('Body (English)').first()).toBeVisible()
+})
+
+test('rejects a Homepage Why Us item with both Heading (Japanese) and Heading (English) left blank, per spec FR-013', async ({ page }) => {
+  await page.goto('/admin/globals/homepage')
+  await page.waitForLoadState('networkidle')
+  await page.getByRole('button', { name: /add why us/i }).click()
+  await page.getByLabel('Body (Japanese)').last().fill('テスト本文')
+  await page.getByRole('button', { name: /save/i }).click()
+  await expect(page.getByText(/at least one of heading \(japanese\) or heading \(english\)/i)).toBeVisible()
 })
 
 // ── Media ──────────────────────────────────────────────────────────────────
