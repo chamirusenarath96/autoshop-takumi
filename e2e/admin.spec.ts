@@ -550,11 +550,16 @@ test('Homepage global loads with expected fields', async ({ page }) => {
 test('Homepage — Why Us paired-language fields render together, with an at-least-one-language guard on Heading (spec 003, US1 Scenario 3 / FR-013)', async ({ page }) => {
   await page.goto('/admin/globals/homepage')
   await page.waitForLoadState('networkidle')
+  const rowCountBefore = await page.getByLabel('Heading (Japanese)').count()
   await page.getByRole('button', { name: /add why us/i }).click()
-  await expect(page.getByLabel('Heading (Japanese)').first()).toBeVisible()
-  await expect(page.getByLabel('Heading (English)').first()).toBeVisible()
-  await expect(page.getByLabel('Body (Japanese)').first()).toBeVisible()
-  await expect(page.getByLabel('Body (English)').first()).toBeVisible()
+  // global-setup.ts seeds one existing Why Us row, so `.first()` would still
+  // match it (and pass) even if the newly added row never rendered — assert
+  // the row count grew, then check the new row specifically via `.last()`.
+  await expect(page.getByLabel('Heading (Japanese)')).toHaveCount(rowCountBefore + 1)
+  await expect(page.getByLabel('Heading (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Heading (English)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (English)').last()).toBeVisible()
 })
 
 test('rejects a Homepage Why Us item with both Heading (Japanese) and Heading (English) left blank, per spec FR-013', async ({ page }) => {
