@@ -563,17 +563,22 @@ test('Homepage — Why Us paired-language fields render together, with an at-lea
 })
 
 test('rejects a Homepage Why Us item with both Heading (Japanese) and Heading (English) left blank, per spec FR-013', async ({ page }) => {
-  await page.goto('/admin/globals/homepage')
-  await page.waitForLoadState('networkidle')
-  const rowCountBefore = await page.getByLabel('Body (Japanese)').count()
-  await page.getByRole('button', { name: /add why us/i }).click()
-  // The new row mounts asynchronously — without waiting for it, `.last()` can
-  // resolve against the still-existing previous row before React finishes
-  // adding the new one, filling the wrong item's Body field.
-  await expect(page.getByLabel('Body (Japanese)')).toHaveCount(rowCountBefore + 1)
-  await page.getByLabel('Body (Japanese)').last().fill('テスト本文')
-  await page.getByRole('button', { name: /save/i }).click()
-  await expect(page.getByText(/at least one of heading \(japanese\) or heading \(english\)/i)).toBeVisible()
+  // Asserted against the save endpoint the admin form posts to, rather than by driving the form:
+  // Payload surfaces an array subfield's own validate() message only in the rejected response and
+  // an auto-dismissing toast, never as persistent DOM the UI can assert on.
+  const before = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+
+  const res = await page.request.post('/api/globals/homepage', {
+    data: { whyUsPoints: [{ bodyJa: 'テスト本文' }] },
+  })
+  expect(res.status()).toBe(400)
+  expect(JSON.stringify(await res.json())).toContain(
+    'At least one of Heading (Japanese) or Heading (English) is required.',
+  )
+
+  // The rejected save left the existing content untouched.
+  const after = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+  expect(after.whyUsPoints).toEqual(before.whyUsPoints)
 })
 
 // ── Media ──────────────────────────────────────────────────────────────────
