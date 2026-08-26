@@ -18,7 +18,9 @@ out/
 .env.local
 .env.production
 
-# media uploads (local dev)
+# media uploads (local dev) — Payload's Media collection has no staticDir
+# override, so its actual default write path is ./media, not public/media
+media/
 public/media/
 
 # Playwright
