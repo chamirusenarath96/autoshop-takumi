@@ -268,10 +268,10 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   const updateRes = await page.request.patch(`/api/vehicles/${createData.doc.id}`, {
     data: { status: 'available' },
   })
-  // Hook throws → Payload returns 500 (generic server error for hook exceptions)
-  expect(updateRes.status()).toBe(500)
+  // Hook throws an APIError(400) → Payload returns 400 (client error, not a server fault)
+  expect(updateRes.status()).toBe(400)
 
-  // A generic 500 alone doesn't prove the hero-image check specifically fired —
+  // A bare 400 alone doesn't prove the hero-image check specifically fired —
   // confirm the update was actually rejected and the vehicle is still a draft.
   const verifyRes = await page.request.get(`/api/vehicles/${createData.doc.id}`)
   const verifyData = await verifyRes.json()
@@ -289,7 +289,7 @@ test('blocks publishing a vehicle with a hero image but no title/price in either
   const { doc } = await createRes.json()
 
   const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
-  expect(patchRes.status()).toBe(500)
+  expect(patchRes.status()).toBe(400)
 
   const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
   expect((await verifyRes.json()).status).toBe('draft')
@@ -367,7 +367,7 @@ test('publish gate still applies on a field-only PATCH to an already-available v
   // No status field in this request — status stays 'available' via originalDoc, so the gate
   // must still evaluate against the effective (post-merge) state and reject removing heroImage.
   const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { heroImage: null } })
-  expect(patchRes.status()).toBe(500)
+  expect(patchRes.status()).toBe(400)
 
   const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
   const verifyData = await verifyRes.json()

@@ -158,6 +158,32 @@ test.describe('Vehicle listing and detail', () => {
     await expect(page.getByText(/50,000/)).toBeVisible()
   })
 
+  test('a draft vehicle is not reachable on its public detail page', async ({ page }) => {
+    const ts = Date.now()
+    const slug = `draft-hidden-${ts}`
+    const mkRes = await page.request.post('/api/makes', { data: { name: `DraftMake-${ts}`, slug: `draftmk-${ts}` } })
+    const makeId = (await mkRes.json()).doc.id
+    const mdRes = await page.request.post('/api/models', { data: { name: 'Draft Model', slug: `draftmd-${ts}`, make: makeId } })
+    const modelId = (await mdRes.json()).doc.id
+
+    await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `Draft Hidden ${ts}`,
+        slug,
+        status: 'draft',
+        make: makeId,
+        model: modelId,
+        year: 2018,
+      },
+    })
+
+    // The Payload Local API bypasses collection access control, so the public detail
+    // page must filter by status itself — otherwise an unpublished draft would render.
+    const res = await page.goto(`/en/vehicles/${slug}`)
+    expect(res?.status()).toBe(404)
+    await expect(page.getByText(`Draft Hidden ${ts}`)).toHaveCount(0)
+  })
+
   test('priceOnRequest listing shows neither price on listing or detail pages', async ({ page }) => {
     const ts = Date.now()
     const slug = `por-${ts}`
