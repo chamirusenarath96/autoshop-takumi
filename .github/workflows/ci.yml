@@ -5,6 +5,12 @@ on:
     branches: [master]
   push:
     branches: [master]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to regenerate visual regression baselines on
+        required: true
+        type: string
 
 # Least-privilege default: every job only needs to read the repo. Set this at
 # workflow scope so repo-level GITHUB_TOKEN defaults can't silently widen it.
@@ -15,6 +21,9 @@ jobs:
   test:
     name: Component Tests
     runs-on: ubuntu-latest
+    # workflow_dispatch is only for update-visual-baselines (below) — every other
+    # job stays on its existing pull_request/push triggers.
+    if: github.event_name != 'workflow_dispatch'
 
     steps:
       - name: Checkout
@@ -35,6 +44,7 @@ jobs:
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
 
     steps:
       - name: Checkout
@@ -87,6 +97,183 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      # Runs regardless of pass/fail (unlike the default implicit success()), but
+      # skipped if the job itself was cancelled — allure-results/ from the test step
+      # above is what the dashboard issue (#16) is designed to eventually consume.
+      - name: Generate Allure report
+        if: ${{ !cancelled() }}
+        run: npx allure generate allure-results --output allure-report
+
+      - name: Upload Allure results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: |
+            allure-results/
+            allure-report/
+          retention-days: 7
+
+  visual-e2e:
+    name: Visual Regression Tests
+    # An explicit, dated runner label (not the floating `ubuntu-latest` alias) so
+    # baseline generation (update-visual-baselines, below) and baseline comparison
+    # always run on the same, named environment — see
+    # specs/002-visual-regression-testing/research.md's baseline-determinism decision.
+    # Font rendering / anti-aliasing differ enough across OS images that screenshots
+    # are only ever comparable when produced on this exact runner label.
+    runs-on: ubuntu-24.04
+    needs: [test, typecheck]
+
+    env:
+      PAYLOAD_SECRET: visual-e2e-ci-secret
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      # playwright.visual.config.ts deliberately has no webServer entry (it must not
+      # run e2e/global-setup.ts before visual-first-run — see that config file's own
+      # comment), so this job manages the dev server's lifecycle itself. This job's
+      # own runner/checkout is already a fresh, isolated filesystem — separate from
+      # the `e2e` job's own runner — which is what actually makes its SQLite database
+      # (the default .payload/database.db path — see src/lib/deploymentConfig.ts) job-
+      # local and empty at start, with no DATABASE_URI override needed: that env var
+      # switches this app to Postgres mode entirely, so setting it to a file path
+      # here would break the server rather than isolate it.
+      - name: Start dev server
+        run: |
+          npm run dev > /tmp/dev-server.log 2>&1 &
+          echo "DEV_SERVER_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for dev server
+        run: npx wait-on -t 60000 http://localhost:3000
+
+      - name: Clear allure-results
+        run: npx rimraf allure-results
+
+      - name: Run visual-first-run project (empty database)
+        run: npx playwright test --config=playwright.visual.config.ts --project=visual-first-run
+
+      - name: Seed visual fixture
+        run: npx tsx e2e/visual-setup.ts
+
+      - name: Run visual project
+        run: npx playwright test --config=playwright.visual.config.ts --project=visual
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Generate Allure report
+        if: ${{ !cancelled() }}
+        run: npx allure generate allure-results --output allure-report
+
+      - name: Upload Allure results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          # Named distinctly from the `e2e` job's own `allure-results` artifact so
+          # the two don't collide on a single workflow run's Summary page.
+          name: allure-results-visual
+          path: |
+            allure-results/
+            allure-report/
+          retention-days: 7
+
+      - name: Stop dev server
+        if: always()
+        run: kill "$DEV_SERVER_PID" || true
+
+  update-visual-baselines:
+    name: Update Visual Baselines
+    if: github.event_name == 'workflow_dispatch'
+    # Requires an authenticated user with write access to the repository to trigger —
+    # a fork-originated PR cannot reach this job, which is the correct constraint for
+    # a job holding contents: write (see the job-level permissions override below,
+    # the only job in this workflow that needs it; every other job keeps this file's
+    # top-level `permissions: contents: read` default).
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    env:
+      PAYLOAD_SECRET: visual-e2e-ci-secret
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start dev server
+        run: |
+          npm run dev > /tmp/dev-server.log 2>&1 &
+          echo "DEV_SERVER_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for dev server
+        run: npx wait-on -t 60000 http://localhost:3000
+
+      - name: Clear allure-results
+        run: npx rimraf allure-results
+
+      - name: Run visual-first-run project (empty database, updating snapshots)
+        run: npx playwright test --config=playwright.visual.config.ts --project=visual-first-run --update-snapshots
+
+      - name: Seed visual fixture
+        run: npx tsx e2e/visual-setup.ts
+
+      - name: Run visual project (updating snapshots)
+        run: npx playwright test --config=playwright.visual.config.ts --project=visual --update-snapshots
+
+      - name: Stop dev server
+        if: always()
+        run: kill "$DEV_SERVER_PID" || true
+
+      # The one and only publication mechanism (no artifact-download-and-manually-
+      # commit alternative) — pinned to a commit SHA, not a floating tag, since this
+      # step runs with contents: write. file_pattern is scoped to exactly the two
+      # baseline directories, not the action's `.` default, so a stray run artifact
+      # (e2e/.visual-fixture.json, a leftover job-local database file) never gets
+      # swept into the commit — both are also in .gitignore as a second layer of
+      # protection.
+      - name: Commit regenerated baselines
+        uses: stefanzweifel/git-auto-commit-action@8621497c8c39c72f3e2a999a26b4ca1b5058a842 # v5.0.1
+        with:
+          commit_message: "chore: update visual regression baselines"
+          file_pattern: 'e2e/visual.spec.ts-snapshots/ e2e/visual-first-run.spec.ts-snapshots/'
+          branch: ${{ inputs.branch }}
 
   build:
     name: Build Check

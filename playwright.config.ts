@@ -9,7 +9,11 @@ export default defineConfig({
   workers: 1,
   // The `github` reporter annotates PR checks but doesn't write playwright-report/ —
   // add `html` alongside it in CI so the failure-upload step in ci.yml has something to upload.
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  // `allure-playwright` writes allure-results/ on every run, cleared beforehand by the
+  // pretest:e2e npm script (allure-playwright appends rather than replaces).
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never' }], ['allure-playwright']]
+    : [['list'], ['allure-playwright']],
 
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
@@ -21,6 +25,10 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      // Visual regression specs live in their own project/config
+      // (playwright.visual.config.ts) — never picked up here, regardless of
+      // which config a given invocation uses (defense in depth).
+      testIgnore: [/visual\.spec\.ts$/, /visual-first-run\.spec\.ts$/],
     },
   ],
 
