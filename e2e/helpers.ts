@@ -1,4 +1,4 @@
-import { Page, Browser, TestInfo, expect } from '@playwright/test'
+import { Page, Browser, TestInfo, Locator, expect } from '@playwright/test'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -6,6 +6,12 @@ import * as fs from 'fs'
 export const ADMIN_EMAIL = 'admin@autoshoptakumi.com'
 export const ADMIN_PASSWORD = 'Takumi2024!'
 export const AUTH_STATE_PATH = 'e2e/.auth/admin.json'
+
+export const VIEWPORTS = {
+  mobile: { width: 375, height: 812 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1280, height: 800 },
+} as const
 
 /**
  * Logs into the admin panel, handling both "create-first-user" and "login" flows.
@@ -122,6 +128,45 @@ export async function assertNoHorizontalOverflow(page: Page) {
     innerWidth: window.innerWidth,
   }))
   expect(scrollWidth, `document.documentElement.scrollWidth (${scrollWidth}) should not exceed window.innerWidth (${innerWidth})`).toBeLessThanOrEqual(innerWidth)
+}
+
+/** Views covered by visual regression snapshots — see e2e/visual.spec.ts. */
+export type VisualView =
+  | 'landing'
+  | 'listing'
+  | 'vehicle-detail'
+  | 'about'
+  | 'admin-login'
+  | 'admin-dashboard'
+  | 'admin-vehicles-list'
+  | 'admin-vehicles-edit'
+
+const PUBLIC_VIEWS: VisualView[] = ['landing', 'listing', 'vehicle-detail', 'about']
+
+/**
+ * Returns fresh Locators for the genuinely run-varying regions of a given visual-test
+ * view, to pass as `toHaveScreenshot({ mask })`. A Locator is bound to the Page it was
+ * created from, so this must be called per-test (not memoized as a module constant).
+ * Deliberately does NOT mask the fixture's fixed `visual-test-vehicle` slug/content —
+ * that stays visible as a useful assertion that the right page actually rendered.
+ */
+export function getVisualMasks(page: Page, view: VisualView): Locator[] {
+  const masks: Locator[] = []
+
+  // Every public page's footer prints the current year (`new Date().getFullYear()`),
+  // which is stable within a run but not across a year boundary between baseline
+  // generation and comparison.
+  if (PUBLIC_VIEWS.includes(view)) {
+    masks.push(page.getByTestId('footer-copyright'))
+  }
+
+  // Payload's document edit view shows "Last Modified"/"Created" timestamps that are
+  // set to the actual time the visual-e2e job's fixture was created — always run-varying.
+  if (view === 'admin-vehicles-edit') {
+    masks.push(page.locator('.doc-controls__value'))
+  }
+
+  return masks
 }
 
 /**

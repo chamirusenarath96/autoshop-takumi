@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle } from './helpers'
+import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle, VIEWPORTS } from './helpers'
 
 /** Visits the homepage, a vehicle detail page, and the about page, asserting no horizontal overflow and attaching load timing for the homepage/detail pages. */
 async function assertOverflowAndTimingAcrossPages(
@@ -37,12 +37,6 @@ async function swipeLeft(page: import('@playwright/test').Page, testId: string) 
     )
   })
 }
-
-export const VIEWPORTS = {
-  mobile: { width: 375, height: 812 },
-  tablet: { width: 768, height: 1024 },
-  desktop: { width: 1280, height: 800 },
-} as const
 
 test.describe('Responsive — mobile (375px)', () => {
   test.use({ viewport: VIEWPORTS.mobile, hasTouch: true })
