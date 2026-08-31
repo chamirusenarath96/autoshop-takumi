@@ -72,7 +72,7 @@ Single Next.js + Payload monorepo. All new/changed files live under the existing
 - [X] T021 [US1] Add an authenticated (`test.use({ storageState: AUTH_STATE_PATH })`) snapshot test in `e2e/visual.spec.ts` for the post-login admin dashboard (`/admin`), named `admin-dashboard.png` — this is the specific regression check for the blank-`/admin` incident (SC-002); pass `mask: getVisualMasks(page, 'admin-dashboard')` for any dynamic dashboard content
 - [X] T022 [P] [US1] Add an authenticated snapshot test for a collection list view (`/admin/collections/vehicles`), named `admin-vehicles-list.png`, masked via `getVisualMasks(page, 'admin-vehicles-list')`
 - [X] T023 [P] [US1] Add an authenticated snapshot test for a collection edit view (`/admin/collections/vehicles/<T011's seeded vehicle ID>`), named `admin-vehicles-edit.png`, masked via `getVisualMasks(page, 'admin-vehicles-edit')`
-- [ ] T024 [US1] Trigger the `update-visual-baselines` workflow (Phase 5, T031) once against this feature's branch to generate the initial baselines in the pinned `ubuntu-24.04` environment — or, before that workflow exists yet, run the `visual-e2e` job's steps once manually in an equivalent environment and treat that run's output as the initial baseline for human review per FR-012 — and commit the generated PNG baselines under `e2e/visual.spec.ts-snapshots/` and `e2e/visual-first-run.spec.ts-snapshots/`
+- [X] T024 [US1] Trigger the `update-visual-baselines` workflow (Phase 5, T031) once against this feature's branch to generate the initial baselines in the pinned `ubuntu-24.04` environment — or, before that workflow exists yet, run the `visual-e2e` job's steps once manually in an equivalent environment and treat that run's output as the initial baseline for human review per FR-012 — and commit the generated PNG baselines under `e2e/visual.spec.ts-snapshots/` and `e2e/visual-first-run.spec.ts-snapshots/`
 
 **Checkpoint**: The `visual-e2e` CI job passes against committed baselines; intentionally breaking the admin dashboard's render causes T021 to fail (quickstart.md Scenario 2). This is the MVP — the feature delivers its core value at this point.
 
@@ -133,10 +133,10 @@ Single Next.js + Payload monorepo. All new/changed files live under the existing
 
 **Purpose**: Final validation that the feature is additive-only and fully documented, per FR-010/SC-006 and the repo's standard pre-PR checklist.
 
-- [ ] T037 Run `npm run test:e2e` (implicitly `--config=playwright.config.ts`, i.e. `chromium` only, since `playwright.visual.config.ts` isn't referenced) and confirm its pass/fail results and count are identical to what they were before this feature was added, per FR-010/SC-006 — the key check that `e2e/global-setup.ts` and the `chromium` project were genuinely left untouched
-- [ ] T038 Run `npx tsc --noEmit` and confirm no type errors were introduced by `e2e/visual.spec.ts`, `e2e/visual-first-run.spec.ts`, `e2e/visual-setup.ts`, `e2e/helpers.ts`'s additions, `playwright.visual.config.ts`, or the `playwright.config.ts` changes
-- [ ] T039 Walk through every scenario in `specs/002-visual-regression-testing/quickstart.md` end-to-end and confirm each expected outcome holds
-- [ ] T040 [P] Do a final pass over `README.md`/`CLAUDE.md` changes from T026/T030/T031/T032/T036 for consistency with the rest of each document's existing tone/structure
+- [X] T037 Run `npm run test:e2e` (implicitly `--config=playwright.config.ts`, i.e. `chromium` only, since `playwright.visual.config.ts` isn't referenced) and confirm its pass/fail results and count are identical to what they were before this feature was added, per FR-010/SC-006 — the key check that `e2e/global-setup.ts` and the `chromium` project were genuinely left untouched
+- [X] T038 Run `npx tsc --noEmit` and confirm no type errors were introduced by `e2e/visual.spec.ts`, `e2e/visual-first-run.spec.ts`, `e2e/visual-setup.ts`, `e2e/helpers.ts`'s additions, `playwright.visual.config.ts`, or the `playwright.config.ts` changes
+- [X] T039 Walk through every scenario in `specs/002-visual-regression-testing/quickstart.md` end-to-end and confirm each expected outcome holds
+- [X] T040 [P] Do a final pass over `README.md`/`CLAUDE.md` changes from T026/T030/T031/T032/T036 for consistency with the rest of each document's existing tone/structure
 
 ---
 
