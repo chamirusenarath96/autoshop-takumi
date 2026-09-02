@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
 
 export const Vehicles: CollectionConfig = {
@@ -340,7 +341,7 @@ export const Vehicles: CollectionConfig = {
         if (effective.status !== 'available') return data
 
         if (!effective.heroImage) {
-          throw new Error('A hero image is required before a vehicle can be set to Available.')
+          throw new APIError('A hero image is required before a vehicle can be set to Available.', 400)
         }
 
         const hasTitle = isTextPresent(effective.titleJa) || isTextPresent(effective.titleEn)
@@ -349,8 +350,9 @@ export const Vehicles: CollectionConfig = {
           isNumberPresent(effective.priceUsd) ||
           effective.priceOnRequest === true
         if (!hasTitle || !hasPrice) {
-          throw new Error(
+          throw new APIError(
             'A title and a price (or "price on request") are required before a vehicle can be set to Available.',
+            400,
           )
         }
 
