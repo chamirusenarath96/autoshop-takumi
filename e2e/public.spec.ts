@@ -158,6 +158,28 @@ test.describe('Vehicle listing and detail', () => {
     await expect(page.getByText(/50,000/)).toBeVisible()
   })
 
+  test('vehicle detail page hreflang alternates resolve to absolute URLs', async ({ page }) => {
+    const slug = `hreflang-test-${Date.now()}`
+    await createPublishedVehicle(page, {
+      makeName: 'Honda',
+      modelName: 'NSX',
+      title: '1995 Honda NSX Type R',
+      slug,
+      year: 1995,
+      price: 15000000,
+    })
+
+    await page.goto(`/en/vehicles/${slug}`)
+    await page.waitForLoadState('networkidle')
+    // Without a configured metadataBase, Next.js emits these hreflang links as
+    // the bare relative paths returned from generateMetadata (e.g. "/en/vehicles/...")
+    // instead of resolving them against the site origin.
+    const enHref = await page.locator('link[rel="alternate"][hreflang="en"]').getAttribute('href')
+    const jaHref = await page.locator('link[rel="alternate"][hreflang="ja"]').getAttribute('href')
+    expect(enHref).toBe(`http://localhost:3000/en/vehicles/${slug}`)
+    expect(jaHref).toBe(`http://localhost:3000/ja/vehicles/${slug}`)
+  })
+
   test('a draft vehicle is not reachable on its public detail page', async ({ page }) => {
     const ts = Date.now()
     const slug = `draft-hidden-${ts}`

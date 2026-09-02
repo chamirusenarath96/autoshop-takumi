@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,12 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { getSiteSettings } from '@/lib/site-settings'
 import '../../globals.css'
+
+// Lets child routes' generateMetadata() (e.g. About, vehicle detail) return relative
+// alternates.languages/OG URLs and have Next.js resolve them to absolute ones.
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+}
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans-loaded', display: 'swap' })
 const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-display-loaded', display: 'swap' })
