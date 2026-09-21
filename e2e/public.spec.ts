@@ -197,9 +197,9 @@ test.describe('Vehicle listing and detail', () => {
   test('a draft vehicle is not reachable on its public detail page', async ({ page }) => {
     const ts = Date.now()
     const slug = `draft-hidden-${ts}`
-    const mkRes = await page.request.post('/api/makes', { data: { name: `DraftMake-${ts}`, slug: `draftmk-${ts}` } })
+    const mkRes = await page.request.post('/api/makes', { data: { nameJa: `DraftMake-${ts}`, nameEn: `DraftMake-${ts}`, slug: `draftmk-${ts}` } })
     const makeId = (await mkRes.json()).doc.id
-    const mdRes = await page.request.post('/api/models', { data: { name: 'Draft Model', slug: `draftmd-${ts}`, make: makeId } })
+    const mdRes = await page.request.post('/api/models', { data: { nameJa: 'Draft Model', nameEn: 'Draft Model', slug: `draftmd-${ts}`, make: makeId } })
     const modelId = (await mdRes.json()).doc.id
 
     await page.request.post('/api/vehicles', {
