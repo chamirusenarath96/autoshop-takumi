@@ -146,8 +146,9 @@ test('vehicle create form shows all key fields', async ({ page }) => {
   await expect(page).toHaveTitle(/Creating.*Vehicle/)
 
   await expect(page.getByLabel('Title (Japanese)', { exact: true })).toBeVisible()
-  await expect(page.getByLabel('Slug*')).toBeVisible()
-  await expect(page.getByLabel('Year*')).toBeVisible()
+  // Slug and Year are no longer required — no trailing `*` on their labels.
+  await expect(page.getByLabel('Slug', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Year', { exact: true })).toBeVisible()
   // Use number input specifically to avoid the checkbox collision
   await expect(page.getByRole('spinbutton', { name: 'Price (JPY)' })).toBeVisible()
   await expect(page.getByLabel('Mileage (km)')).toBeVisible()
@@ -239,8 +240,7 @@ test('can create a draft vehicle via API', async ({ page }) => {
 
   const res = await page.request.post('/api/vehicles', {
     data: {
-      titleEn: '1995 Mazda RX-7 FD3S',
-      slug: `rx7-e2e-${Date.now()}`,
+      titleEn: `1995 Mazda RX-7 FD3S ${Date.now()}`,
       status: 'draft',
       make: makeId,
       model: modelId,
@@ -251,7 +251,77 @@ test('can create a draft vehicle via API', async ({ page }) => {
   const data = await res.json()
   expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
   expect(data.doc.status).toBe('draft')
-  expect(data.doc.titleEn).toBe('1995 Mazda RX-7 FD3S')
+  expect(data.doc.titleEn).toContain('1995 Mazda RX-7 FD3S')
+  // slug was omitted from the request — must be auto-generated from titleEn, not blank/missing.
+  expect(data.doc.slug).toMatch(/^1995-mazda-rx-7-fd3s-\d+$/)
+})
+
+test('slug auto-generation resolves collisions across sequential creates with the same title', async ({ page }) => {
+  const makeId = await createMake(page, 'Collision Make', `collision-${Date.now()}`)
+  const modelId = await createModel(page, 'Collision Model', `collision-m-${Date.now()}`, makeId)
+  const title = `Collision Test Vehicle ${Date.now()}`
+
+  const first = await page.request.post('/api/vehicles', {
+    data: { titleEn: title, status: 'draft', make: makeId, model: modelId, year: 2001 },
+  })
+  const firstData = await first.json()
+  expect(first.status(), JSON.stringify(firstData.errors ?? firstData)).toBe(201)
+
+  const second = await page.request.post('/api/vehicles', {
+    data: { titleEn: title, status: 'draft', make: makeId, model: modelId, year: 2002 },
+  })
+  const secondData = await second.json()
+  expect(second.status(), JSON.stringify(secondData.errors ?? secondData)).toBe(201)
+
+  expect(secondData.doc.slug).not.toBe(firstData.doc.slug)
+  expect(secondData.doc.slug).toBe(`${firstData.doc.slug}-2`)
+})
+
+test('an update that omits slug preserves the already-persisted slug', async ({ page }) => {
+  const makeId = await createMake(page, 'Preserve Slug', `preserve-${Date.now()}`)
+  const modelId = await createModel(page, 'Preserve Model', `preserve-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `Preserve Slug Vehicle ${Date.now()}`,
+      slug: `hand-entered-slug-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2003,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // Update an unrelated field, sending no `slug` key at all.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { priceJpy: 1234567 } })
+  const patchData = await patchRes.json()
+  expect(patchRes.status(), JSON.stringify(patchData.errors ?? patchData)).toBe(200)
+  expect(patchData.doc.slug).toBe(doc.slug)
+})
+
+test('explicitly clearing slug regenerates the same base value, not a suffixed one', async ({ page }) => {
+  const makeId = await createMake(page, 'Reclear Slug', `reclear-${Date.now()}`)
+  const modelId = await createModel(page, 'Reclear Model', `reclear-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `Reclear Slug Vehicle ${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2004,
+    },
+  })
+  const { doc } = await createRes.json()
+  expect(doc.slug).toBeTruthy()
+
+  // Explicitly clear the slug (not an omission) — must regenerate to the same base,
+  // not treat its own prior slug as a collision against itself.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { slug: null } })
+  const patchData = await patchRes.json()
+  expect(patchRes.status(), JSON.stringify(patchData.errors ?? patchData)).toBe(200)
+  expect(patchData.doc.slug).toBe(doc.slug)
 })
 
 test('blocks publishing a vehicle without a hero image', async ({ page }) => {
@@ -373,6 +443,155 @@ test('publish gate still applies on a field-only PATCH to an already-available v
   const verifyData = await verifyRes.json()
   expect(verifyData.status).toBe('available')
   expect(verifyData.heroImage).toBeTruthy()
+})
+
+test('can create a draft vehicle via API with make/model/year all omitted', async ({ page }) => {
+  const res = await page.request.post('/api/vehicles', {
+    data: { titleEn: `Bare Draft Vehicle ${Date.now()}`, status: 'draft' },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.status).toBe('draft')
+  expect(data.doc.make).toBeFalsy()
+  expect(data.doc.model).toBeFalsy()
+  expect(data.doc.year).toBeFalsy()
+})
+
+test('a PATCH that does not set status to available is never blocked by the make/model/year gate', async ({ page }) => {
+  const createRes = await page.request.post('/api/vehicles', {
+    data: { titleEn: `No Gate Vehicle ${Date.now()}`, status: 'draft' },
+  })
+  const { doc } = await createRes.json()
+
+  // Unrelated field update, still missing make/model/year.
+  const priceRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { priceJpy: 1000000 } })
+  expect(priceRes.status(), JSON.stringify(await priceRes.json())).toBe(200)
+
+  // Draft -> draft no-op status write.
+  const statusRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'draft' } })
+  expect(statusRes.status(), JSON.stringify(await statusRes.json())).toBe(200)
+})
+
+test('blocks publishing a vehicle missing make, model, or year individually, naming the missing field', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'MMY Gate', `mmy-${Date.now()}`)
+  const modelId = await createModel(page, 'MMY Model', `mmy-m-${Date.now()}`, makeId)
+
+  const base = {
+    titleEn: `MMY Gate Vehicle ${Date.now()}`,
+    priceJpy: 2000000,
+    status: 'draft',
+    heroImage: mediaId,
+  }
+
+  const missingMake = await page.request.post('/api/vehicles', {
+    data: { ...base, model: modelId, year: 2010 },
+  })
+  const missingMakeDoc = (await missingMake.json()).doc
+  const missingMakePatch = await page.request.patch(`/api/vehicles/${missingMakeDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingMakePatch.status()).toBe(500)
+
+  const missingModel = await page.request.post('/api/vehicles', {
+    data: { ...base, make: makeId, year: 2011 },
+  })
+  const missingModelDoc = (await missingModel.json()).doc
+  const missingModelPatch = await page.request.patch(`/api/vehicles/${missingModelDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingModelPatch.status()).toBe(500)
+
+  const missingYear = await page.request.post('/api/vehicles', {
+    data: { ...base, make: makeId, model: modelId },
+  })
+  const missingYearDoc = (await missingYear.json()).doc
+  const missingYearPatch = await page.request.patch(`/api/vehicles/${missingYearDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingYearPatch.status()).toBe(500)
+
+  // Confirm none of the three actually published.
+  for (const id of [missingMakeDoc.id, missingModelDoc.id, missingYearDoc.id]) {
+    const verifyRes = await page.request.get(`/api/vehicles/${id}`)
+    expect((await verifyRes.json()).status).toBe('draft')
+  }
+})
+
+test('blocks publishing a vehicle missing all of make, model, and year at once', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `All Missing Gate Vehicle ${Date.now()}`,
+      priceJpy: 2000000,
+      status: 'draft',
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  expect((await verifyRes.json()).status).toBe('draft')
+})
+
+test('blocks moving a reserved or sold vehicle back to available when make/model/year is missing', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'Origin Gate', `origin-${Date.now()}`)
+  const modelId = await createModel(page, 'Origin Model', `origin-m-${Date.now()}`, makeId)
+
+  for (const originStatus of ['reserved', 'sold']) {
+    const createRes = await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `${originStatus} Gate Vehicle ${Date.now()}`,
+        priceJpy: 2000000,
+        status: originStatus,
+        heroImage: mediaId,
+        make: makeId,
+        // model intentionally omitted so the gate has something to block on
+        year: 2009,
+      },
+    })
+    const { doc } = await createRes.json()
+    expect(doc.status).toBe(originStatus)
+
+    const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+    expect(patchRes.status(), `origin status: ${originStatus}`).toBe(500)
+
+    const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+    expect((await verifyRes.json()).status).toBe(originStatus)
+  }
+})
+
+test('publish succeeds once make/model/year set on an earlier save, via a status-only PATCH', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'MMY Effective', `mmy-eff-${Date.now()}`)
+  const modelId = await createModel(page, 'MMY Effective Model', `mmy-eff-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `MMY Effective State Vehicle ${Date.now()}`,
+      priceJpy: 2000000,
+      status: 'draft',
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // Fill in make/model/year in a separate request from the publish attempt.
+  const fillRes = await page.request.patch(`/api/vehicles/${doc.id}`, {
+    data: { make: makeId, model: modelId, year: 2020 },
+  })
+  expect(fillRes.status(), JSON.stringify(await fillRes.json())).toBe(200)
+
+  // Status-only PATCH — make/model/year aren't in this request's body at all.
+  const publishRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  const publishData = await publishRes.json()
+  expect(publishRes.status(), JSON.stringify(publishData.errors ?? publishData)).toBe(200)
+  expect(publishData.doc.status).toBe('available')
 })
 
 test('publish gate treats a title string of "0" as present, not missing', async ({ page }) => {

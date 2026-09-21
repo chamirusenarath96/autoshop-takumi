@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
+import { generateUniqueSlug } from '@/lib/slug'
 
 export const Vehicles: CollectionConfig = {
   slug: 'vehicles',
@@ -37,10 +38,9 @@ export const Vehicles: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      required: true,
       unique: true,
       admin: {
-        description: 'Auto-generated from English title; editable',
+        description: 'Auto-generated from the English title when left blank; editable',
       },
     },
     {
@@ -59,13 +59,11 @@ export const Vehicles: CollectionConfig = {
       name: 'make',
       type: 'relationship',
       relationTo: 'makes',
-      required: true,
     },
     {
       name: 'model',
       type: 'relationship',
       relationTo: 'models',
-      required: true,
       filterOptions: ({ siblingData }) => {
         const data = siblingData as Record<string, unknown>
         if (data?.make) {
@@ -77,7 +75,6 @@ export const Vehicles: CollectionConfig = {
     {
       name: 'year',
       type: 'number',
-      required: true,
       min: 1900,
       max: new Date().getFullYear() + 1,
     },
@@ -325,6 +322,33 @@ export const Vehicles: CollectionConfig = {
     },
   ],
   hooks: {
+    beforeValidate: [
+      async ({ data, originalDoc, req }) => {
+        if (!data) return data
+
+        // Presence-based effective slug: an explicit `slug: null` clears it and must
+        // regenerate; a request that omits `slug` entirely must preserve the persisted value.
+        const effectiveSlug = 'slug' in data ? data.slug : originalDoc?.slug
+        if (isTextPresent(effectiveSlug)) return data
+
+        const effectiveTitleEn = 'titleEn' in data ? data.titleEn : originalDoc?.titleEn
+        if (!isTextPresent(effectiveTitleEn)) return data
+
+        const existing = await req.payload.find({
+          collection: 'vehicles',
+          where: originalDoc?.id ? { id: { not_equals: originalDoc.id } } : {},
+          limit: 0,
+          pagination: false,
+          depth: 0,
+        })
+        const existingSlugs = existing.docs
+          .map((doc) => (doc as { slug?: string | null }).slug)
+          .filter((slug): slug is string => isTextPresent(slug))
+
+        data.slug = generateUniqueSlug(effectiveTitleEn, existingSlugs)
+        return data
+      },
+    ],
     beforeChange: [
       ({ data, originalDoc }) => {
         // Effective state: this request's data merged over what's already persisted, so a
@@ -353,6 +377,16 @@ export const Vehicles: CollectionConfig = {
           throw new APIError(
             'A title and a price (or "price on request") are required before a vehicle can be set to Available.',
             400,
+          )
+        }
+
+        const missingFields: string[] = []
+        if (!effective.make) missingFields.push('make')
+        if (!effective.model) missingFields.push('model')
+        if (!isNumberPresent(effective.year)) missingFields.push('year')
+        if (missingFields.length > 0) {
+          throw new Error(
+            `The following field(s) are required before a vehicle can be set to Available: ${missingFields.join(', ')}.`,
           )
         }
 

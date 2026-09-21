@@ -29,6 +29,7 @@ A bilingual (Japanese/English) vehicle sales website for Autoshop Takumi: landin
 - **Behavior change** (e.g. changing an access control rule, a field's required-ness, a route) → update the existing test(s) that assert the old behavior — don't leave them asserting something no longer true
 - **Refactor with no behavior change** → existing tests should still pass unmodified; if they don't, the refactor changed behavior and that's worth noticing
 - **New public page or component (standing requirement since the mobile/tablet responsive support feature)** → also add a viewport test to `e2e/responsive.spec.ts` covering mobile (375px), tablet (768px), and desktop (1280px) — at minimum, assert no horizontal overflow at all three breakpoints via the `assertNoHorizontalOverflow` helper in `e2e/helpers.ts`; extend the existing per-breakpoint `test.describe` blocks in that file rather than adding a new spec file
+- **Field/schema change on any collection or global** (standing requirement since the production-db-migrations fix) → generate the migration (`DATABASE_URI=... npm run migrate:create`) and commit the resulting file under `migrations/` in the same PR — SQLite (dev/CI) auto-syncs on boot so this is easy to forget, but Postgres (production) never does, and a shipped field change with no migration breaks every query touching that collection in production. See README's "Database Migrations" section.
 - Before opening a PR, run all three suites locally and confirm green:
   ```bash
   npm test                  # component tests
@@ -59,6 +60,9 @@ On every PR targeting `master`:
 2. **Type Check** — `npx tsc --noEmit`
 3. **E2E Tests** — `npm run test:e2e` (Playwright, runs after test+typecheck pass; admin UI, public site, REST API — see `e2e/*.spec.ts`)
 4. **Build Check** — `npm run build` (runs after test+typecheck pass)
+
+On every push to `master` (not on PRs):
+5. **Database Migrations** — `npm run migrate`, runs after 1–4 pass, applies any pending migration files in `migrations/` against production Postgres via the repo's `DATABASE_URI` GitHub Actions secret. See README's "Database Migrations" section for the full workflow — the short version: SQLite (dev/CI) auto-syncs schema, Postgres (production) never does, so any collection/global field change needs a generated migration committed in the same PR or production breaks on deploy.
 
 Run locally before pushing:
 ```bash
