@@ -67,7 +67,7 @@ export function Footer({ locale, siteSettings }: Props) {
       </div>
 
       <div className="border-t border-white/10 py-4">
-        <p className="text-center text-xs text-white/30">
+        <p className="text-center text-xs text-white/30" data-testid="footer-copyright">
           © {new Date().getFullYear()} {siteSettings.shopName || 'Autoshop Takumi'}. {t('rights')}
         </p>
       </div>
