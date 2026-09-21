@@ -1,4 +1,4 @@
-import { isNumberPresent, isRichTextPresent, isTextPresent } from '@/lib/vehicle-locale'
+import { isNumberPresent, isRichTextPresent, isTextPresent } from '@/lib/content-locale'
 import type { SerializedEditorState } from 'lexical'
 
 type RichTextValue = SerializedEditorState | null | undefined

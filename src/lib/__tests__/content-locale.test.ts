@@ -6,7 +6,7 @@ import {
   isRichTextPresent,
   resolveLocalizedField,
   resolveLocalizedRichText,
-} from '../vehicle-locale'
+} from '../content-locale'
 
 const emptyParagraphRichText = {
   root: {

@@ -99,12 +99,78 @@ test('can create a Make', async ({ page }) => {
   await page.goto('/admin/collections/makes/create')
   await page.waitForLoadState('networkidle')
 
-  await page.getByLabel('Name').fill('Nissan')
+  await page.getByLabel('Name (Japanese)').fill('ニッサン')
+  await page.getByLabel('Name (English)').fill('Nissan')
   await page.getByLabel('Slug').fill(`nissan-e2e-${Date.now()}`)
   await page.getByRole('button', { name: /save/i }).click()
 
   await expect(page).toHaveURL(/\/admin\/collections\/makes\/\d+/)
-  await expect(page.getByLabel('Name')).toHaveValue('Nissan')
+  await expect(page.getByLabel('Name (Japanese)')).toHaveValue('ニッサン')
+  await expect(page.getByLabel('Name (English)')).toHaveValue('Nissan')
+})
+
+test('Make/Model paired-language fields render together in one form, with no locale-switcher interaction required (spec 003, US1 Scenario 1)', async ({ page }) => {
+  // Regression guard for specs/003-remove-payload-localization: both languages must be visible
+  // and independently editable in a single form render, without ever touching the admin-wide
+  // locale switcher (still present in the nav — Payload's `localization` config isn't removed
+  // until Phase 5/#20, gated on issue #19's Vehicles migration and the Vehicles.gallery[].caption
+  // scope gap — see this feature's tasks.md T029).
+  await page.goto('/admin/collections/makes/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Name (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Name (English)')).toBeVisible()
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Name (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Name (English)')).toBeVisible()
+})
+
+test('a Model saves successfully with only the Japanese name filled in (spec 003, US1 Scenario 2)', async ({ page }) => {
+  const makeName = `Mazda E2E ${Date.now()}`
+  await createMake(page, makeName, `mazda-e2e-${Date.now()}`)
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Name (Japanese)').fill('ロードスター')
+  await page.getByLabel('Slug').fill(`roadster-e2e-${Date.now()}`)
+  // Payload's relationship field is a react-select combobox, not a native <select> — it has no
+  // accessible <label>, so target its combobox role instead of getByLabel. The visible
+  // "Select a value" placeholder text sits behind an overlapping input-container div that
+  // intercepts pointer events, so click the combobox itself rather than the placeholder text.
+  await page.getByRole('combobox').click()
+  await page.getByRole('option', { name: makeName }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  await expect(page).toHaveURL(/\/admin\/collections\/models\/\d+/)
+  await expect(page.getByLabel('Name (Japanese)')).toHaveValue('ロードスター')
+})
+
+test('rejects a Make with both Name (Japanese) and Name (English) left blank, per spec FR-013', async ({ page }) => {
+  await page.goto('/admin/collections/makes/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Slug').fill(`blank-name-e2e-${Date.now()}`)
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Save is rejected — still on the create form, not redirected to the new doc's edit URL.
+  await expect(page).not.toHaveURL(/\/admin\/collections\/makes\/\d+/)
+  await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
+})
+
+test('rejects a Model with both Name (Japanese) and Name (English) left blank, per spec FR-013', async ({ page }) => {
+  const makeName = `Subaru E2E ${Date.now()}`
+  await createMake(page, makeName, `subaru-e2e-${Date.now()}`)
+
+  await page.goto('/admin/collections/models/create')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Slug').fill(`blank-model-name-e2e-${Date.now()}`)
+  await page.getByRole('combobox').click()
+  await page.getByRole('option', { name: makeName }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Save is rejected — still on the create form, not redirected to the new doc's edit URL.
+  await expect(page).not.toHaveURL(/\/admin\/collections\/models\/\d+/)
+  await expect(page.getByText(/at least one of name \(japanese\) or name \(english\)/i)).toBeVisible()
 })
 
 // ── Models ─────────────────────────────────────────────────────────────────
@@ -146,8 +212,9 @@ test('vehicle create form shows all key fields', async ({ page }) => {
   await expect(page).toHaveTitle(/Creating.*Vehicle/)
 
   await expect(page.getByLabel('Title (Japanese)', { exact: true })).toBeVisible()
-  await expect(page.getByLabel('Slug*')).toBeVisible()
-  await expect(page.getByLabel('Year*')).toBeVisible()
+  // Slug and Year are no longer required — no trailing `*` on their labels.
+  await expect(page.getByLabel('Slug', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Year', { exact: true })).toBeVisible()
   // Use number input specifically to avoid the checkbox collision
   await expect(page.getByRole('spinbutton', { name: 'Price (JPY)' })).toBeVisible()
   await expect(page.getByLabel('Mileage (km)')).toBeVisible()
@@ -239,8 +306,7 @@ test('can create a draft vehicle via API', async ({ page }) => {
 
   const res = await page.request.post('/api/vehicles', {
     data: {
-      titleEn: '1995 Mazda RX-7 FD3S',
-      slug: `rx7-e2e-${Date.now()}`,
+      titleEn: `1995 Mazda RX-7 FD3S ${Date.now()}`,
       status: 'draft',
       make: makeId,
       model: modelId,
@@ -251,7 +317,77 @@ test('can create a draft vehicle via API', async ({ page }) => {
   const data = await res.json()
   expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
   expect(data.doc.status).toBe('draft')
-  expect(data.doc.titleEn).toBe('1995 Mazda RX-7 FD3S')
+  expect(data.doc.titleEn).toContain('1995 Mazda RX-7 FD3S')
+  // slug was omitted from the request — must be auto-generated from titleEn, not blank/missing.
+  expect(data.doc.slug).toMatch(/^1995-mazda-rx-7-fd3s-\d+$/)
+})
+
+test('slug auto-generation resolves collisions across sequential creates with the same title', async ({ page }) => {
+  const makeId = await createMake(page, 'Collision Make', `collision-${Date.now()}`)
+  const modelId = await createModel(page, 'Collision Model', `collision-m-${Date.now()}`, makeId)
+  const title = `Collision Test Vehicle ${Date.now()}`
+
+  const first = await page.request.post('/api/vehicles', {
+    data: { titleEn: title, status: 'draft', make: makeId, model: modelId, year: 2001 },
+  })
+  const firstData = await first.json()
+  expect(first.status(), JSON.stringify(firstData.errors ?? firstData)).toBe(201)
+
+  const second = await page.request.post('/api/vehicles', {
+    data: { titleEn: title, status: 'draft', make: makeId, model: modelId, year: 2002 },
+  })
+  const secondData = await second.json()
+  expect(second.status(), JSON.stringify(secondData.errors ?? secondData)).toBe(201)
+
+  expect(secondData.doc.slug).not.toBe(firstData.doc.slug)
+  expect(secondData.doc.slug).toBe(`${firstData.doc.slug}-2`)
+})
+
+test('an update that omits slug preserves the already-persisted slug', async ({ page }) => {
+  const makeId = await createMake(page, 'Preserve Slug', `preserve-${Date.now()}`)
+  const modelId = await createModel(page, 'Preserve Model', `preserve-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `Preserve Slug Vehicle ${Date.now()}`,
+      slug: `hand-entered-slug-${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2003,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // Update an unrelated field, sending no `slug` key at all.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { priceJpy: 1234567 } })
+  const patchData = await patchRes.json()
+  expect(patchRes.status(), JSON.stringify(patchData.errors ?? patchData)).toBe(200)
+  expect(patchData.doc.slug).toBe(doc.slug)
+})
+
+test('explicitly clearing slug regenerates the same base value, not a suffixed one', async ({ page }) => {
+  const makeId = await createMake(page, 'Reclear Slug', `reclear-${Date.now()}`)
+  const modelId = await createModel(page, 'Reclear Model', `reclear-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `Reclear Slug Vehicle ${Date.now()}`,
+      status: 'draft',
+      make: makeId,
+      model: modelId,
+      year: 2004,
+    },
+  })
+  const { doc } = await createRes.json()
+  expect(doc.slug).toBeTruthy()
+
+  // Explicitly clear the slug (not an omission) — must regenerate to the same base,
+  // not treat its own prior slug as a collision against itself.
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { slug: null } })
+  const patchData = await patchRes.json()
+  expect(patchRes.status(), JSON.stringify(patchData.errors ?? patchData)).toBe(200)
+  expect(patchData.doc.slug).toBe(doc.slug)
 })
 
 test('blocks publishing a vehicle without a hero image', async ({ page }) => {
@@ -268,10 +404,10 @@ test('blocks publishing a vehicle without a hero image', async ({ page }) => {
   const updateRes = await page.request.patch(`/api/vehicles/${createData.doc.id}`, {
     data: { status: 'available' },
   })
-  // Hook throws → Payload returns 500 (generic server error for hook exceptions)
-  expect(updateRes.status()).toBe(500)
+  // Hook throws an APIError(400) → Payload returns 400 (client error, not a server fault)
+  expect(updateRes.status()).toBe(400)
 
-  // A generic 500 alone doesn't prove the hero-image check specifically fired —
+  // A bare 400 alone doesn't prove the hero-image check specifically fired —
   // confirm the update was actually rejected and the vehicle is still a draft.
   const verifyRes = await page.request.get(`/api/vehicles/${createData.doc.id}`)
   const verifyData = await verifyRes.json()
@@ -289,7 +425,7 @@ test('blocks publishing a vehicle with a hero image but no title/price in either
   const { doc } = await createRes.json()
 
   const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
-  expect(patchRes.status()).toBe(500)
+  expect(patchRes.status()).toBe(400)
 
   const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
   expect((await verifyRes.json()).status).toBe('draft')
@@ -367,12 +503,161 @@ test('publish gate still applies on a field-only PATCH to an already-available v
   // No status field in this request — status stays 'available' via originalDoc, so the gate
   // must still evaluate against the effective (post-merge) state and reject removing heroImage.
   const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { heroImage: null } })
-  expect(patchRes.status()).toBe(500)
+  expect(patchRes.status()).toBe(400)
 
   const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
   const verifyData = await verifyRes.json()
   expect(verifyData.status).toBe('available')
   expect(verifyData.heroImage).toBeTruthy()
+})
+
+test('can create a draft vehicle via API with make/model/year all omitted', async ({ page }) => {
+  const res = await page.request.post('/api/vehicles', {
+    data: { titleEn: `Bare Draft Vehicle ${Date.now()}`, status: 'draft' },
+  })
+  const data = await res.json()
+  expect(res.status(), `Vehicle create failed: ${JSON.stringify(data.errors ?? data)}`).toBe(201)
+  expect(data.doc.status).toBe('draft')
+  expect(data.doc.make).toBeFalsy()
+  expect(data.doc.model).toBeFalsy()
+  expect(data.doc.year).toBeFalsy()
+})
+
+test('a PATCH that does not set status to available is never blocked by the make/model/year gate', async ({ page }) => {
+  const createRes = await page.request.post('/api/vehicles', {
+    data: { titleEn: `No Gate Vehicle ${Date.now()}`, status: 'draft' },
+  })
+  const { doc } = await createRes.json()
+
+  // Unrelated field update, still missing make/model/year.
+  const priceRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { priceJpy: 1000000 } })
+  expect(priceRes.status(), JSON.stringify(await priceRes.json())).toBe(200)
+
+  // Draft -> draft no-op status write.
+  const statusRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'draft' } })
+  expect(statusRes.status(), JSON.stringify(await statusRes.json())).toBe(200)
+})
+
+test('blocks publishing a vehicle missing make, model, or year individually, naming the missing field', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'MMY Gate', `mmy-${Date.now()}`)
+  const modelId = await createModel(page, 'MMY Model', `mmy-m-${Date.now()}`, makeId)
+
+  const base = {
+    titleEn: `MMY Gate Vehicle ${Date.now()}`,
+    priceJpy: 2000000,
+    status: 'draft',
+    heroImage: mediaId,
+  }
+
+  const missingMake = await page.request.post('/api/vehicles', {
+    data: { ...base, model: modelId, year: 2010 },
+  })
+  const missingMakeDoc = (await missingMake.json()).doc
+  const missingMakePatch = await page.request.patch(`/api/vehicles/${missingMakeDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingMakePatch.status()).toBe(500)
+
+  const missingModel = await page.request.post('/api/vehicles', {
+    data: { ...base, make: makeId, year: 2011 },
+  })
+  const missingModelDoc = (await missingModel.json()).doc
+  const missingModelPatch = await page.request.patch(`/api/vehicles/${missingModelDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingModelPatch.status()).toBe(500)
+
+  const missingYear = await page.request.post('/api/vehicles', {
+    data: { ...base, make: makeId, model: modelId },
+  })
+  const missingYearDoc = (await missingYear.json()).doc
+  const missingYearPatch = await page.request.patch(`/api/vehicles/${missingYearDoc.id}`, {
+    data: { status: 'available' },
+  })
+  expect(missingYearPatch.status()).toBe(500)
+
+  // Confirm none of the three actually published.
+  for (const id of [missingMakeDoc.id, missingModelDoc.id, missingYearDoc.id]) {
+    const verifyRes = await page.request.get(`/api/vehicles/${id}`)
+    expect((await verifyRes.json()).status).toBe('draft')
+  }
+})
+
+test('blocks publishing a vehicle missing all of make, model, and year at once', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `All Missing Gate Vehicle ${Date.now()}`,
+      priceJpy: 2000000,
+      status: 'draft',
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  expect(patchRes.status()).toBe(500)
+
+  const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+  expect((await verifyRes.json()).status).toBe('draft')
+})
+
+test('blocks moving a reserved or sold vehicle back to available when make/model/year is missing', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'Origin Gate', `origin-${Date.now()}`)
+  const modelId = await createModel(page, 'Origin Model', `origin-m-${Date.now()}`, makeId)
+
+  for (const originStatus of ['reserved', 'sold']) {
+    const createRes = await page.request.post('/api/vehicles', {
+      data: {
+        titleEn: `${originStatus} Gate Vehicle ${Date.now()}`,
+        priceJpy: 2000000,
+        status: originStatus,
+        heroImage: mediaId,
+        make: makeId,
+        // model intentionally omitted so the gate has something to block on
+        year: 2009,
+      },
+    })
+    const { doc } = await createRes.json()
+    expect(doc.status).toBe(originStatus)
+
+    const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+    expect(patchRes.status(), `origin status: ${originStatus}`).toBe(500)
+
+    const verifyRes = await page.request.get(`/api/vehicles/${doc.id}`)
+    expect((await verifyRes.json()).status).toBe(originStatus)
+  }
+})
+
+test('publish succeeds once make/model/year set on an earlier save, via a status-only PATCH', async ({ page }) => {
+  const mediaId = await uploadMedia(page)
+  const makeId = await createMake(page, 'MMY Effective', `mmy-eff-${Date.now()}`)
+  const modelId = await createModel(page, 'MMY Effective Model', `mmy-eff-m-${Date.now()}`, makeId)
+
+  const createRes = await page.request.post('/api/vehicles', {
+    data: {
+      titleEn: `MMY Effective State Vehicle ${Date.now()}`,
+      priceJpy: 2000000,
+      status: 'draft',
+      heroImage: mediaId,
+    },
+  })
+  const { doc } = await createRes.json()
+
+  // Fill in make/model/year in a separate request from the publish attempt.
+  const fillRes = await page.request.patch(`/api/vehicles/${doc.id}`, {
+    data: { make: makeId, model: modelId, year: 2020 },
+  })
+  expect(fillRes.status(), JSON.stringify(await fillRes.json())).toBe(200)
+
+  // Status-only PATCH — make/model/year aren't in this request's body at all.
+  const publishRes = await page.request.patch(`/api/vehicles/${doc.id}`, { data: { status: 'available' } })
+  const publishData = await publishRes.json()
+  expect(publishRes.status(), JSON.stringify(publishData.errors ?? publishData)).toBe(200)
+  expect(publishData.doc.status).toBe('available')
 })
 
 test('publish gate treats a title string of "0" as present, not missing', async ({ page }) => {
@@ -445,17 +730,74 @@ test('Site Settings loads with expected fields', async ({ page }) => {
   await page.goto('/admin/globals/site-settings')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Site Settings/)
-  await expect(page.getByLabel(/shop name/i)).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Shop Name (Japanese)')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Shop Name (English)')).toBeVisible()
   await expect(page.getByLabel(/contact email/i)).toBeVisible()
   await expect(page.getByLabel(/show sold vehicles/i)).toBeVisible()
+})
+
+test('Site Settings — Address, SEO Title, and SEO Description paired-language fields render together (spec 003, US1 Scenario 3)', async ({ page }) => {
+  await page.goto('/admin/globals/site-settings')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Address (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Address (English)')).toBeVisible()
+  await expect(page.getByLabel('SEO Title (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('SEO Title (English)')).toBeVisible()
+  await expect(page.getByLabel('SEO Description (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('SEO Description (English)')).toBeVisible()
+})
+
+test('rejects Site Settings with both Shop Name (Japanese) and Shop Name (English) left blank, per spec FR-013', async ({ page }) => {
+  await page.goto('/admin/globals/site-settings')
+  await page.waitForLoadState('networkidle')
+  await page.getByLabel('Shop Name (Japanese)').fill('')
+  await page.getByLabel('Shop Name (English)').fill('')
+  await page.getByRole('button', { name: /save/i }).click()
+  await expect(page.getByText(/at least one of shop name \(japanese\) or shop name \(english\)/i)).toBeVisible()
 })
 
 test('Homepage global loads with expected fields', async ({ page }) => {
   await page.goto('/admin/globals/homepage')
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Homepage/)
-  await expect(page.getByLabel(/hero heading/i)).toBeVisible({ timeout: 10000 })
-  await expect(page.getByLabel(/hero subheading/i)).toBeVisible()
+  await expect(page.getByLabel('Hero Heading (Japanese)')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByLabel('Hero Heading (English)')).toBeVisible()
+  await expect(page.getByLabel('Hero Subheading (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Hero Subheading (English)')).toBeVisible()
+})
+
+test('Homepage — Why Us paired-language fields render together, with an at-least-one-language guard on Heading (spec 003, US1 Scenario 3 / FR-013)', async ({ page }) => {
+  await page.goto('/admin/globals/homepage')
+  await page.waitForLoadState('networkidle')
+  const rowCountBefore = await page.getByLabel('Heading (Japanese)').count()
+  await page.getByRole('button', { name: /add why us/i }).click()
+  // global-setup.ts seeds one existing Why Us row, so `.first()` would still
+  // match it (and pass) even if the newly added row never rendered — assert
+  // the row count grew, then check the new row specifically via `.last()`.
+  await expect(page.getByLabel('Heading (Japanese)')).toHaveCount(rowCountBefore + 1)
+  await expect(page.getByLabel('Heading (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Heading (English)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (Japanese)').last()).toBeVisible()
+  await expect(page.getByLabel('Body (English)').last()).toBeVisible()
+})
+
+test('rejects a Homepage Why Us item with both Heading (Japanese) and Heading (English) left blank, per spec FR-013', async ({ page }) => {
+  // Asserted against the save endpoint the admin form posts to, rather than by driving the form:
+  // Payload surfaces an array subfield's own validate() message only in the rejected response and
+  // an auto-dismissing toast, never as persistent DOM the UI can assert on.
+  const before = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+
+  const res = await page.request.post('/api/globals/homepage', {
+    data: { whyUsPoints: [{ bodyJa: 'テスト本文' }] },
+  })
+  expect(res.status()).toBe(400)
+  expect(JSON.stringify(await res.json())).toContain(
+    'At least one of Heading (Japanese) or Heading (English) is required.',
+  )
+
+  // The rejected save left the existing content untouched.
+  const after = await (await page.request.get('/api/globals/homepage?depth=0')).json()
+  expect(after.whyUsPoints).toEqual(before.whyUsPoints)
 })
 
 // ── Media ──────────────────────────────────────────────────────────────────
@@ -465,4 +807,11 @@ test('Media library loads', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   await expect(page).toHaveTitle(/Media/)
   await expect(page.getByRole('link', { name: /create new/i }).first()).toBeVisible()
+})
+
+test('Media create form shows Alt Text (Japanese)/(English) paired fields (spec 003, US1 Scenario 3)', async ({ page }) => {
+  await page.goto('/admin/collections/media/create')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByLabel('Alt Text (Japanese)')).toBeVisible()
+  await expect(page.getByLabel('Alt Text (English)')).toBeVisible()
 })

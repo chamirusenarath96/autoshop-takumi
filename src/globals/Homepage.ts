@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { isTextPresent } from '@/lib/content-locale'
 
 export const Homepage: GlobalConfig = {
   slug: 'homepage',
@@ -7,14 +8,38 @@ export const Homepage: GlobalConfig = {
   },
   fields: [
     {
-      name: 'heroHeading',
-      type: 'text',
-      localized: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'heroHeadingJa',
+          type: 'text',
+          label: 'Hero Heading (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'heroHeadingEn',
+          type: 'text',
+          label: 'Hero Heading (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
-      name: 'heroSubheading',
-      type: 'text',
-      localized: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'heroSubheadingJa',
+          type: 'text',
+          label: 'Hero Subheading (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'heroSubheadingEn',
+          type: 'text',
+          label: 'Hero Subheading (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
       name: 'heroImage',
@@ -22,9 +47,14 @@ export const Homepage: GlobalConfig = {
       relationTo: 'media',
     },
     {
-      name: 'aboutBlurb',
+      name: 'aboutBlurbJa',
       type: 'richText',
-      localized: true,
+      label: 'About Blurb (Japanese)',
+    },
+    {
+      name: 'aboutBlurbEn',
+      type: 'richText',
+      label: 'About Blurb (English)',
     },
     {
       name: 'featuredVehicles',
@@ -41,23 +71,54 @@ export const Homepage: GlobalConfig = {
       label: 'Why Us / Trust Signals',
       fields: [
         {
-          name: 'heading',
-          type: 'text',
-          required: true,
-          localized: true,
+          type: 'row',
+          fields: [
+            {
+              name: 'headingJa',
+              type: 'text',
+              label: 'Heading (Japanese)',
+              admin: { width: '50%' },
+              validate: (value: unknown, { siblingData }: { siblingData: Record<string, unknown> }) => {
+                if (isTextPresent(value) || isTextPresent(siblingData?.headingEn)) return true
+                return 'At least one of Heading (Japanese) or Heading (English) is required.'
+              },
+            },
+            {
+              name: 'headingEn',
+              type: 'text',
+              label: 'Heading (English)',
+              admin: { width: '50%' },
+            },
+          ],
         },
         {
-          name: 'body',
-          type: 'text',
-          localized: true,
+          type: 'row',
+          fields: [
+            {
+              name: 'bodyJa',
+              type: 'text',
+              label: 'Body (Japanese)',
+              admin: { width: '50%' },
+            },
+            {
+              name: 'bodyEn',
+              type: 'text',
+              label: 'Body (English)',
+              admin: { width: '50%' },
+            },
+          ],
         },
       ],
     },
     {
-      name: 'contactSummary',
+      name: 'contactSummaryJa',
       type: 'richText',
-      localized: true,
-      label: 'Hours / Location blurb (shown above footer)',
+      label: 'Hours / Location blurb (Japanese, shown above footer)',
+    },
+    {
+      name: 'contactSummaryEn',
+      type: 'richText',
+      label: 'Hours / Location blurb (English, shown above footer)',
     },
     {
       name: 'heroStats',

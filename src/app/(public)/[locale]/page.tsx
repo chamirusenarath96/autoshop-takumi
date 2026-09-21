@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import { getPayload } from '@/lib/payload'
 import { getSiteSettings } from '@/lib/site-settings'
+import { resolveLocalizedField } from '@/lib/content-locale'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { ServiceCard } from '@/components/homepage/ServiceCard'
 import { StepItem } from '@/components/homepage/StepItem'
@@ -12,15 +13,27 @@ type Props = {
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
+  const activeLocale = locale as 'ja' | 'en'
   const t = await getTranslations('hero')
   const tHome = await getTranslations('homepage')
   const tVehicle = await getTranslations('vehicle')
   const payload = await getPayload()
 
+  // `locale` is still passed to findGlobal — required for heroStats/services/steps/
+  // shopSection/ctaBanner, which remain localized: true (out of scope for
+  // specs/003-remove-payload-localization). It has no effect on heroHeadingJa/En,
+  // heroSubheadingJa/En, or whyUsPoints[].headingJa/En/bodyJa/En below.
   const [homepage, siteSettings] = await Promise.all([
-    payload.findGlobal({ slug: 'homepage', locale: locale as 'ja' | 'en' }),
-    getSiteSettings(locale as 'ja' | 'en'),
+    payload.findGlobal({ slug: 'homepage', locale: activeLocale }),
+    getSiteSettings(activeLocale),
   ])
+
+  const heroHeading = resolveLocalizedField(homepage.heroHeadingJa as string, homepage.heroHeadingEn as string, activeLocale)
+  const heroSubheading = resolveLocalizedField(
+    homepage.heroSubheadingJa as string,
+    homepage.heroSubheadingEn as string,
+    activeLocale,
+  )
 
   let featuredVehicles: any[] = []
   if (homepage.featuredVehicles && (homepage.featuredVehicles as any[]).length > 0) {
@@ -55,9 +68,9 @@ export default async function HomePage({ params }: Props) {
         )}
         <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 w-full">
           {siteSettings.shopName && <p className="takumi-eyebrow text-primary mb-4">{siteSettings.shopName}</p>}
-          <h1 className="takumi-display text-5xl sm:text-6xl mb-4">{homepage.heroHeading || t('cta')}</h1>
-          {homepage.heroSubheading && (
-            <p className="text-lg sm:text-xl mb-8 text-white/70 max-w-2xl">{homepage.heroSubheading}</p>
+          <h1 className="takumi-display text-5xl sm:text-6xl mb-4">{heroHeading || t('cta')}</h1>
+          {heroSubheading && (
+            <p className="text-lg sm:text-xl mb-8 text-white/70 max-w-2xl">{heroSubheading}</p>
           )}
           <div className="flex flex-wrap gap-3">
             <Link
@@ -176,8 +189,10 @@ export default async function HomePage({ params }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {(homepage.whyUsPoints as any[]).map((point: any, i: number) => (
                 <div key={i} className="text-center">
-                  <h3 className="text-xl font-semibold mb-2">{point.heading}</h3>
-                  <p className="text-muted-foreground">{point.body}</p>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {resolveLocalizedField(point.headingJa, point.headingEn, activeLocale)}
+                  </h3>
+                  <p className="text-muted-foreground">{resolveLocalizedField(point.bodyJa, point.bodyEn, activeLocale)}</p>
                 </div>
               ))}
             </div>

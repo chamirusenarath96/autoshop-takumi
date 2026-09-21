@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { getPayload } from '@/lib/payload'
+import { resolveLocalizedField } from '@/lib/content-locale'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { VehicleFilters } from '@/components/vehicles/VehicleFilters'
 
@@ -10,6 +11,7 @@ type Props = {
 
 export default async function VehiclesPage({ params, searchParams }: Props) {
   const { locale } = await params
+  const activeLocale = locale as 'ja' | 'en'
   const sp = await searchParams
   const t = await getTranslations('vehicles')
   const tVehicle = await getTranslations('vehicle')
@@ -50,11 +52,23 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
       where,
       sort,
       limit: 24,
-      locale: locale as 'ja' | 'en',
+      locale: activeLocale,
     }),
-    payload.find({ collection: 'makes', limit: 100, locale: locale as 'ja' | 'en' }),
-    payload.find({ collection: 'models', limit: 200, locale: locale as 'ja' | 'en' }),
+    payload.find({ collection: 'makes', limit: 100 }),
+    payload.find({ collection: 'models', limit: 200 }),
   ])
+
+  // Makes/Models filter labels: resolve nameJa/nameEn directly instead of relying on Payload's
+  // locale param (see specs/003-remove-payload-localization FR-012 — fallback to the other
+  // language rather than a blank filter option).
+  const makes = makesResult.docs.map((make: any) => ({
+    ...make,
+    name: resolveLocalizedField(make.nameJa, make.nameEn, activeLocale),
+  }))
+  const models = modelsResult.docs.map((model: any) => ({
+    ...model,
+    name: resolveLocalizedField(model.nameJa, model.nameEn, activeLocale),
+  }))
 
   return (
     <div>
@@ -67,8 +81,8 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-64 shrink-0">
             <VehicleFilters
-              makes={makesResult.docs}
-              models={modelsResult.docs}
+              makes={makes}
+              models={models}
               currentFilters={sp}
               locale={locale}
             />

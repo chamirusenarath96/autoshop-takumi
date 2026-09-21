@@ -1,7 +1,9 @@
 import { hasText } from '@payloadcms/richtext-lexical/shared'
 import type { SerializedEditorState } from 'lexical'
 
-export type VehicleLocale = 'ja' | 'en'
+export type ContentLocale = 'ja' | 'en'
+/** @deprecated use ContentLocale — kept as an alias so Vehicles' consumers need no type changes */
+export type VehicleLocale = ContentLocale
 
 /** A value is "present" for a plain text/textarea field if non-empty after trimming. */
 export function isTextPresent(value: unknown): value is string {
@@ -28,7 +30,7 @@ export function isRichTextPresent(value: unknown): value is SerializedEditorStat
 export function resolveLocalizedField(
   valueJa: string | null | undefined,
   valueEn: string | null | undefined,
-  activeLocale: VehicleLocale,
+  activeLocale: ContentLocale,
 ): string | undefined {
   const active = activeLocale === 'ja' ? valueJa : valueEn
   const other = activeLocale === 'ja' ? valueEn : valueJa
@@ -41,7 +43,7 @@ export function resolveLocalizedField(
 export function resolveLocalizedRichText(
   valueJa: SerializedEditorState | null | undefined,
   valueEn: SerializedEditorState | null | undefined,
-  activeLocale: VehicleLocale,
+  activeLocale: ContentLocale,
 ): SerializedEditorState | undefined {
   const active = activeLocale === 'ja' ? valueJa : valueEn
   const other = activeLocale === 'ja' ? valueEn : valueJa

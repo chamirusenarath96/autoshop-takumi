@@ -9,7 +9,7 @@ import { InquiryForm } from '@/components/vehicles/InquiryForm'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { formatVehiclePriceDisplay } from '@/lib/utils'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
-import { resolveLocalizedField, resolveLocalizedRichText, type VehicleLocale } from '@/lib/vehicle-locale'
+import { resolveLocalizedField, resolveLocalizedRichText, type VehicleLocale } from '@/lib/content-locale'
 
 const statusVariants: Record<string, BadgeProps['variant']> = {
   available: 'success',
@@ -25,7 +25,10 @@ const findVehicleBySlug = cache(async (locale: string, slug: string) => {
   const payload = await getPayload()
   const result = await payload.find({
     collection: 'vehicles',
-    where: { slug: { equals: slug } },
+    where: {
+      slug: { equals: slug },
+      status: { in: ['available', 'reserved', 'sold'] },
+    },
     limit: 1,
     locale: locale as 'ja' | 'en',
     depth: 2,
@@ -46,7 +49,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     resolveLocalizedField(vehicle.seoDescriptionJa, vehicle.seoDescriptionEn, activeLocale) ??
     resolveLocalizedField(vehicle.summaryJa, vehicle.summaryEn, activeLocale)
 
-  return { title, description }
+  return {
+    title,
+    description,
+    alternates: {
+      languages: {
+        en: `/en/vehicles/${slug}`,
+        ja: `/ja/vehicles/${slug}`,
+      },
+    },
+  }
 }
 
 export default async function VehicleDetailPage({ params }: Props) {
