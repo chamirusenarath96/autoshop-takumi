@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cn, formatPrice, formatVehiclePriceDisplay, formatVehiclePrices, slugify } from '../utils'
+import { cn, formatPrice, formatVehiclePriceDisplay, formatVehiclePrices, resolveMetadataBase, slugify } from '../utils'
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -90,5 +90,27 @@ describe('slugify', () => {
 
   it('trims leading and trailing hyphens', () => {
     expect(slugify('-test-')).toBe('test')
+  })
+})
+
+describe('resolveMetadataBase', () => {
+  it('uses a well-formed absolute URL as-is', () => {
+    expect(resolveMetadataBase('https://autoshoptakumi.example').href).toBe('https://autoshoptakumi.example/')
+  })
+
+  it('falls back to localhost when undefined', () => {
+    expect(resolveMetadataBase(undefined).href).toBe('http://localhost:3000/')
+  })
+
+  it('falls back to localhost when empty', () => {
+    expect(resolveMetadataBase('').href).toBe('http://localhost:3000/')
+  })
+
+  it('recovers a bare domain (no scheme) by assuming https', () => {
+    expect(resolveMetadataBase('autoshoptakumi.example').href).toBe('https://autoshoptakumi.example/')
+  })
+
+  it('falls back to localhost instead of throwing on a genuinely malformed value', () => {
+    expect(resolveMetadataBase('not a url at all').href).toBe('http://localhost:3000/')
   })
 })

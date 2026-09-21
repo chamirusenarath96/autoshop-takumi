@@ -214,7 +214,7 @@ test.describe('Vehicles API', () => {
     const patchRes = await page.request.patch(`/api/vehicles/${doc.id}`, {
       data: { status: 'available' },
     })
-    expect(patchRes.status()).toBe(500) // beforeChange hook throws
+    expect(patchRes.status()).toBe(400) // beforeChange hook throws an APIError(400)
   })
 
   test('GET /api/vehicles?locale=en — returns 200 with docs array', async ({ page }) => {
