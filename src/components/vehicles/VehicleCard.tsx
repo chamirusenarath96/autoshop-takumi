@@ -1,7 +1,7 @@
 import { formatVehiclePriceDisplay } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
-import { resolveLocalizedField, type VehicleLocale } from '@/lib/vehicle-locale'
+import { resolveLocalizedField, type VehicleLocale } from '@/lib/content-locale'
 
 type Props = {
   vehicle: any

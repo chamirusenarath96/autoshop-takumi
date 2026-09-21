@@ -17,9 +17,21 @@ export const Media: CollectionConfig = {
   },
   fields: [
     {
-      name: 'alt',
-      type: 'text',
-      localized: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'altJa',
+          type: 'text',
+          label: 'Alt Text (Japanese)',
+          admin: { width: '50%' },
+        },
+        {
+          name: 'altEn',
+          type: 'text',
+          label: 'Alt Text (English)',
+          admin: { width: '50%' },
+        },
+      ],
     },
     {
       name: 'uploadedBy',

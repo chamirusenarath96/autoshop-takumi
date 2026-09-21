@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
-import { isNumberPresent, isTextPresent } from '@/lib/vehicle-locale'
+import { isNumberPresent, isTextPresent } from '@/lib/content-locale'
 import { generateUniqueSlug } from '@/lib/slug'
 
 export const Vehicles: CollectionConfig = {

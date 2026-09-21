@@ -9,7 +9,7 @@ import { InquiryForm } from '@/components/vehicles/InquiryForm'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
 import { formatVehiclePriceDisplay } from '@/lib/utils'
 import { Badge, type BadgeProps } from '@/components/ui/badge'
-import { resolveLocalizedField, resolveLocalizedRichText, type VehicleLocale } from '@/lib/vehicle-locale'
+import { resolveLocalizedField, resolveLocalizedRichText, type VehicleLocale } from '@/lib/content-locale'
 
 const statusVariants: Record<string, BadgeProps['variant']> = {
   available: 'success',

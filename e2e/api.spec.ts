@@ -56,11 +56,12 @@ test.describe('Auth API', () => {
 test.describe('Makes API', () => {
   test('POST /api/makes — creates a make', async ({ page }) => {
     const res = await page.request.post('/api/makes', {
-      data: { name: 'Toyota API Test', slug: `toyota-api-${Date.now()}` },
+      data: { nameJa: 'Toyota API Test', nameEn: 'Toyota API Test', slug: `toyota-api-${Date.now()}` },
     })
     expect(res.status()).toBe(201)
     const body = await res.json()
-    expect(body.doc.name).toBe('Toyota API Test')
+    expect(body.doc.nameJa).toBe('Toyota API Test')
+    expect(body.doc.nameEn).toBe('Toyota API Test')
     expect(body.doc.id).toBeDefined()
   })
 
@@ -76,11 +77,11 @@ test.describe('Makes API', () => {
   test('PATCH /api/makes/:id — updates a make', async ({ page }) => {
     const id = await createMake(page, 'Honda Patch', `honda-patch-${Date.now()}`)
     const res = await page.request.patch(`/api/makes/${id}`, {
-      data: { name: 'Honda Updated' },
+      data: { nameEn: 'Honda Updated' },
     })
     expect(res.status()).toBe(200)
     const body = await res.json()
-    expect(body.doc.name).toBe('Honda Updated')
+    expect(body.doc.nameEn).toBe('Honda Updated')
   })
 
   test('DELETE /api/makes/:id — deletes a make', async ({ page }) => {
@@ -94,7 +95,7 @@ test.describe('Makes API', () => {
 
   test('POST /api/makes — rejects missing slug (required field)', async ({ page }) => {
     const res = await page.request.post('/api/makes', {
-      data: { name: 'No Slug Make' },
+      data: { nameJa: 'No Slug Make', nameEn: 'No Slug Make' },
     })
     expect(res.status()).toBe(400)
   })
@@ -115,11 +116,11 @@ test.describe('Models API', () => {
   test('POST /api/models — creates a model linked to a make', async ({ page }) => {
     const makeId = await createMake(page, 'Suzuki API', `suzuki-api-${Date.now()}`)
     const res = await page.request.post('/api/models', {
-      data: { name: 'Swift', slug: `swift-${Date.now()}`, make: makeId },
+      data: { nameJa: 'Swift', nameEn: 'Swift', slug: `swift-${Date.now()}`, make: makeId },
     })
     expect(res.status()).toBe(201)
     const body = await res.json()
-    expect(body.doc.name).toBe('Swift')
+    expect(body.doc.nameEn).toBe('Swift')
     // make may be returned as ID or object depending on depth
     expect(body.doc.make === makeId || body.doc.make?.id === makeId).toBe(true)
   })
@@ -127,7 +128,7 @@ test.describe('Models API', () => {
   test('GET /api/models?where[make][equals]=:id — filters by make', async ({ page }) => {
     const makeId = await createMake(page, 'Daihatsu Filter', `daihatsu-filter-${Date.now()}`)
     await page.request.post('/api/models', {
-      data: { name: 'Copen', slug: `copen-filter-${Date.now()}`, make: makeId },
+      data: { nameJa: 'Copen', nameEn: 'Copen', slug: `copen-filter-${Date.now()}`, make: makeId },
     })
     const res = await page.request.get(`/api/models?where[make][equals]=${makeId}`)
     expect(res.status()).toBe(200)
@@ -337,19 +338,19 @@ test.describe('Globals API', () => {
     // itself, via global-setup's seed) depend on — restore it afterward so
     // this test doesn't leak state into whatever runs next.
     const before = await page.request.get('/api/globals/site-settings')
-    const originalShopName = (await before.json()).shopName
+    const originalShopNameEn = (await before.json()).shopNameEn
 
     try {
       const res = await page.request.post('/api/globals/site-settings', {
-        data: { shopName: 'Autoshop Takumi E2E Test' },
+        data: { shopNameEn: 'Autoshop Takumi E2E Test' },
       })
       expect(res.status()).toBe(200)
       // Payload globals return { message, result } not { doc }
       const body = await res.json()
-      expect(body.result?.shopName ?? body.shopName).toBe('Autoshop Takumi E2E Test')
+      expect(body.result?.shopNameEn ?? body.shopNameEn).toBe('Autoshop Takumi E2E Test')
     } finally {
       await page.request.post('/api/globals/site-settings', {
-        data: { shopName: originalShopName },
+        data: { shopNameEn: originalShopNameEn },
       })
     }
   })
