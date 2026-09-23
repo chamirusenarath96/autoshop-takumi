@@ -38,6 +38,36 @@ Single Next.js project (see plan.md Project Structure):
 
 ---
 
+## Automation status (this run)
+
+This repo's scheduled implementation automation picked this spec (fully
+planned, no existing `feat/*` branch, tasks.md entirely unstarted) and
+created this `feat/test-dashboard` branch to track it, but **could not
+execute any task in this run**: every task here targets the new, separate
+`autoshop-takumi-test-dashboard` repository (per plan.md's Project
+Structure and this file's own Location note above), not this
+`autoshop-takumi` repo. That target repository does not exist yet, and
+creating it — plus its own Vercel project and GitHub OAuth app
+registration (FR-009, plan.md), and the dedicated Cloudflare R2 bucket
+(research.md §5) — requires provisioning real external accounts/services
+that this automation's GitHub access is scoped to `chamirusenarath96/
+autoshop-takumi` only and has no mandate to create unattended.
+
+**What's needed before this can be implemented**: a human (a) creates the
+`autoshop-takumi-test-dashboard` GitHub repository, (b) registers its
+GitHub OAuth app and records the allowlisted account's stable GitHub ID,
+and (c) provisions the dedicated R2 bucket and a Vercel project for it, per
+plan.md's Constraints and Assumptions. Once that repository exists, a
+future implementation run (scoped to that repo) can execute this
+`tasks.md` in full.
+
+No source changes were made in this `autoshop-takumi` repo for this
+feature. This branch exists solely so future scheduled runs see it and
+skip re-selecting this spec, rather than re-deriving this same blocker
+each time.
+
+---
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Stand up the new, standalone dashboard project.
