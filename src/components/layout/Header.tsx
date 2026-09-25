@@ -60,7 +60,7 @@ export function Header({ locale, siteSettings }: Props) {
           <Avatar className="h-6 sm:h-8 lg:h-9 w-auto max-w-full rounded-none">
             <AvatarImage src="/logo.png" alt="Autoshop Takumi" className="aspect-auto w-auto object-contain" />
             <AvatarFallback className="rounded-none bg-transparent text-xs font-semibold" style={{ color: 'var(--nav-fg)' }}>
-              Autoshop Takumi
+              {siteSettings.shopName || 'Autoshop Takumi'}
             </AvatarFallback>
           </Avatar>
         </a>
@@ -86,7 +86,11 @@ export function Header({ locale, siteSettings }: Props) {
 
         <div className="hidden lg:flex items-center gap-3">
           <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
-          <Separator orientation="vertical" className="h-4" style={{ backgroundColor: 'var(--nav-border)' }} />
+          <Separator
+            orientation="vertical"
+            className="data-[orientation=vertical]:h-4"
+            style={{ backgroundColor: 'var(--nav-border)' }}
+          />
           <LocaleSwitcher locale={locale} />
         </div>
 

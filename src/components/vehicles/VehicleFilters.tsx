@@ -78,7 +78,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
         label={t('make')}
         value={currentFilters.make ?? ''}
         onChange={(v) => updateFilter('make', v)}
-        options={makes.map((m) => ({ value: m.id, label: m.name }))}
+        options={makes.map((m) => ({ value: String(m.id), label: m.name }))}
         allLabel={t('all')}
       />
 
@@ -87,7 +87,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
         label={t('model')}
         value={currentFilters.model ?? ''}
         onChange={(v) => updateFilter('model', v)}
-        options={filteredModels.map((m) => ({ value: m.id, label: m.name }))}
+        options={filteredModels.map((m) => ({ value: String(m.id), label: m.name }))}
         allLabel={t('all')}
       />
 

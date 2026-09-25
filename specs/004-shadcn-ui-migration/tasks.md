@@ -68,7 +68,7 @@
 - [X] T022 [US1] [P] Replace the team-member photo `<img>` in `src/components/about/TeamMemberCard.tsx` with `Avatar`/`AvatarImage`/`AvatarFallback`, reproducing the existing empty-muted-box fallback behavior via `AvatarFallback` when `photo` is absent
 - [X] T023 [US1] [P] Pair `InquiryForm`'s existing `Input`/`textarea` fields (`src/components/vehicles/InquiryForm.tsx`) with the new `Label` primitive (`htmlFor` wired to each field's existing `id`), keeping every field's `name` attribute unchanged
 - [X] T024 [US1] [P] Reconcile `src/components/vehicles/VehicleCard.tsx` against the Phase 2 `Card`/`Badge` changes — verify the `success`/`warning`/`secondary` status-variant-to-color mapping still resolves to the same visible colors
-- [X] T025 [US1] Run `npm test`, `npx tsc --noEmit`, `npm run test:e2e`, and the visual regression suite; regenerate only genuinely-diffing baselines (none expected) via the `update-visual-baselines` workflow — do not blanket-regenerate (checkpoint — depends on T013-T024)
+- [X] T025 [US1] Run `npm test`, `npx tsc --noEmit`, `npm run test:e2e`, and the visual regression suite; regenerate only genuinely-diffing baselines (none expected) via the `update-visual-baselines` workflow — do not blanket-regenerate (checkpoint — depends on T013-T024) — `npm test`/`tsc`/`test:e2e` verified locally; the visual regression suite ran in this PR's CI (`e2e/visual.spec.ts`, pinned runner) and passed with zero baseline diffs
 
 **Checkpoint**: User Story 1 fully functional and independently testable — the public site is visually and behaviorally identical, now backed entirely by shadcn primitives.
 
