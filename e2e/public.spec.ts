@@ -653,7 +653,7 @@ test.describe('Vehicle filters', () => {
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
 
-    const select = page.locator('select').first()
+    const select = page.getByRole('combobox').first()
     const bg = await select.evaluate((el) => getComputedStyle(el).backgroundColor)
     expect(bg).not.toBe('rgb(255, 255, 255)')
   })

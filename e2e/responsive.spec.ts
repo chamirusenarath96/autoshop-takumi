@@ -50,7 +50,8 @@ test.describe('Responsive — mobile (375px)', () => {
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
-    await dialog.getByLabel('Body type').selectOption('suv')
+    await dialog.getByLabel('Body type').click()
+    await page.getByRole('option', { name: 'SUV' }).click()
     await expect(dialog).not.toBeVisible()
     await page.waitForURL(/bodyType=suv/)
   })
@@ -153,7 +154,8 @@ test.describe('Responsive — tablet (768px)', () => {
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
-    await dialog.getByLabel('Body type').selectOption('suv')
+    await dialog.getByLabel('Body type').click()
+    await page.getByRole('option', { name: 'SUV' }).click()
     await expect(dialog).not.toBeVisible()
     await page.waitForURL(/bodyType=suv/)
   })
