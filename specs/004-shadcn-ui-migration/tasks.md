@@ -82,8 +82,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Add a minimal `components.json` at the repo root reflecting this project's actual conventions (Tailwind v4, `src/components/ui` alias, `@/lib/utils` for `cn`, no separate light/dark theme file) so `npx shadcn add` resolves paths correctly for any future addition
-- [ ] T027 [US2] Add a short section to `CLAUDE.md` (near "Styling architecture") documenting the shadcn migration convention: primitives are fetched via the Shadcn_UI MCP, `cn` import rewritten to `@/lib/utils`, `dark:` classes stripped since the site is dark-only — so the next contributor adding a shadcn component follows the same pattern
+- [X] T026 [US2] Add a minimal `components.json` at the repo root reflecting this project's actual conventions (Tailwind v4, `src/components/ui` alias, `@/lib/utils` for `cn`, no separate light/dark theme file) so `npx shadcn add` resolves paths correctly for any future addition
+- [X] T027 [US2] Add a short section to `CLAUDE.md` (near "Styling architecture") documenting the shadcn migration convention: primitives are fetched via the Shadcn_UI MCP, `cn` import rewritten to `@/lib/utils`, `dark:` classes stripped since the site is dark-only — so the next contributor adding a shadcn component follows the same pattern
 
 **Checkpoint**: User Stories 1 AND 2 both hold — the site behaves identically and the component library is now genuinely shadcn-standard.
 
