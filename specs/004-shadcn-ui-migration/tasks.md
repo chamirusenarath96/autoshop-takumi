@@ -97,8 +97,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Manually verify keyboard focus is trapped inside the mobile filter `Sheet` while open (Tab cycles only through drawer contents until closed) — record the result in the PR description per `quickstart.md` step 6
-- [ ] T029 [US3] [P] Manually verify Tab order flows naturally through the revealed nav links in the `Collapsible` mobile menu (no focus trap expected — it is intentionally non-modal, per `research.md`'s Collapsible-vs-Sheet decision)
+- [X] T028 [US3] Manually verify keyboard focus is trapped inside the mobile filter `Sheet` while open (Tab cycles only through drawer contents until closed) — record the result in the PR description per `quickstart.md` step 6
+- [X] T029 [US3] [P] Manually verify Tab order flows naturally through the revealed nav links in the `Collapsible` mobile menu (no focus trap expected — it is intentionally non-modal, per `research.md`'s Collapsible-vs-Sheet decision)
 
 **Checkpoint**: All user stories independently functional; accessibility improvements confirmed, not just assumed.
 
@@ -108,8 +108,8 @@
 
 **Purpose**: Final validation and cleanup before opening the PR.
 
-- [ ] T030 [P] Run the full suite one more time end-to-end: `npm test && npx tsc --noEmit && npm run test:e2e` — all green, zero net-new failures
-- [ ] T031 Follow `quickstart.md` in full (including the visual regression suite) as a final pre-PR validation pass
+- [X] T030 [P] Run the full suite one more time end-to-end: `npm test && npx tsc --noEmit && npm run test:e2e` — all green, zero net-new failures
+- [X] T031 Follow `quickstart.md` in full (including the visual regression suite) as a final pre-PR validation pass
 - [ ] T032 Open the PR on a `feat/shadcn-ui-migration` branch per CLAUDE.md's git workflow, referencing `specs/004-shadcn-ui-migration/spec.md`; wait for CI (Component Tests → Type Check → E2E Tests → Build Check) and CodeRabbit review before merging
 
 ---
