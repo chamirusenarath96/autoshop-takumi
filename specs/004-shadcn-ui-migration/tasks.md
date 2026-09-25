@@ -38,11 +38,11 @@
 
 **⚠️ CRITICAL**: No User Story task may begin until this phase's checkpoint passes.
 
-- [ ] T008 [P] Reconcile `src/components/ui/button.tsx` against shadcn v4 `button` registry output (adopt shadcn's exact `cva` variant/size config and `data-slot="button"` attribute; keep the project's existing token-based class values, e.g. `bg-primary text-primary-foreground`)
-- [ ] T009 [P] Reconcile `src/components/ui/card.tsx` against shadcn v4 `card` registry output (adopt `data-slot` attributes on `Card`/`CardHeader`/`CardTitle`/`CardContent`/`CardFooter`)
-- [ ] T010 [P] Reconcile `src/components/ui/badge.tsx` against shadcn v4 `badge` registry output — preserve the existing `success`/`warning` custom variants used for vehicle status pills (not present in shadcn's default variant set, must be added back on top of the reconciled base)
-- [ ] T011 [P] Reconcile `src/components/ui/input.tsx` against shadcn v4 `input` registry output
-- [ ] T012 Run `npm test && npx tsc --noEmit` to confirm the reconciled primitives haven't changed any existing consumer's rendered output or types (checkpoint — depends on T008-T011)
+- [X] T008 [P] Reconcile `src/components/ui/button.tsx` against shadcn v4 `button` registry output (adopt shadcn's exact `cva` variant/size config and `data-slot="button"` attribute; keep the project's existing token-based class values, e.g. `bg-primary text-primary-foreground`)
+- [X] T009 [P] Reconcile `src/components/ui/card.tsx` against shadcn v4 `card` registry output (adopt `data-slot` attributes on `Card`/`CardHeader`/`CardTitle`/`CardContent`/`CardFooter`)
+- [X] T010 [P] Reconcile `src/components/ui/badge.tsx` against shadcn v4 `badge` registry output — preserve the existing `success`/`warning` custom variants used for vehicle status pills (not present in shadcn's default variant set, must be added back on top of the reconciled base)
+- [X] T011 [P] Reconcile `src/components/ui/input.tsx` against shadcn v4 `input` registry output
+- [X] T012 Run `npm test && npx tsc --noEmit` to confirm the reconciled primitives haven't changed any existing consumer's rendered output or types (checkpoint — depends on T008-T011)
 
 **Checkpoint**: Foundation ready — all four existing primitives now match genuine shadcn v4 source, all six new primitives exist unconsumed, full test suite still green.
 
