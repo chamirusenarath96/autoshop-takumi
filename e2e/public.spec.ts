@@ -504,13 +504,16 @@ test.describe('Vehicle filters', () => {
 
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('select', { hasText: `FilterLabelMake-${ts}` })).toBeVisible()
+    await page.getByLabel('Make', { exact: true }).click()
+    await expect(page.getByRole('option', { name: `FilterLabelMake-${ts}` })).toBeVisible()
     // Fallback: an English-locale page shows the Japanese name rather than a blank option.
-    await expect(page.locator('select', { hasText: fallbackName })).toBeVisible()
+    await expect(page.getByRole('option', { name: fallbackName })).toBeVisible()
+    await page.keyboard.press('Escape')
 
     await page.goto('/ja/vehicles')
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('select', { hasText: `フィルターメーカー-${ts}` })).toBeVisible()
+    await page.getByLabel('メーカー', { exact: true }).click()
+    await expect(page.getByRole('option', { name: `フィルターメーカー-${ts}` })).toBeVisible()
   })
 
   test('model filter label shows the correct language on both locales (spec 003, US2 Scenario 2.1 / FR-012)', async ({ page }) => {
@@ -528,11 +531,14 @@ test.describe('Vehicle filters', () => {
 
     await page.goto('/en/vehicles')
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('select', { hasText: `ModelFilterLabel-${ts}` })).toBeVisible()
+    await page.getByLabel('Model', { exact: true }).click()
+    await expect(page.getByRole('option', { name: `ModelFilterLabel-${ts}` })).toBeVisible()
+    await page.keyboard.press('Escape')
 
     await page.goto('/ja/vehicles')
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('select', { hasText: `モデルフィルター-${ts}` })).toBeVisible()
+    await page.getByLabel('モデル', { exact: true }).click()
+    await expect(page.getByRole('option', { name: `モデルフィルター-${ts}` })).toBeVisible()
   })
 
   test('make filter shows only vehicles of the selected make', async ({ page }) => {
