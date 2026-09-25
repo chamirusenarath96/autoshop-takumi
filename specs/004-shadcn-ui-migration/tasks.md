@@ -20,13 +20,13 @@
 
 **Purpose**: Add the one new dependency and fetch every new shadcn primitive this feature needs, before any existing component is touched.
 
-- [ ] T001 Add `radix-ui` (the unified Radix package) to `package.json` dependencies and run `npm install`
-- [ ] T002 [P] Fetch shadcn v4 `select` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/select.tsx`
-- [ ] T003 [P] Fetch shadcn v4 `sheet` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/sheet.tsx`
-- [ ] T004 [P] Fetch shadcn v4 `collapsible` via the Shadcn_UI MCP and save as `src/components/ui/collapsible.tsx` (no styling to adapt — this primitive ships unstyled)
-- [ ] T005 [P] Fetch shadcn v4 `label` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, and save as `src/components/ui/label.tsx`
-- [ ] T006 [P] Fetch shadcn v4 `separator` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/separator.tsx`
-- [ ] T007 [P] Fetch shadcn v4 `avatar` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/avatar.tsx`
+- [X] T001 Add `radix-ui` (the unified Radix package) to `package.json` dependencies and run `npm install`
+- [X] T002 [P] Fetch shadcn v4 `select` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/select.tsx`
+- [X] T003 [P] Fetch shadcn v4 `sheet` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/sheet.tsx`
+- [X] T004 [P] Fetch shadcn v4 `collapsible` via the Shadcn_UI MCP and save as `src/components/ui/collapsible.tsx` (no styling to adapt — this primitive ships unstyled)
+- [X] T005 [P] Fetch shadcn v4 `label` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, and save as `src/components/ui/label.tsx`
+- [X] T006 [P] Fetch shadcn v4 `separator` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/separator.tsx`
+- [X] T007 [P] Fetch shadcn v4 `avatar` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/avatar.tsx`
 
 **Checkpoint**: `npx tsc --noEmit` passes with the six new unused-but-present primitive files (no consumer wired up yet).
 
