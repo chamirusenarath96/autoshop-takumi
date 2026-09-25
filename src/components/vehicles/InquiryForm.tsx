@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 type Props = {
   vehicleId: string
@@ -48,19 +49,19 @@ export function InquiryForm({ vehicleId, locale }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="inquiry-name" className="block text-sm font-medium mb-1">{t('name')}</label>
+        <Label htmlFor="inquiry-name" className="block text-sm font-medium mb-1">{t('name')}</Label>
         <Input id="inquiry-name" name="name" required />
       </div>
       <div>
-        <label htmlFor="inquiry-email" className="block text-sm font-medium mb-1">{t('email')}</label>
+        <Label htmlFor="inquiry-email" className="block text-sm font-medium mb-1">{t('email')}</Label>
         <Input id="inquiry-email" name="email" type="email" required />
       </div>
       <div>
-        <label htmlFor="inquiry-phone" className="block text-sm font-medium mb-1">{t('phone')}</label>
+        <Label htmlFor="inquiry-phone" className="block text-sm font-medium mb-1">{t('phone')}</Label>
         <Input id="inquiry-phone" name="phone" type="tel" />
       </div>
       <div>
-        <label htmlFor="inquiry-message" className="block text-sm font-medium mb-1">{t('message')}</label>
+        <Label htmlFor="inquiry-message" className="block text-sm font-medium mb-1">{t('message')}</Label>
         <textarea
           id="inquiry-message"
           name="message"
