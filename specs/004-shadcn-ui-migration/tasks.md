@@ -110,7 +110,7 @@
 
 - [X] T030 [P] Run the full suite one more time end-to-end: `npm test && npx tsc --noEmit && npm run test:e2e` — all green, zero net-new failures
 - [X] T031 Follow `quickstart.md` in full (including the visual regression suite) as a final pre-PR validation pass
-- [ ] T032 Open the PR on a `feat/shadcn-ui-migration` branch per CLAUDE.md's git workflow, referencing `specs/004-shadcn-ui-migration/spec.md`; wait for CI (Component Tests → Type Check → E2E Tests → Build Check) and CodeRabbit review before merging
+- [X] T032 Open the PR on a `feat/shadcn-ui-migration` branch per CLAUDE.md's git workflow, referencing `specs/004-shadcn-ui-migration/spec.md`; wait for CI (Component Tests → Type Check → E2E Tests → Build Check) and CodeRabbit review before merging
 
 ---
 
