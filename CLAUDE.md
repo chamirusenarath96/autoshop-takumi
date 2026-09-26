@@ -106,6 +106,16 @@ The fix is a single import: `@payloadcms/next/css`, an **officially documented p
 
 **Regression guard:** `e2e/admin.spec.ts` has three tests covering this — `admin renders with Payload theme variables resolved`, `admin nav sidebar renders with Payload's real layout CSS`, and `admin styling does not leak from / into the public site`.
 
+## shadcn/ui components
+
+The public site's `src/components/ui/` primitives (`button`, `card`, `badge`, `input`, `select`, `sheet`, `collapsible`, `label`, `separator`, `avatar`) are genuine shadcn/ui components, not hand-written approximations — see `components.json` for this project's registry config (`new-york` style, `@/components/ui` alias, Tailwind v4, no separate light/dark theme file).
+
+When adding a new shadcn component:
+1. Fetch it via the Shadcn_UI MCP (or `npx shadcn add <component>` if the MCP isn't available) — this reads `components.json` and drops the file into `src/components/ui/`.
+2. Rewrite its `cn` import from the registry's placeholder `"cn"` module path to `@/lib/utils`.
+3. Strip any `dark:` variant classes — the site is dark-only (no light/dark toggle), and its existing semantic tokens (`--background`, `--card`, `--primary`, etc., defined in `src/app/globals.css`) already resolve to the dark palette unconditionally, so the base (non-`dark:`) classes are the ones that should render.
+4. Reconcile touch targets: shadcn's default trigger/control heights (e.g. `h-9`) are below this project's 44px minimum tap-target standard (see the mobile-responsive-support rule below) — replace with `min-h-11`/`min-h-9`/`min-h-12`-style classes matching the convention already used in `button.tsx`/`input.tsx`.
+
 ## Local dev
 
 ```bash

@@ -5,6 +5,9 @@ import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { LocaleSwitcher } from './LocaleSwitcher'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible'
+import { Separator } from '@/components/ui/separator'
 import type { SiteSettingsData } from '@/lib/site-settings'
 
 type Props = { locale: string; siteSettings: SiteSettingsData }
@@ -54,7 +57,12 @@ export function Header({ locale, siteSettings }: Props) {
       <div className="max-w-7xl mx-auto px-6 h-18 flex items-center gap-6" style={{ height: '72px' }}>
         {/* Logo — wide (8:1) lockup, so it's scaled down on narrow viewports to avoid overflow */}
         <a href={`/${locale}`} className="shrink-0 flex items-center min-w-0">
-          <img src="/logo.png" alt="Autoshop Takumi" className="h-6 sm:h-8 lg:h-9 w-auto max-w-full object-contain" />
+          <Avatar className="h-6 sm:h-8 lg:h-9 w-auto max-w-full rounded-none">
+            <AvatarImage src="/logo.png" alt="Autoshop Takumi" className="aspect-auto w-auto object-contain" />
+            <AvatarFallback className="rounded-none bg-transparent text-xs font-semibold" style={{ color: 'var(--nav-fg)' }}>
+              {siteSettings.shopName || 'Autoshop Takumi'}
+            </AvatarFallback>
+          </Avatar>
         </a>
 
         {/* Desktop nav links + right side (unchanged at lg+) */}
@@ -78,7 +86,11 @@ export function Header({ locale, siteSettings }: Props) {
 
         <div className="hidden lg:flex items-center gap-3">
           <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
-          <div className="w-px h-4" style={{ backgroundColor: 'var(--nav-border)' }} />
+          <Separator
+            orientation="vertical"
+            className="data-[orientation=vertical]:h-4"
+            style={{ backgroundColor: 'var(--nav-border)' }}
+          />
           <LocaleSwitcher locale={locale} />
         </div>
 
@@ -95,8 +107,8 @@ export function Header({ locale, siteSettings }: Props) {
       </div>
 
       {/* Mobile/tablet: collapsible panel */}
-      {menuOpen && (
-        <div
+      <Collapsible open={menuOpen} onOpenChange={setMenuOpen}>
+        <CollapsibleContent
           data-testid="mobile-nav-panel"
           className="lg:hidden border-t px-6 py-4 space-y-4"
           style={{ backgroundColor: 'var(--nav-bg)', borderColor: 'var(--nav-border)' }}
@@ -122,8 +134,8 @@ export function Header({ locale, siteSettings }: Props) {
             <InstagramLink siteSettings={siteSettings} label={t('followUs')} />
             <LocaleSwitcher locale={locale} />
           </div>
-        </div>
-      )}
+        </CollapsibleContent>
+      </Collapsible>
     </header>
   )
 }

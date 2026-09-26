@@ -20,13 +20,13 @@
 
 **Purpose**: Add the one new dependency and fetch every new shadcn primitive this feature needs, before any existing component is touched.
 
-- [ ] T001 Add `radix-ui` (the unified Radix package) to `package.json` dependencies and run `npm install`
-- [ ] T002 [P] Fetch shadcn v4 `select` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/select.tsx`
-- [ ] T003 [P] Fetch shadcn v4 `sheet` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/sheet.tsx`
-- [ ] T004 [P] Fetch shadcn v4 `collapsible` via the Shadcn_UI MCP and save as `src/components/ui/collapsible.tsx` (no styling to adapt — this primitive ships unstyled)
-- [ ] T005 [P] Fetch shadcn v4 `label` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, and save as `src/components/ui/label.tsx`
-- [ ] T006 [P] Fetch shadcn v4 `separator` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/separator.tsx`
-- [ ] T007 [P] Fetch shadcn v4 `avatar` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/avatar.tsx`
+- [X] T001 Add `radix-ui` (the unified Radix package) to `package.json` dependencies and run `npm install`
+- [X] T002 [P] Fetch shadcn v4 `select` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/select.tsx`
+- [X] T003 [P] Fetch shadcn v4 `sheet` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/sheet.tsx`
+- [X] T004 [P] Fetch shadcn v4 `collapsible` via the Shadcn_UI MCP and save as `src/components/ui/collapsible.tsx` (no styling to adapt — this primitive ships unstyled)
+- [X] T005 [P] Fetch shadcn v4 `label` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, and save as `src/components/ui/label.tsx`
+- [X] T006 [P] Fetch shadcn v4 `separator` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/separator.tsx`
+- [X] T007 [P] Fetch shadcn v4 `avatar` via the Shadcn_UI MCP, rewrite its `cn` import to `@/lib/utils`, strip any `dark:` variant classes, and save as `src/components/ui/avatar.tsx`
 
 **Checkpoint**: `npx tsc --noEmit` passes with the six new unused-but-present primitive files (no consumer wired up yet).
 
@@ -38,11 +38,11 @@
 
 **⚠️ CRITICAL**: No User Story task may begin until this phase's checkpoint passes.
 
-- [ ] T008 [P] Reconcile `src/components/ui/button.tsx` against shadcn v4 `button` registry output (adopt shadcn's exact `cva` variant/size config and `data-slot="button"` attribute; keep the project's existing token-based class values, e.g. `bg-primary text-primary-foreground`)
-- [ ] T009 [P] Reconcile `src/components/ui/card.tsx` against shadcn v4 `card` registry output (adopt `data-slot` attributes on `Card`/`CardHeader`/`CardTitle`/`CardContent`/`CardFooter`)
-- [ ] T010 [P] Reconcile `src/components/ui/badge.tsx` against shadcn v4 `badge` registry output — preserve the existing `success`/`warning` custom variants used for vehicle status pills (not present in shadcn's default variant set, must be added back on top of the reconciled base)
-- [ ] T011 [P] Reconcile `src/components/ui/input.tsx` against shadcn v4 `input` registry output
-- [ ] T012 Run `npm test && npx tsc --noEmit` to confirm the reconciled primitives haven't changed any existing consumer's rendered output or types (checkpoint — depends on T008-T011)
+- [X] T008 [P] Reconcile `src/components/ui/button.tsx` against shadcn v4 `button` registry output (adopt shadcn's exact `cva` variant/size config and `data-slot="button"` attribute; keep the project's existing token-based class values, e.g. `bg-primary text-primary-foreground`)
+- [X] T009 [P] Reconcile `src/components/ui/card.tsx` against shadcn v4 `card` registry output (adopt `data-slot` attributes on `Card`/`CardHeader`/`CardTitle`/`CardContent`/`CardFooter`)
+- [X] T010 [P] Reconcile `src/components/ui/badge.tsx` against shadcn v4 `badge` registry output — preserve the existing `success`/`warning` custom variants used for vehicle status pills (not present in shadcn's default variant set, must be added back on top of the reconciled base)
+- [X] T011 [P] Reconcile `src/components/ui/input.tsx` against shadcn v4 `input` registry output
+- [X] T012 Run `npm test && npx tsc --noEmit` to confirm the reconciled primitives haven't changed any existing consumer's rendered output or types (checkpoint — depends on T008-T011)
 
 **Checkpoint**: Foundation ready — all four existing primitives now match genuine shadcn v4 source, all six new primitives exist unconsumed, full test suite still green.
 
@@ -56,19 +56,19 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Replace the native `<select>` inside `FilterSelect` (in `src/components/vehicles/VehicleFilters.tsx`) with shadcn `Select`/`SelectTrigger`/`SelectContent`/`SelectItem`, keeping `FilterSelect`'s existing external props (`label`, `value`, `onChange`, `options`, `allLabel`) unchanged
-- [ ] T014 [US1] Replace the mobile filter drawer's `<div role="dialog" aria-modal="true">` (same file, `src/components/vehicles/VehicleFilters.tsx`) with `Sheet`/`SheetContent` (`side="right"`, `showCloseButton={false}` to preserve the existing custom close button and its `aria-label={t('closeFilters')}`), wiring `SheetContent`'s `aria-labelledby` to the existing `id="filter-drawer-heading"` heading (depends on T013 for file consistency, can be done in the same edit pass)
-- [ ] T015 [US1] Update `src/components/vehicles/__tests__/VehicleFilters.test.tsx` so its dialog/role/button-name assertions pass against the Sheet/Select-based markup (depends on T013, T014)
-- [ ] T016 [US1] Rewrite the `dialog.getByLabel('Body type').selectOption('suv')` interaction in `e2e/responsive.spec.ts` to shadcn `Select`'s click-open-then-click-option pattern (depends on T013)
-- [ ] T017 [US1] Update the dark-mode background-color check in `e2e/public.spec.ts` (currently `page.locator('select')`) to target the new `Select` trigger element instead of a native `<select>` (depends on T013)
-- [ ] T018 [US1] Replace the mobile nav panel `<div className="lg:hidden ...">` in `src/components/layout/Header.tsx` with `Collapsible`/`CollapsibleContent`, keeping the `data-testid="mobile-nav-panel"` on the content element and the hamburger button's existing `aria-label`/`aria-expanded` wiring unchanged
-- [ ] T019 [US1] [P] Replace the site logo `<img src="/logo.png">` in `src/components/layout/Header.tsx` with `Avatar`/`AvatarImage`/`AvatarFallback`, preserving the existing `alt="Autoshop Takumi"` text on `AvatarImage`
-- [ ] T020 [US1] [P] Replace the manual divider `<div className="w-px h-4" ...>` elements in `src/components/layout/Header.tsx` with `Separator` (`orientation="vertical"`)
-- [ ] T021 [US1] Update `src/components/layout/__tests__/Header.test.tsx` to confirm its `mobile-nav-panel` testid and hamburger `aria-expanded`/accessible-name assertions still pass against the Collapsible-based markup (depends on T018)
-- [ ] T022 [US1] [P] Replace the team-member photo `<img>` in `src/components/about/TeamMemberCard.tsx` with `Avatar`/`AvatarImage`/`AvatarFallback`, reproducing the existing empty-muted-box fallback behavior via `AvatarFallback` when `photo` is absent
-- [ ] T023 [US1] [P] Pair `InquiryForm`'s existing `Input`/`textarea` fields (`src/components/vehicles/InquiryForm.tsx`) with the new `Label` primitive (`htmlFor` wired to each field's existing `id`), keeping every field's `name` attribute unchanged
-- [ ] T024 [US1] [P] Reconcile `src/components/vehicles/VehicleCard.tsx` against the Phase 2 `Card`/`Badge` changes — verify the `success`/`warning`/`secondary` status-variant-to-color mapping still resolves to the same visible colors
-- [ ] T025 [US1] Run `npm test`, `npx tsc --noEmit`, `npm run test:e2e`, and the visual regression suite; regenerate only genuinely-diffing baselines (none expected) via the `update-visual-baselines` workflow — do not blanket-regenerate (checkpoint — depends on T013-T024)
+- [X] T013 [US1] Replace the native `<select>` inside `FilterSelect` (in `src/components/vehicles/VehicleFilters.tsx`) with shadcn `Select`/`SelectTrigger`/`SelectContent`/`SelectItem`, keeping `FilterSelect`'s existing external props (`label`, `value`, `onChange`, `options`, `allLabel`) unchanged
+- [X] T014 [US1] Replace the mobile filter drawer's `<div role="dialog" aria-modal="true">` (same file, `src/components/vehicles/VehicleFilters.tsx`) with `Sheet`/`SheetContent` (`side="right"`, `showCloseButton={false}` to preserve the existing custom close button and its `aria-label={t('closeFilters')}`), wiring `SheetContent`'s `aria-labelledby` to the existing `id="filter-drawer-heading"` heading (depends on T013 for file consistency, can be done in the same edit pass)
+- [X] T015 [US1] Update `src/components/vehicles/__tests__/VehicleFilters.test.tsx` so its dialog/role/button-name assertions pass against the Sheet/Select-based markup (depends on T013, T014)
+- [X] T016 [US1] Rewrite the `dialog.getByLabel('Body type').selectOption('suv')` interaction in `e2e/responsive.spec.ts` to shadcn `Select`'s click-open-then-click-option pattern (depends on T013)
+- [X] T017 [US1] Update the dark-mode background-color check in `e2e/public.spec.ts` (currently `page.locator('select')`) to target the new `Select` trigger element instead of a native `<select>` (depends on T013)
+- [X] T018 [US1] Replace the mobile nav panel `<div className="lg:hidden ...">` in `src/components/layout/Header.tsx` with `Collapsible`/`CollapsibleContent`, keeping the `data-testid="mobile-nav-panel"` on the content element and the hamburger button's existing `aria-label`/`aria-expanded` wiring unchanged
+- [X] T019 [US1] [P] Replace the site logo `<img src="/logo.png">` in `src/components/layout/Header.tsx` with `Avatar`/`AvatarImage`/`AvatarFallback`, preserving the existing `alt="Autoshop Takumi"` text on `AvatarImage`
+- [X] T020 [US1] [P] Replace the manual divider `<div className="w-px h-4" ...>` elements in `src/components/layout/Header.tsx` with `Separator` (`orientation="vertical"`)
+- [X] T021 [US1] Update `src/components/layout/__tests__/Header.test.tsx` to confirm its `mobile-nav-panel` testid and hamburger `aria-expanded`/accessible-name assertions still pass against the Collapsible-based markup (depends on T018)
+- [X] T022 [US1] [P] Replace the team-member photo `<img>` in `src/components/about/TeamMemberCard.tsx` with `Avatar`/`AvatarImage`/`AvatarFallback`, reproducing the existing empty-muted-box fallback behavior via `AvatarFallback` when `photo` is absent
+- [X] T023 [US1] [P] Pair `InquiryForm`'s existing `Input`/`textarea` fields (`src/components/vehicles/InquiryForm.tsx`) with the new `Label` primitive (`htmlFor` wired to each field's existing `id`), keeping every field's `name` attribute unchanged
+- [X] T024 [US1] [P] Reconcile `src/components/vehicles/VehicleCard.tsx` against the Phase 2 `Card`/`Badge` changes — verify the `success`/`warning`/`secondary` status-variant-to-color mapping still resolves to the same visible colors
+- [X] T025 [US1] Run `npm test`, `npx tsc --noEmit`, `npm run test:e2e`, and the visual regression suite; regenerate only genuinely-diffing baselines (none expected) via the `update-visual-baselines` workflow — do not blanket-regenerate (checkpoint — depends on T013-T024) — `npm test`/`tsc`/`test:e2e` verified locally; the visual regression suite ran in this PR's CI (`e2e/visual.spec.ts`, pinned runner) and passed with zero baseline diffs
 
 **Checkpoint**: User Story 1 fully functional and independently testable — the public site is visually and behaviorally identical, now backed entirely by shadcn primitives.
 
@@ -82,8 +82,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Add a minimal `components.json` at the repo root reflecting this project's actual conventions (Tailwind v4, `src/components/ui` alias, `@/lib/utils` for `cn`, no separate light/dark theme file) so `npx shadcn add` resolves paths correctly for any future addition
-- [ ] T027 [US2] Add a short section to `CLAUDE.md` (near "Styling architecture") documenting the shadcn migration convention: primitives are fetched via the Shadcn_UI MCP, `cn` import rewritten to `@/lib/utils`, `dark:` classes stripped since the site is dark-only — so the next contributor adding a shadcn component follows the same pattern
+- [X] T026 [US2] Add a minimal `components.json` at the repo root reflecting this project's actual conventions (Tailwind v4, `src/components/ui` alias, `@/lib/utils` for `cn`, no separate light/dark theme file) so `npx shadcn add` resolves paths correctly for any future addition
+- [X] T027 [US2] Add a short section to `CLAUDE.md` (near "Styling architecture") documenting the shadcn migration convention: primitives are fetched via the Shadcn_UI MCP, `cn` import rewritten to `@/lib/utils`, `dark:` classes stripped since the site is dark-only — so the next contributor adding a shadcn component follows the same pattern
 
 **Checkpoint**: User Stories 1 AND 2 both hold — the site behaves identically and the component library is now genuinely shadcn-standard.
 
@@ -97,8 +97,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Manually verify keyboard focus is trapped inside the mobile filter `Sheet` while open (Tab cycles only through drawer contents until closed) — record the result in the PR description per `quickstart.md` step 6
-- [ ] T029 [US3] [P] Manually verify Tab order flows naturally through the revealed nav links in the `Collapsible` mobile menu (no focus trap expected — it is intentionally non-modal, per `research.md`'s Collapsible-vs-Sheet decision)
+- [X] T028 [US3] Manually verify keyboard focus is trapped inside the mobile filter `Sheet` while open (Tab cycles only through drawer contents until closed) — record the result in the PR description per `quickstart.md` step 6
+- [X] T029 [US3] [P] Manually verify Tab order flows naturally through the revealed nav links in the `Collapsible` mobile menu (no focus trap expected — it is intentionally non-modal, per `research.md`'s Collapsible-vs-Sheet decision)
 
 **Checkpoint**: All user stories independently functional; accessibility improvements confirmed, not just assumed.
 
@@ -108,9 +108,9 @@
 
 **Purpose**: Final validation and cleanup before opening the PR.
 
-- [ ] T030 [P] Run the full suite one more time end-to-end: `npm test && npx tsc --noEmit && npm run test:e2e` — all green, zero net-new failures
-- [ ] T031 Follow `quickstart.md` in full (including the visual regression suite) as a final pre-PR validation pass
-- [ ] T032 Open the PR on a `feat/shadcn-ui-migration` branch per CLAUDE.md's git workflow, referencing `specs/004-shadcn-ui-migration/spec.md`; wait for CI (Component Tests → Type Check → E2E Tests → Build Check) and CodeRabbit review before merging
+- [X] T030 [P] Run the full suite one more time end-to-end: `npm test && npx tsc --noEmit && npm run test:e2e` — all green, zero net-new failures
+- [X] T031 Follow `quickstart.md` in full (including the visual regression suite) as a final pre-PR validation pass
+- [X] T032 Open the PR on a `feat/shadcn-ui-migration` branch per CLAUDE.md's git workflow, referencing `specs/004-shadcn-ui-migration/spec.md`; wait for CI (Component Tests → Type Check → E2E Tests → Build Check) and CodeRabbit review before merging
 
 ---
 

@@ -2,7 +2,10 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useCallback, useState } from 'react'
+import { useCallback, useId, useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 type Props = {
   makes: any[]
@@ -75,7 +78,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
         label={t('make')}
         value={currentFilters.make ?? ''}
         onChange={(v) => updateFilter('make', v)}
-        options={makes.map((m) => ({ value: m.id, label: m.name }))}
+        options={makes.map((m) => ({ value: String(m.id), label: m.name }))}
         allLabel={t('all')}
       />
 
@@ -84,7 +87,7 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
         label={t('model')}
         value={currentFilters.model ?? ''}
         onChange={(v) => updateFilter('model', v)}
-        options={filteredModels.map((m) => ({ value: m.id, label: m.name }))}
+        options={filteredModels.map((m) => ({ value: String(m.id), label: m.name }))}
         allLabel={t('all')}
       />
 
@@ -126,39 +129,39 @@ export function VehicleFilters({ makes, models, currentFilters, locale }: Props)
 
       {/* Mobile/tablet: trigger + drawer */}
       <div className="lg:hidden">
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="w-full min-h-11 flex items-center justify-center gap-2 border border-input rounded-md px-4 py-2.5 text-sm font-medium bg-background text-foreground"
-        >
-          {t('openFilters')}
-        </button>
-
-        {drawerOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-labelledby="filter-drawer-heading">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-black/50"
-              onClick={() => setDrawerOpen(false)}
-            />
-            <div className="relative w-full max-w-xs h-full bg-background text-foreground overflow-y-auto p-5 shadow-xl">
-              <div className="flex items-center justify-between mb-5">
-                <h2 id="filter-drawer-heading" className="font-semibold text-lg">{t('openFilters')}</h2>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  aria-label={t('closeFilters')}
-                  className="text-2xl leading-none px-2 py-1"
-                >
-                  ×
-                </button>
-              </div>
-              {fields}
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetTrigger asChild>
+            <button className="w-full min-h-11 flex items-center justify-center gap-2 border border-input rounded-md px-4 py-2.5 text-sm font-medium bg-background text-foreground">
+              {t('openFilters')}
+            </button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            showCloseButton={false}
+            aria-labelledby="filter-drawer-heading"
+            className="overflow-y-auto p-5"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 id="filter-drawer-heading" className="font-semibold text-lg">
+                {t('openFilters')}
+              </h2>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                aria-label={t('closeFilters')}
+                className="text-2xl leading-none px-2 py-1"
+              >
+                ×
+              </button>
             </div>
-          </div>
-        )}
+            {fields}
+          </SheetContent>
+        </Sheet>
       </div>
     </>
   )
 }
+
+const ALL_VALUE = '__all__'
 
 function FilterSelect({
   label,
@@ -173,21 +176,26 @@ function FilterSelect({
   options: { value: string; label: string }[]
   allLabel: string
 }) {
+  const id = useId()
+
   return (
-    <label className="block">
-      <span className="block text-sm font-medium mb-1">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full min-h-11 border border-input rounded-md px-3 py-2 text-sm bg-background text-foreground"
-      >
-        <option value="">{allLabel}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div>
+      <Label htmlFor={id} className="block text-sm font-medium mb-1">
+        {label}
+      </Label>
+      <Select value={value || ALL_VALUE} onValueChange={(v) => onChange(v === ALL_VALUE ? '' : v)}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL_VALUE}>{allLabel}</SelectItem>
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
