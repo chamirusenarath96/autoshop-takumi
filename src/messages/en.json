@@ -4,19 +4,13 @@
     "vehicles": "Inventory",
     "followUs": "Follow us on Instagram",
     "menu": "Menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "toggleTheme": "Toggle theme"
   },
   "hero": {
     "cta": "View Inventory",
     "ctaPrimary": "Browse vehicles",
     "ctaSecondary": "Contact us"
-  },
-  "homepage": {
-    "servicesHeading": "Our Services",
-    "stepsHeading": "How It Works",
-    "featuredHeading": "From the Lot",
-    "viewAllVehicles": "View all vehicles",
-    "whyUsHeading": "Why Choose Us"
   },
   "vehicles": {
     "title": "Vehicle Inventory",

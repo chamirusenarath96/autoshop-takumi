@@ -30,9 +30,8 @@ test.describe('Public site — landing and navigation', () => {
     await expect(page).toHaveURL(/\/en/)
   })
 
-  test('site uses the stock light shadcn theme with no light/dark toggle', async ({ page }) => {
+  test('site defaults to the stock light shadcn theme', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByRole('button', { name: /switch to dark mode|switch to light mode/i })).toHaveCount(0)
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
     // oklch(1 0 0) — pure white, serialised by the browser as either rgb or color()
     expect(bg).toMatch(/^(rgb\(255, 255, 255\)|oklch\(1 0 0\)|color\(srgb 1 1 1\))$/)
@@ -62,24 +61,38 @@ test.describe('Public site — landing and navigation', () => {
     await expect(page).toHaveURL(/\/en$|\/en\/$/)
   })
 
-  test('homepage renders seeded services and steps from the CMS', async ({ page }) => {
+  test('landing page shows only the hero and CTA — stats, featured, why-us, services and steps are removed', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByText('Shaken & servicing')).toBeVisible()
-    await expect(page.getByText('Browse the lot')).toBeVisible()
+    await expect(page.getByText('years in business')).toHaveCount(0)
+    await expect(page.getByText('From the Lot')).toHaveCount(0)
+    await expect(page.getByText('Why Choose Us')).toHaveCount(0)
+    await expect(page.getByText('Our Services')).toHaveCount(0)
+    await expect(page.getByText('How It Works')).toHaveCount(0)
   })
 
-  test('landing page renders hero heading/subheading and Why Us points correctly in both locales (spec 003, US2 Scenario 2.2)', async ({ page }) => {
+  test('landing page renders hero heading/subheading in both locales (spec 003, US2 Scenario 2.2)', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByRole('heading', { name: 'Handpicked JDM Classics' })).toBeVisible()
-    await expect(page.getByText('Quality inspected vehicles. Bilingual service. Worldwide shipping.')).toBeVisible()
-    await expect(page.getByText('Thoroughly Inspected')).toBeVisible()
-    await expect(page.getByText('Every vehicle is inspected.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Your best car, from us' })).toBeVisible()
+    await expect(page.getByText('We deliver with excellence.')).toBeVisible()
 
     await page.goto('/ja')
-    await expect(page.getByRole('heading', { name: '厳選されたJDMクラシックス' })).toBeVisible()
-    await expect(page.getByText('品質検査済み車両。バイリンガルサービス。全世界発送対応。')).toBeVisible()
-    await expect(page.getByText('徹底検査済み')).toBeVisible()
-    await expect(page.getByText('すべての車両は検査済みです。')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'あなたの最高の一台を、私たちから' })).toBeVisible()
+    await expect(page.getByText('確かな品質で、お届けします。')).toBeVisible()
+  })
+
+  test('theme toggle switches light/dark and the choice persists across reloads', async ({ page }) => {
+    await page.goto('/en')
+    const html = page.locator('html')
+    await expect(html).not.toHaveClass(/dark/)
+
+    await page.getByRole('banner').getByRole('button', { name: 'Toggle theme' }).click()
+    await expect(html).toHaveClass(/dark/)
+
+    await page.reload()
+    await expect(html).toHaveClass(/dark/)
+
+    await page.getByRole('banner').getByRole('button', { name: 'Toggle theme' }).click()
+    await expect(html).not.toHaveClass(/dark/)
   })
 })
 

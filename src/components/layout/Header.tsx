@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Menu } from 'lucide-react'
 import { Link } from './Link'
 import { LocaleSwitcher } from './LocaleSwitcher'
+import { ThemeToggle } from './ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
@@ -34,8 +35,9 @@ export function Header({ locale, siteSettings }: Props) {
           ))}
         </nav>
 
-        <div className="ml-auto hidden md:block">
+        <div className="ml-auto hidden items-center gap-2 md:flex">
           <LocaleSwitcher locale={locale} />
+          <ThemeToggle />
         </div>
 
         <Sheet>
@@ -56,8 +58,9 @@ export function Header({ locale, siteSettings }: Props) {
               ))}
             </nav>
             <Separator />
-            <div className="px-4">
+            <div className="flex items-center gap-2 px-4">
               <LocaleSwitcher locale={locale} />
+              <ThemeToggle />
             </div>
           </SheetContent>
         </Sheet>

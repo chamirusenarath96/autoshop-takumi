@@ -94,10 +94,10 @@ async function seed() {
       // heroHeadingJa/En, heroSubheadingJa/En, and whyUsPoints[].headingJa/En/bodyJa/En are
       // plain, non-localized fields (see specs/003-remove-payload-localization) — set once here
       // rather than split across the ja/en calls like the still-localized fields below.
-      heroHeadingJa: '厳選されたJDMクラシックス',
-      heroHeadingEn: 'Handpicked JDM Classics',
-      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      heroHeadingJa: 'あなたの最高の一台を、私たちから',
+      heroHeadingEn: 'Your best car, from us',
+      heroSubheadingJa: '確かな品質で、お届けします。',
+      heroSubheadingEn: 'We deliver with excellence.',
       whyUsPoints: [
         { headingJa: '徹底検査済み', headingEn: 'Thoroughly Inspected', bodyJa: 'すべての車両は出品前に100項目の検査を受けています。', bodyEn: 'Every vehicle goes through a 100-point inspection before listing.' },
         { headingJa: 'バイリンガル対応', headingEn: 'Bilingual Service', bodyJa: '日本語と英語で完全サポート。', bodyEn: 'Full support in Japanese and English.' },

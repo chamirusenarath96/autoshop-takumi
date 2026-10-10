@@ -80,10 +80,10 @@ async function main() {
 
   const homepageRes = await apiCtx.post('/api/globals/homepage?locale=en', {
     data: {
-      heroHeadingJa: '厳選されたJDMクラシックス',
-      heroHeadingEn: 'Handpicked JDM Classics',
-      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      heroHeadingJa: 'あなたの最高の一台を、私たちから',
+      heroHeadingEn: 'Your best car, from us',
+      heroSubheadingJa: '確かな品質で、お届けします。',
+      heroSubheadingEn: 'We deliver with excellence.',
       heroStats: [{ value: '22', label: 'years in business' }],
       services: [{ icon: 'Wrench', name: 'Shaken & servicing', description: 'Certified inspection and legal maintenance.', priceFrom: 'From ¥8,000' }],
       steps: [{ title: 'Browse the lot', description: 'Find a car you like from our current inventory.' }],

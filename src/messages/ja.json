@@ -4,19 +4,13 @@
     "vehicles": "在庫車両",
     "followUs": "Instagramでフォローする",
     "menu": "メニュー",
-    "closeMenu": "メニューを閉じる"
+    "closeMenu": "メニューを閉じる",
+    "toggleTheme": "テーマを切り替え"
   },
   "hero": {
     "cta": "在庫を見る",
     "ctaPrimary": "在庫を見る",
     "ctaSecondary": "お問い合わせ"
-  },
-  "homepage": {
-    "servicesHeading": "サービス",
-    "stepsHeading": "ご利用の流れ",
-    "featuredHeading": "入荷車両",
-    "viewAllVehicles": "すべての在庫を見る",
-    "whyUsHeading": "選ばれる理由"
   },
   "vehicles": {
     "title": "在庫車両",

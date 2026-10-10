@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { themeInitScript } from '@/lib/theme'
 import { getSiteSettings } from '@/lib/site-settings'
 import { resolveMetadataBase } from '@/lib/utils'
 import '../../globals.css'
@@ -43,7 +44,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   const siteSettings = await getSiteSettings(locale as 'ja' | 'en')
 
   return (
-    <html lang={locale} data-public>
+    <html lang={locale} data-public suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       {/* suppressHydrationWarning on <body> silences browser-extension attribute injections
           (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
       <body suppressHydrationWarning>
