@@ -74,10 +74,12 @@ test.describe('Public site — landing and navigation', () => {
     await page.goto('/en')
     await expect(page.getByRole('heading', { name: 'Your best car, from us' })).toBeVisible()
     await expect(page.getByText('We deliver with excellence.')).toBeVisible()
+    await expect(page.getByText('Looking for your next car?')).toBeVisible()
 
     await page.goto('/ja')
     await expect(page.getByRole('heading', { name: 'あなたの最高の一台を、私たちから' })).toBeVisible()
     await expect(page.getByText('確かな品質で、お届けします。')).toBeVisible()
+    await expect(page.getByText('次の一台をお探しですか？')).toBeVisible()
   })
 
   test('theme toggle switches light/dark and the choice persists across reloads', async ({ page }) => {

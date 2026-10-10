@@ -72,6 +72,7 @@ async function main() {
     data: {
       services: [{ name: '車検・整備' }],
       steps: [{ title: '車両を選ぶ' }],
+      ctaBanner: { heading: '次の一台をお探しですか？', body: 'ご希望をお聞かせください。', buttonText: 'お問い合わせ' },
     },
   })
   if (!homepageJaRes.ok()) {
