@@ -22,6 +22,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-brand: var(--brand);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -30,45 +31,48 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Brand palette: orange #f05722, navy #0e284a, charcoal #252525, slate #50637b,
+     mist #828fa1, fog #d1d6dc, brown #7e3f36 — mapped to shadcn roles below. */
+  --brand: #f05722;
+  --background: #ffffff;
+  --foreground: #252525;
+  --card: #ffffff;
+  --card-foreground: #252525;
+  --popover: #ffffff;
+  --popover-foreground: #252525;
+  --primary: #0e284a;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f5f7;
+  --secondary-foreground: #0e284a;
+  --muted: #f4f5f7;
+  --muted-foreground: #50637b;
+  --accent: #e8ebef;
+  --accent-foreground: #0e284a;
+  --destructive: #7e3f36;
+  --border: #d1d6dc;
+  --input: #d1d6dc;
+  --ring: #f05722;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #0a1d36;
+  --foreground: #d1d6dc;
+  --card: #0e284a;
+  --card-foreground: #d1d6dc;
+  --popover: #0e284a;
+  --popover-foreground: #d1d6dc;
+  --primary: #f05722;
+  --primary-foreground: #252525;
+  --secondary: #16345a;
+  --secondary-foreground: #d1d6dc;
+  --muted: #16345a;
+  --muted-foreground: #828fa1;
+  --accent: #16345a;
+  --accent-foreground: #ffffff;
+  --destructive: #7e3f36;
+  --border: #50637b66;
+  --input: #50637b88;
+  --ring: #f05722;
 }
 
 @layer base {

@@ -22,6 +22,7 @@ export function Header({ locale }: Props) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
+      <div className="h-[3px] bg-brand" />
       <div className="container mx-auto flex h-14 items-center gap-4 px-4">
         <Link href={`/${locale}`} className="text-lg font-semibold">
           {tShop('name')}

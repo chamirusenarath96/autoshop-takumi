@@ -14,9 +14,9 @@ const defaultPriceOnRequestLabel: Record<string, string> = {
   en: 'Contact for price',
 }
 
-const statusVariants: Record<string, 'secondary' | 'outline'> = {
+const statusVariants: Record<string, 'secondary' | 'destructive'> = {
   reserved: 'secondary',
-  sold: 'outline',
+  sold: 'destructive',
 }
 
 const statusLabels: Record<string, Record<string, string>> = {
@@ -62,7 +62,7 @@ export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-lg font-semibold">{price}</p>
+        <p className="text-lg font-semibold text-primary">{price}</p>
       </CardContent>
     </Card>
   )
