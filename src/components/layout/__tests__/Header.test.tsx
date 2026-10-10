@@ -34,8 +34,8 @@ describe('Header mobile nav toggle', () => {
     expect(panel.getByRole('link', { name: 'Home' })).toBeInTheDocument()
     expect(panel.getByRole('link', { name: 'Inventory' })).toBeInTheDocument()
     expect(panel.queryByRole('link', { name: 'About' })).not.toBeInTheDocument()
-    expect(panel.getByText('JA')).toBeInTheDocument()
-    expect(panel.getByText('EN')).toBeInTheDocument()
+    expect(panel.getByText('日本語')).toBeInTheDocument()
+    expect(panel.getByText('English')).toBeInTheDocument()
   })
 })
 

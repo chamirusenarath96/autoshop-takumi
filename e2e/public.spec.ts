@@ -24,9 +24,9 @@ test.describe('Public site — landing and navigation', () => {
   test('language switcher navigates between locales', async ({ page }) => {
     await page.goto('/en')
     const header = page.getByRole('banner')
-    await header.getByRole('button', { name: 'JA' }).click()
+    await header.getByRole('radio', { name: '日本語' }).click()
     await expect(page).toHaveURL(/\/ja/)
-    await header.getByRole('button', { name: 'EN' }).click()
+    await header.getByRole('radio', { name: 'English' }).click()
     await expect(page).toHaveURL(/\/en/)
   })
 

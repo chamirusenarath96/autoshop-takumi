@@ -1,35 +1,36 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 type Props = { locale: string }
 
-// Language names are shown as their own endonym/abbreviation regardless of the
-// active UI locale (same convention as "Deutsch" or "日本語" switchers elsewhere),
-// so these are intentionally not routed through next-intl.
+// Language names are shown as their own endonym regardless of the active UI locale
+// (same convention as "Deutsch" or "日本語" switchers elsewhere), so these are
+// intentionally not routed through next-intl.
+const LOCALES = [
+  { code: 'ja', label: '日本語' },
+  { code: 'en', label: 'English' },
+] as const
+
 export function LocaleSwitcher({ locale }: Props) {
   const pathname = usePathname()
   const router = useRouter()
 
   function switchLocale(next: string) {
+    // Radix reports '' when the active item is clicked again — a language must stay selected.
+    if (!next || next === locale) return
     const newPath = pathname.replace(/^\/(ja|en)/, `/${next}`)
     router.push(newPath)
   }
 
   return (
-    <div className="flex items-center gap-1">
-      {(['ja', 'en'] as const).map((l) => (
-        <Button
-          key={l}
-          size="sm"
-          variant={locale === l ? 'default' : 'ghost'}
-          aria-pressed={locale === l}
-          onClick={() => switchLocale(l)}
-        >
-          {l.toUpperCase()}
-        </Button>
+    <ToggleGroup type="single" variant="outline" size="sm" value={locale} onValueChange={switchLocale}>
+      {LOCALES.map(({ code, label }) => (
+        <ToggleGroupItem key={code} value={code} lang={code}>
+          {label}
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   )
 }

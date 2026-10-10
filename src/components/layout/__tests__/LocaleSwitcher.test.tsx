@@ -11,22 +11,29 @@ vi.mock('next/navigation', () => ({
 }))
 
 describe('LocaleSwitcher', () => {
-  it('renders JA and EN buttons', () => {
+  it('renders the language names in their own language', () => {
     render(<LocaleSwitcher locale="en" />)
-    expect(screen.getByText('JA')).toBeInTheDocument()
-    expect(screen.getByText('EN')).toBeInTheDocument()
+    expect(screen.getByText('日本語')).toBeInTheDocument()
+    expect(screen.getByText('English')).toBeInTheDocument()
   })
 
   it('highlights the active locale', () => {
     render(<LocaleSwitcher locale="en" />)
-    const enBtn = screen.getByText('EN')
-    expect(enBtn).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('JA')).toHaveAttribute('aria-pressed', 'false')
+    const enBtn = screen.getByText('English')
+    expect(enBtn).toHaveAttribute('data-state', 'on')
+    expect(screen.getByText('日本語')).toHaveAttribute('data-state', 'off')
+  })
+
+  it('does not navigate when the active language is clicked again', async () => {
+    push.mockClear()
+    render(<LocaleSwitcher locale="en" />)
+    await userEvent.click(screen.getByText('English'))
+    expect(push).not.toHaveBeenCalled()
   })
 
   it('switches to JA when JA is clicked', async () => {
     render(<LocaleSwitcher locale="en" />)
-    await userEvent.click(screen.getByText('JA'))
+    await userEvent.click(screen.getByText('日本語'))
     expect(push).toHaveBeenCalledWith('/ja/vehicles')
   })
 })
