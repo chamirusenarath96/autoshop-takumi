@@ -82,6 +82,16 @@ test.describe('Public site — landing and navigation', () => {
     await expect(page.getByText('次の一台をお探しですか？')).toBeVisible()
   })
 
+  test('footer shows contact details from the translation files in both locales', async ({ page }) => {
+    await page.goto('/en')
+    const footer = page.getByRole('contentinfo')
+    await expect(footer.getByText('022-342-2285')).toBeVisible()
+    await expect(footer.getByText('Mon–Sat 9:00–18:00, closed Sundays')).toBeVisible()
+
+    await page.goto('/ja')
+    await expect(page.getByRole('contentinfo').getByText('月〜土 9:00〜18:00（日曜定休）')).toBeVisible()
+  })
+
   test('theme toggle switches light/dark and the choice persists across reloads', async ({ page }) => {
     await page.goto('/en')
     const html = page.locator('html')

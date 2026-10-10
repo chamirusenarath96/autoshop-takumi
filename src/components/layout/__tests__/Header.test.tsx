@@ -10,12 +10,11 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
-const siteSettings = { shopName: 'Autoshop Takumi' } as any
 
 function renderHeader() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <Header locale="en" siteSettings={siteSettings} />
+      <Header locale="en" />
     </NextIntlClientProvider>,
   )
 }

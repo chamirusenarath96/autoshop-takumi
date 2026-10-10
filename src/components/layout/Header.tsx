@@ -8,12 +8,12 @@ import { ThemeToggle } from './ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
-import type { SiteSettingsData } from '@/lib/site-settings'
 
-type Props = { locale: string; siteSettings: SiteSettingsData }
+type Props = { locale: string }
 
-export function Header({ locale, siteSettings }: Props) {
+export function Header({ locale }: Props) {
   const t = useTranslations('nav')
+  const tShop = useTranslations('shop')
 
   const navLinks = [
     { href: `/${locale}`, label: t('home') },
@@ -24,7 +24,7 @@ export function Header({ locale, siteSettings }: Props) {
     <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="container mx-auto flex h-14 items-center gap-4 px-4">
         <Link href={`/${locale}`} className="text-lg font-semibold">
-          {siteSettings.shopName || 'Autoshop Takumi'}
+          {tShop('name')}
         </Link>
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">

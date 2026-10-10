@@ -3,14 +3,14 @@
 import { useTranslations } from 'next-intl'
 import { Link } from './Link'
 import { Separator } from '@/components/ui/separator'
-import type { SiteSettingsData } from '@/lib/site-settings'
 
-type Props = { locale: string; siteSettings: SiteSettingsData }
+type Props = { locale: string }
 
-export function Footer({ locale, siteSettings }: Props) {
+export function Footer({ locale }: Props) {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
-  const shopName = siteSettings.shopName || 'Autoshop Takumi'
+  const tShop = useTranslations('shop')
+  const shopName = tShop('name')
 
   return (
     <footer id="contact" className="mt-16 border-t">
@@ -34,21 +34,19 @@ export function Footer({ locale, siteSettings }: Props) {
 
         <div className="flex flex-col gap-1 text-sm text-muted-foreground">
           <p className="mb-1 text-sm font-medium text-foreground">{t('contactHeading')}</p>
-          {siteSettings.contactPhone && <p>{siteSettings.contactPhone}</p>}
-          {siteSettings.contactEmail && <p>{siteSettings.contactEmail}</p>}
-          {siteSettings.address && <p className="whitespace-pre-line">{siteSettings.address}</p>}
-          {siteSettings.businessHours && <p>{siteSettings.businessHours}</p>}
-          {siteSettings.instagramUrl && (
-            <a
-              href={siteSettings.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t('followUs')}
-              className="hover:text-foreground"
-            >
-              {siteSettings.instagramHandle}
-            </a>
-          )}
+          <p>{tShop('phone')}</p>
+          <p>{tShop('email')}</p>
+          <p className="whitespace-pre-line">{tShop('address')}</p>
+          <p>{tShop('hours')}</p>
+          <a
+            href={tShop('instagramUrl')}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('followUs')}
+            className="hover:text-foreground"
+          >
+            {tShop('instagramHandle')}
+          </a>
         </div>
       </div>
 

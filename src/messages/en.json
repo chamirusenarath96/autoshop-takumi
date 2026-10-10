@@ -8,9 +8,10 @@
     "toggleTheme": "Toggle theme"
   },
   "hero": {
-    "cta": "View Inventory",
     "ctaPrimary": "Browse vehicles",
-    "ctaSecondary": "Contact us"
+    "ctaSecondary": "Contact us",
+    "heading": "Your best car, from us",
+    "subheading": "We deliver with excellence."
   },
   "vehicles": {
     "title": "Vehicle Inventory",
@@ -56,5 +57,19 @@
     "slogan": "Driven by Precision. Powered by Trust. Delivered by Takumi.",
     "navigationHeading": "Navigation",
     "contactHeading": "Contact"
+  },
+  "cta": {
+    "heading": "Looking for your next car?",
+    "body": "Tell us what you're after.",
+    "button": "Browse vehicles"
+  },
+  "shop": {
+    "name": "Autoshop Takumi",
+    "phone": "022-342-2285",
+    "email": "takumitradings@gmail.com",
+    "address": "148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan",
+    "hours": "Mon–Sat 9:00–18:00, closed Sundays",
+    "instagramUrl": "https://www.instagram.com/autoshop_takumi/",
+    "instagramHandle": "@autoshop_takumi"
   }
 }
