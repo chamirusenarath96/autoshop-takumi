@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
-import { Inter, Anton } from 'next/font/google'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -15,9 +14,6 @@ import '../../globals.css'
 export const metadata: Metadata = {
   metadataBase: resolveMetadataBase(process.env.NEXT_PUBLIC_SITE_URL),
 }
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans-loaded', display: 'swap' })
-const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-display-loaded', display: 'swap' })
 
 type Props = {
   children: React.ReactNode
@@ -47,7 +43,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const siteSettings = await getSiteSettings(locale as 'ja' | 'en')
 
   return (
-    <html lang={locale} data-public className={`${inter.variable} ${anton.variable}`}>
+    <html lang={locale} data-public>
       {/* suppressHydrationWarning on <body> silences browser-extension attribute injections
           (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
       <body suppressHydrationWarning>

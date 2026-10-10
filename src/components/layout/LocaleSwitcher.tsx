@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 type Props = { locale: string }
 
@@ -17,20 +18,17 @@ export function LocaleSwitcher({ locale }: Props) {
   }
 
   return (
-    <div className="flex items-center text-sm font-medium rounded-full overflow-hidden border" style={{ borderColor: 'var(--nav-border)' }}>
+    <div className="flex items-center gap-1">
       {(['ja', 'en'] as const).map((l) => (
-        <button
+        <Button
           key={l}
+          size="sm"
+          variant={locale === l ? 'default' : 'ghost'}
+          aria-pressed={locale === l}
           onClick={() => switchLocale(l)}
-          className="min-w-11 min-h-11 px-2.5 py-1 transition"
-          style={
-            locale === l
-              ? { backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }
-              : { color: 'var(--nav-fg)' }
-          }
         >
           {l.toUpperCase()}
-        </button>
+        </Button>
       ))}
     </div>
   )

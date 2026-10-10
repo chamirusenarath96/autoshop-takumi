@@ -10,10 +10,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
-const siteSettings = {
-  instagramUrl: 'https://instagram.com/autoshop_takumi',
-  instagramHandle: '@autoshop_takumi',
-} as any
+const siteSettings = { shopName: 'Autoshop Takumi' } as any
 
 function renderHeader() {
   return render(
@@ -24,24 +21,28 @@ function renderHeader() {
 }
 
 describe('Header mobile nav toggle', () => {
-  it('has a hamburger control that is closed by default', () => {
+  it('has a menu control that is closed by default', () => {
     renderHeader()
     expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('mobile-nav-panel')).not.toBeInTheDocument()
   })
 
-  it('reveals nav links, locale switcher, and Instagram link once opened', async () => {
+  it('reveals nav links and the locale switcher once opened', async () => {
     renderHeader()
     await userEvent.click(screen.getByRole('button', { name: 'Menu' }))
-
-    expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
 
     const panel = within(screen.getByTestId('mobile-nav-panel'))
     expect(panel.getByRole('link', { name: 'Home' })).toBeInTheDocument()
     expect(panel.getByRole('link', { name: 'Inventory' })).toBeInTheDocument()
-    expect(panel.getByRole('link', { name: 'About' })).toBeInTheDocument()
-    expect(panel.getByRole('link', { name: /follow us on instagram/i })).toBeInTheDocument()
+    expect(panel.queryByRole('link', { name: 'About' })).not.toBeInTheDocument()
     expect(panel.getByText('JA')).toBeInTheDocument()
     expect(panel.getByText('EN')).toBeInTheDocument()
+  })
+})
+
+describe('Header wordmark', () => {
+  it('renders the shop name as a text wordmark linking home', () => {
+    renderHeader()
+    expect(screen.getByRole('link', { name: 'Autoshop Takumi' })).toHaveAttribute('href', '/en')
   })
 })

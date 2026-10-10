@@ -67,9 +67,8 @@ describe('VehicleCard', () => {
     expect(screen.getByText('Sold')).toBeInTheDocument()
   })
 
-  it('links to the vehicle detail page', () => {
+  it('is display-only: does not link anywhere', () => {
     render(<VehicleCard vehicle={baseVehicle} locale="en" />)
-    const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/en/vehicles/test-supra')
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

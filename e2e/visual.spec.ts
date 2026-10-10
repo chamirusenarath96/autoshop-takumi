@@ -46,23 +46,6 @@ test.describe('Visual — public site', () => {
     })
   }
 
-  for (const vp of VIEWPORT_NAMES) {
-    test(`vehicle detail — ${vp}`, async ({ page }) => {
-      await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto(`/en/vehicles/${fixture.vehicleSlug}`)
-      await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`detail-${vp}.png`, { mask: getVisualMasks(page, 'vehicle-detail'), fullPage: true })
-    })
-  }
-
-  for (const vp of VIEWPORT_NAMES) {
-    test(`about page — ${vp}`, async ({ page }) => {
-      await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto('/en/about')
-      await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`about-${vp}.png`, { mask: getVisualMasks(page, 'about'), fullPage: true })
-    })
-  }
 })
 
 test.describe('Visual — admin', () => {

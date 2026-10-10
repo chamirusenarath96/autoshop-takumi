@@ -134,14 +134,12 @@ export async function assertNoHorizontalOverflow(page: Page) {
 export type VisualView =
   | 'landing'
   | 'listing'
-  | 'vehicle-detail'
-  | 'about'
   | 'admin-login'
   | 'admin-dashboard'
   | 'admin-vehicles-list'
   | 'admin-vehicles-edit'
 
-const PUBLIC_VIEWS: VisualView[] = ['landing', 'listing', 'vehicle-detail', 'about']
+const PUBLIC_VIEWS: VisualView[] = ['landing', 'listing']
 
 /**
  * Returns fresh Locators for the genuinely run-varying regions of a given visual-test

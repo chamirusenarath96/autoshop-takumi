@@ -71,33 +71,30 @@ export default async function VehiclesPage({ params, searchParams }: Props) {
   }))
 
   return (
-    <div>
-      <div className="bg-black text-white">
-        <div className="max-w-7xl mx-auto px-6 py-14">
-          <h1 className="takumi-display text-4xl sm:text-5xl">{t('title')}</h1>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8 flex flex-col gap-1">
+        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('resultsCount', { count: vehiclesResult.totalDocs })}</p>
       </div>
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <aside className="w-full lg:w-64 shrink-0">
-            <VehicleFilters
-              makes={makes}
-              models={models}
-              currentFilters={sp}
-              locale={locale}
-            />
-          </aside>
-          <div className="flex-1">
-            {vehiclesResult.docs.length === 0 ? (
-              <p className="text-muted-foreground py-12 text-center">{t('noResults')}</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {vehiclesResult.docs.map((vehicle: any) => (
-                  <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="grid gap-8 lg:grid-cols-[16rem_1fr]">
+        <aside>
+          <VehicleFilters makes={makes} models={models} currentFilters={sp} locale={locale} />
+        </aside>
+        <div>
+          {vehiclesResult.docs.length === 0 ? (
+            <p className="py-12 text-center text-muted-foreground">{t('noResults')}</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {vehiclesResult.docs.map((vehicle: any) => (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  locale={locale}
+                  priceOnRequestLabel={tVehicle('priceOnRequest')}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

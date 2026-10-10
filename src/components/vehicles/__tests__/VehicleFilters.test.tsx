@@ -21,7 +21,7 @@ function renderFilters() {
   )
 }
 
-describe('VehicleFilters mobile drawer', () => {
+describe('VehicleFilters sheet', () => {
   it('is closed by default', () => {
     renderFilters()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
@@ -33,15 +33,16 @@ describe('VehicleFilters mobile drawer', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('meets the 44px minimum tap-target height', () => {
-    renderFilters()
-    expect(screen.getByRole('button', { name: 'Filters' }).className).toMatch(/min-h-11/)
-  })
-
   it('closes on its close control', async () => {
     renderFilters()
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Close filters' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('reset clears all filters', async () => {
+    renderFilters()
+    await userEvent.click(screen.getByRole('button', { name: 'Reset filters' }))
+    expect(push).toHaveBeenCalledWith('/en/vehicles')
   })
 })

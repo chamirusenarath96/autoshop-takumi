@@ -1,6 +1,6 @@
 import { formatVehiclePriceDisplay } from '@/lib/utils'
-import { Card } from '@/components/ui/card'
-import { Badge, type BadgeProps } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { resolveLocalizedField, type VehicleLocale } from '@/lib/content-locale'
 
 type Props = {
@@ -14,10 +14,9 @@ const defaultPriceOnRequestLabel: Record<string, string> = {
   en: 'Contact for price',
 }
 
-const statusVariants: Record<string, BadgeProps['variant']> = {
-  available: 'success',
-  reserved: 'warning',
-  sold: 'secondary',
+const statusVariants: Record<string, 'secondary' | 'outline'> = {
+  reserved: 'secondary',
+  sold: 'outline',
 }
 
 const statusLabels: Record<string, Record<string, string>> = {
@@ -43,28 +42,28 @@ export function VehicleCard({ vehicle, locale, priceOnRequestLabel }: Props) {
   const statusLabel = statusLabels[locale]?.[vehicle.status] ?? vehicle.status
 
   return (
-    <a href={`/${locale}/vehicles/${vehicle.slug}`} className="group block">
-      <Card className="overflow-hidden py-0 gap-0 transition hover:shadow-md">
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <img
-            src={imgUrl}
-            alt={title ?? ''}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-          />
-          {vehicle.status !== 'available' && (
-            <Badge variant={statusVariants[vehicle.status]} className="absolute top-2 right-2">
-              {statusLabel}
-            </Badge>
-          )}
-        </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-base line-clamp-2">{title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {vehicle.year}{locale === 'ja' ? '年' : ''}{vehicle.mileageKm ? ` · ${vehicle.mileageKm.toLocaleString()} km` : ''}
-          </p>
-          <p className="mt-2 text-lg font-bold text-primary">{price}</p>
-        </div>
-      </Card>
-    </a>
+    <Card className="overflow-hidden pt-0">
+      <div className="relative aspect-[4/3] bg-muted">
+        <img src={imgUrl} alt={title ?? ''} className="h-full w-full object-cover" />
+        {vehicle.status !== 'available' && (
+          <Badge variant={statusVariants[vehicle.status] ?? 'secondary'} className="absolute top-3 right-3">
+            {statusLabel}
+          </Badge>
+        )}
+      </div>
+      <CardHeader>
+        <CardTitle role="heading" aria-level={3} className="line-clamp-2 leading-snug">
+          {title}
+        </CardTitle>
+        <CardDescription>
+          {vehicle.year}
+          {locale === 'ja' ? '年' : ''}
+          {vehicle.mileageKm ? ` · ${vehicle.mileageKm.toLocaleString()} km` : ''}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-lg font-semibold">{price}</p>
+      </CardContent>
+    </Card>
   )
 }
