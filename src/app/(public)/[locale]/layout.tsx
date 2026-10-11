@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { ThemeSync } from '@/components/layout/ThemeSync'
 import { themeInitScript } from '@/lib/theme'
 import { resolveMetadataBase } from '@/lib/utils'
 import '../../globals.css'
@@ -44,6 +45,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           (e.g. Grammarly adds data-gr-ext-installed) which are outside our control. */}
       <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
+          <ThemeSync />
           <Header locale={locale} />
           <main>{children}</main>
           <Footer locale={locale} />

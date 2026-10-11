@@ -52,7 +52,7 @@ export const Homepage: GlobalConfig = {
       label: 'Hero carousel slides',
       admin: {
         description:
-          'Landscape 16:9, 2400×1350 px (JPEG/WebP, under 600 KB). Keep the subject in the central half — phones crop the sides, desktops crop the top and bottom. 3–5 slides.',
+          'Landscape 4:3, 2000×1500 px (JPEG/WebP, under 600 KB) — upload the full uncropped photo. Keep the car in the lower-middle of the frame: desktops crop the top and bottom, phones show the whole photo. 3–6 slides.',
       },
       fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
     },

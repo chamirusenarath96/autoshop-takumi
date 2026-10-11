@@ -125,6 +125,21 @@ test.describe('Public site — landing and navigation', () => {
     await page.getByRole('banner').getByRole('button', { name: 'Toggle theme' }).click()
     await expect(html).not.toHaveClass(/dark/)
   })
+
+  test('the chosen theme survives a language switch', async ({ page }) => {
+    await page.goto('/en')
+    const header = page.getByRole('banner')
+    await header.getByRole('button', { name: 'Toggle theme' }).click()
+    await expect(page.locator('html')).toHaveClass(/dark/)
+
+    await header.getByRole('radio', { name: '日本語' }).click()
+    await expect(page).toHaveURL(/\/ja/)
+    await expect(page.locator('html')).toHaveClass(/dark/)
+
+    await header.getByRole('radio', { name: 'English' }).click()
+    await expect(page).toHaveURL(/\/en/)
+    await expect(page.locator('html')).toHaveClass(/dark/)
+  })
 })
 
 // ── Photos are uploaded through Payload ───────────────────────────────────

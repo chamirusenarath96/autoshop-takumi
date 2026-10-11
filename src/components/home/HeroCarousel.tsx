@@ -17,8 +17,9 @@ type Props = {
 
 const AUTOPLAY_MS = 6000
 
-// Full-bleed hero. Photos are cropped with object-cover to a fixed-height band, so the
-// upload shape only needs to be 16:9 with the subject in the central half.
+// Full-bleed hero. Photos are 4:3 originals shown with object-cover in a fixed-height band:
+// on phones the whole photo is visible (and pans sideways); from md up the band crops the
+// top and bottom, anchored low (65%) because cars sit in the lower-middle of the frame.
 export function HeroCarousel({ slides, children }: Props) {
   const t = useTranslations('hero.carousel')
   const [api, setApi] = useState<CarouselApi>()
@@ -37,7 +38,7 @@ export function HeroCarousel({ slides, children }: Props) {
   }, [])
 
   const hasMany = slides.length > 1
-  const bandClass = 'h-[460px] md:h-[540px] lg:h-[620px]'
+  const bandClass = 'h-[460px] md:h-[540px] lg:h-[680px]'
 
   return (
     <section className={cn('relative w-full overflow-hidden bg-hero-overlay', bandClass)} aria-label={t('label')}>
@@ -54,7 +55,7 @@ export function HeroCarousel({ slides, children }: Props) {
                 <img
                   src={slide.url}
                   alt={slide.alt}
-                  className="h-full w-full object-cover max-md:w-[818px] max-md:max-w-none max-md:animate-[hero-pan_12s_ease-in-out_infinite_alternate] motion-reduce:max-md:translate-x-[calc((100vw-818px)/2)] motion-reduce:max-md:animate-none"
+                  className="h-full w-full object-cover object-[50%_65%] max-md:w-[613px] max-md:max-w-none max-md:animate-[hero-pan_12s_ease-in-out_infinite_alternate] motion-reduce:max-md:translate-x-[calc((100vw-613px)/2)] motion-reduce:max-md:animate-none"
                   loading={i === 0 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}
                 />
