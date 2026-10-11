@@ -1,142 +1,130 @@
-import { test, expect } from '@playwright/test'
-import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle, VIEWPORTS } from './helpers'
+import { test, expect, type Page, type TestInfo } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
+import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, VIEWPORTS } from './helpers'
 
-/** Visits the homepage, a vehicle detail page, and the about page, asserting no horizontal overflow and attaching load timing for the homepage/detail pages. */
-async function assertOverflowAndTimingAcrossPages(
-  page: import('@playwright/test').Page,
-  testInfo: import('@playwright/test').TestInfo,
-  labelPrefix: string,
-  vehicleSlug: string,
-) {
+/** Visits the landing and gallery pages, asserting no horizontal overflow and attaching load timing for each. */
+async function assertOverflowAndTimingAcrossPages(page: Page, testInfo: TestInfo, labelPrefix: string) {
   await page.goto('/en')
   await page.waitForLoadState('networkidle')
   await assertNoHorizontalOverflow(page)
-  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:homepage`)
+  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:landing`)
 
-  await page.goto(`/en/vehicles/${vehicleSlug}`)
+  await page.goto('/en/gallery')
   await page.waitForLoadState('networkidle')
   await assertNoHorizontalOverflow(page)
-  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:vehicle-detail`)
-
-  await page.goto('/en/about')
-  await page.waitForLoadState('networkidle')
-  await assertNoHorizontalOverflow(page)
+  await attachPageLoadTiming(page, testInfo, `${labelPrefix}:gallery`)
 }
 
-/** Dispatches a synthetic touch swipe gesture from right to left across the element matching `testId`. */
-async function swipeLeft(page: import('@playwright/test').Page, testId: string) {
-  await page.locator(`[data-testid="${testId}"]`).evaluate((el) => {
-    const rect = el.getBoundingClientRect()
-    const y = rect.top + rect.height / 2
-    const startX = rect.left + rect.width * 0.8
-    const endX = rect.left + rect.width * 0.2
-    const touch = (x: number) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y })
-    el.dispatchEvent(new TouchEvent('touchstart', { touches: [touch(startX)], bubbles: true, cancelable: true }))
-    el.dispatchEvent(
-      new TouchEvent('touchend', { touches: [], changedTouches: [touch(endX)], bubbles: true, cancelable: true }),
-    )
+async function uploadPhoto(page: Page, name: string): Promise<string> {
+  const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+  const res = await page.request.post('/api/media', {
+    multipart: { file: { name, mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: name }) },
   })
+  return (await res.json()).doc.id
+}
+
+/** Gives the landing hero one photo, runs `check`, then clears it so other specs see the photo-less hero. */
+async function withHeroSlide(page: Page, check: () => Promise<void>) {
+  const id = await uploadPhoto(page, 'pan-hero.png')
+  await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: [{ image: id }] } })
+  try {
+    await check()
+  } finally {
+    await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: [] } })
+  }
+}
+
+/** Fills the gallery with `count` photos, runs `check`, then empties it again. */
+async function withGalleryPhotos(page: Page, count: number, check: () => Promise<void>) {
+  const photos = []
+  for (let i = 0; i < count; i++) photos.push({ image: await uploadPhoto(page, `resp-gallery-${i}.png`) })
+  await page.request.post('/api/globals/gallery', { data: { photos } })
+  try {
+    await check()
+  } finally {
+    await page.request.post('/api/globals/gallery', { data: { photos: [] } })
+  }
+}
+
+/** Number of distinct x positions (columns) the gallery tiles occupy. */
+async function galleryColumnCount(page: Page): Promise<number> {
+  const xs = await page.getByRole('button', { name: /Open photo/ }).evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().left)))
+  return new Set(xs).size
+}
+
+/** The header logo's rendered box, plus the room left beside it. */
+async function headerLogoBox(page: Page) {
+  await page.goto('/en')
+  await page.waitForLoadState('networkidle')
+  const logo = page.getByRole('banner').getByRole('img', { name: 'Autoshop Takumi' })
+  await expect(logo).toBeVisible()
+  await expect.poll(() => logo.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  return (await logo.boundingBox())!
 }
 
 test.describe('Responsive — mobile (375px)', () => {
   test.use({ viewport: VIEWPORTS.mobile, hasTouch: true })
 
-  test('vehicle listing: filter drawer opens, applies a filter, and closes', async ({ page }) => {
-    await page.goto('/en/vehicles')
-    await page.waitForLoadState('networkidle')
+  test('header logo is small enough to sit beside the menu button', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(24, 0)
+    expect(box.width).toBeCloseTo(192, 0)
+    const menu = await page.getByRole('banner').getByRole('button', { name: 'Menu' }).boundingBox()
+    expect(box.x + box.width).toBeLessThan(menu!.x)
     await assertNoHorizontalOverflow(page)
-
-    await page.getByRole('button', { name: 'Filters', exact: true }).click()
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toBeVisible()
-
-    await dialog.getByLabel('Body type').selectOption('suv')
-    await expect(dialog).not.toBeVisible()
-    await page.waitForURL(/bodyType=suv/)
   })
 
-  test('header: menu toggle reveals nav links, and navigating collapses it', async ({ page }) => {
+  test('header: menu sheet reveals nav links and the controls, and navigating works', async ({ page }) => {
     await page.goto('/en')
     await page.waitForLoadState('networkidle')
     const header = page.getByRole('banner')
 
     await expect(header.getByRole('button', { name: 'Menu' })).toBeVisible()
-    await expect(header.getByRole('link', { name: 'Inventory' })).not.toBeVisible()
+    await expect(header.getByRole('link', { name: 'Gallery' })).not.toBeVisible()
 
     await header.getByRole('button', { name: 'Menu' }).click()
     const panel = page.getByTestId('mobile-nav-panel')
-    await expect(panel.getByRole('link', { name: 'Inventory' })).toBeVisible()
+    await expect(panel.getByRole('link', { name: 'Gallery' })).toBeVisible()
+    await expect(panel.getByRole('radio', { name: '日本語' })).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Toggle theme' })).toBeVisible()
 
-    await panel.getByRole('link', { name: 'Inventory' }).click()
-    await expect(page).toHaveURL(/\/en\/vehicles/)
+    await panel.getByRole('link', { name: 'Gallery' }).click()
+    await expect(page).toHaveURL(/\/en\/gallery/)
   })
 
-  test.describe('with a seeded vehicle', () => {
+  test.describe('with photos', () => {
     test.use({ storageState: AUTH_STATE_PATH })
 
-    test('vehicle detail: gallery advances on touch swipe', async ({ page }) => {
-      const ts = Date.now()
-      const vehicle = await createPublishedVehicle(page, {
-        makeName: `SwipeMake-${ts}`,
-        modelName: 'SwipeModel',
-        title: `Swipe Test Vehicle ${ts}`,
-        slug: `swipe-test-${ts}`,
-        galleryImages: 2,
+    test('hero photo drifts sideways on mobile without causing horizontal overflow', async ({ page }) => {
+      await withHeroSlide(page, async () => {
+        await page.goto('/en')
+        await page.waitForLoadState('networkidle')
+        const img = page.getByRole('region', { name: 'Featured photos' }).getByRole('img').first()
+        await expect(img).toHaveCSS('animation-name', 'hero-pan')
+        await assertNoHorizontalOverflow(page)
       })
-
-      await page.goto(`/en/vehicles/${vehicle.slug}`)
-      await page.waitForLoadState('networkidle')
-
-      const main = page.getByTestId('gallery-main')
-      await expect(main).toHaveAttribute('data-active-index', '0')
-      await swipeLeft(page, 'gallery-main')
-      await expect(main).toHaveAttribute('data-active-index', '1')
     })
 
-    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
-      const ts = Date.now()
-      const vehicle = await createPublishedVehicle(page, {
-        makeName: `OverflowMake-${ts}`,
-        modelName: 'OverflowModel',
-        title: `Overflow Test Vehicle ${ts}`,
-        slug: `overflow-test-${ts}`,
-      })
+    test('gallery: two columns, and a photo opens full-size in a lightbox that fits the screen', async ({ page }) => {
+      await withGalleryPhotos(page, 4, async () => {
+        await page.goto('/en/gallery')
+        await page.waitForLoadState('networkidle')
+        expect(await galleryColumnCount(page)).toBe(2)
 
-      await assertOverflowAndTimingAcrossPages(page, test.info(), 'mobile', vehicle.slug)
+        await page.getByRole('button', { name: 'Open photo 1' }).tap()
+        const dialog = page.getByRole('dialog')
+        await expect(dialog).toBeVisible()
+        const box = await dialog.boundingBox()
+        expect(box!.width).toBeLessThanOrEqual(VIEWPORTS.mobile.width)
+        await assertNoHorizontalOverflow(page)
+      })
     })
 
-    test('inquiry form: tap targets are >=44x44px and the form is submittable via tap', async ({ page }) => {
-      const ts = Date.now()
-      const vehicle = await createPublishedVehicle(page, {
-        makeName: `InquiryMake-${ts}`,
-        modelName: 'InquiryModel',
-        title: `Inquiry Test Vehicle ${ts}`,
-        slug: `inquiry-test-${ts}`,
+    test('landing and gallery pages: no horizontal overflow + load timing', async ({ page }) => {
+      await withGalleryPhotos(page, 3, async () => {
+        await assertOverflowAndTimingAcrossPages(page, test.info(), 'mobile')
       })
-
-      await page.goto(`/en/vehicles/${vehicle.slug}`)
-      await page.waitForLoadState('networkidle')
-
-      const form = page.locator('form')
-      const controls = form.locator('input, textarea, button')
-      const count = await controls.count()
-      expect(count).toBeGreaterThan(0)
-      for (let i = 0; i < count; i++) {
-        const box = await controls.nth(i).boundingBox()
-        expect(box).not.toBeNull()
-        expect(box!.height).toBeGreaterThanOrEqual(44)
-        expect(box!.width).toBeGreaterThanOrEqual(44)
-      }
-
-      await form.locator('[name="name"]').tap()
-      await form.locator('[name="name"]').fill('Tap Tester')
-      await form.locator('[name="email"]').tap()
-      await form.locator('[name="email"]').fill('tap@example.com')
-      await form.locator('[name="message"]').tap()
-      await form.locator('[name="message"]').fill('Testing tap-based submission on a small viewport.')
-      await form.getByRole('button', { name: /send inquiry/i }).tap()
-
-      await expect(page.getByText(/thank you/i)).toBeVisible()
     })
   })
 })
@@ -144,75 +132,36 @@ test.describe('Responsive — mobile (375px)', () => {
 test.describe('Responsive — tablet (768px)', () => {
   test.use({ viewport: VIEWPORTS.tablet })
 
-  test('vehicle listing: filter drawer opens, applies a filter, and closes', async ({ page }) => {
-    await page.goto('/en/vehicles')
-    await page.waitForLoadState('networkidle')
-    await assertNoHorizontalOverflow(page)
-
-    await page.getByRole('button', { name: 'Filters', exact: true }).click()
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toBeVisible()
-
-    await dialog.getByLabel('Body type').selectOption('suv')
-    await expect(dialog).not.toBeVisible()
-    await page.waitForURL(/bodyType=suv/)
+  test('header logo steps up to 32px tall', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(32, 0)
+    expect(box.width).toBeCloseTo(256, 0)
   })
 
-  test('header: menu toggle reveals nav links', async ({ page }) => {
+  test('header: inline nav is visible and the menu button is hidden at the md breakpoint', async ({ page }) => {
     await page.goto('/en')
     await page.waitForLoadState('networkidle')
     const header = page.getByRole('banner')
 
-    await expect(header.getByRole('button', { name: 'Menu' })).toBeVisible()
-    await expect(header.getByRole('link', { name: 'Inventory' })).not.toBeVisible()
-
-    await header.getByRole('button', { name: 'Menu' }).click()
-    await expect(page.getByTestId('mobile-nav-panel').getByRole('link', { name: 'Inventory' })).toBeVisible()
+    await expect(header.getByRole('link', { name: 'Gallery' })).toBeVisible()
+    await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
   })
 
-  test.describe('with a seeded vehicle', () => {
+  test.describe('with photos', () => {
     test.use({ storageState: AUTH_STATE_PATH })
 
-    test('vehicle listing: shows more than one card per row (intermediate layout)', async ({ page }) => {
-      const ts = Date.now()
-      await createPublishedVehicle(page, {
-        makeName: `TabGridMake-${ts}`,
-        modelName: 'GridModelA',
-        title: `Tab Grid A ${ts}`,
-        slug: `tab-grid-a-${ts}`,
+    test('gallery: three columns', async ({ page }) => {
+      await withGalleryPhotos(page, 6, async () => {
+        await page.goto('/en/gallery')
+        await page.waitForLoadState('networkidle')
+        expect(await galleryColumnCount(page)).toBe(3)
       })
-      await createPublishedVehicle(page, {
-        makeName: `TabGridMake2-${ts}`,
-        modelName: 'GridModelB',
-        title: `Tab Grid B ${ts}`,
-        slug: `tab-grid-b-${ts}`,
-      })
-
-      await page.goto('/en/vehicles')
-      await page.waitForLoadState('networkidle')
-      const cards = page.locator('a[href*="/vehicles/"]')
-      const count = await cards.count()
-      expect(count).toBeGreaterThanOrEqual(2)
-
-      const box0 = await cards.nth(0).boundingBox()
-      const box1 = await cards.nth(1).boundingBox()
-      expect(box0).not.toBeNull()
-      expect(box1).not.toBeNull()
-      // Same row => same (or near-same) top y-coordinate, and side-by-side x-coordinates.
-      expect(Math.abs(box0!.y - box1!.y)).toBeLessThan(5)
-      expect(box1!.x).toBeGreaterThan(box0!.x)
     })
 
-    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
-      const ts = Date.now()
-      const vehicle = await createPublishedVehicle(page, {
-        makeName: `TabOverflowMake-${ts}`,
-        modelName: 'TabOverflowModel',
-        title: `Tablet Overflow Test Vehicle ${ts}`,
-        slug: `tab-overflow-test-${ts}`,
+    test('landing and gallery pages: no horizontal overflow + load timing', async ({ page }) => {
+      await withGalleryPhotos(page, 3, async () => {
+        await assertOverflowAndTimingAcrossPages(page, test.info(), 'tablet')
       })
-
-      await assertOverflowAndTimingAcrossPages(page, test.info(), 'tablet', vehicle.slug)
     })
   })
 })
@@ -220,13 +169,10 @@ test.describe('Responsive — tablet (768px)', () => {
 test.describe('Responsive — desktop (1280px)', () => {
   test.use({ viewport: VIEWPORTS.desktop })
 
-  test('vehicle listing: sidebar filters render inline, no drawer trigger', async ({ page }) => {
-    await page.goto('/en/vehicles')
-    await page.waitForLoadState('networkidle')
-    await assertNoHorizontalOverflow(page)
-
-    await expect(page.getByLabel('Body type')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Filters', exact: true })).not.toBeVisible()
+  test('header logo is at its largest, 36px tall', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(36, 0)
+    expect(box.width).toBeCloseTo(288, 0)
   })
 
   test('header: full nav row visible, no menu toggle', async ({ page }) => {
@@ -234,34 +180,34 @@ test.describe('Responsive — desktop (1280px)', () => {
     await page.waitForLoadState('networkidle')
     const header = page.getByRole('banner')
 
-    await expect(header.getByRole('link', { name: 'Inventory' })).toBeVisible()
+    await expect(header.getByRole('link', { name: 'Gallery' })).toBeVisible()
     await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
   })
 
-  test('landing and about pages: no hamburger/drawer, pre-feature desktop structure', async ({ page }) => {
-    for (const path of ['/en', '/en/about']) {
-      await page.goto(path)
-      await page.waitForLoadState('networkidle')
-      const header = page.getByRole('banner')
-      await expect(header.getByRole('link', { name: 'Inventory' })).toBeVisible()
-      await expect(header.getByRole('button', { name: 'Menu' })).not.toBeVisible()
-      await expect(page.getByRole('button', { name: 'Filters', exact: true })).toHaveCount(0)
-    }
-  })
-
-  test.describe('with a seeded vehicle', () => {
+  test.describe('with photos', () => {
     test.use({ storageState: AUTH_STATE_PATH })
 
-    test('landing, vehicle detail, and about pages: no horizontal overflow + load timing', async ({ page }) => {
-      const ts = Date.now()
-      const vehicle = await createPublishedVehicle(page, {
-        makeName: `DeskOverflowMake-${ts}`,
-        modelName: 'DeskOverflowModel',
-        title: `Desktop Overflow Test Vehicle ${ts}`,
-        slug: `desk-overflow-test-${ts}`,
+    test('hero photo stays still on desktop', async ({ page }) => {
+      await withHeroSlide(page, async () => {
+        await page.goto('/en')
+        await page.waitForLoadState('networkidle')
+        const img = page.getByRole('region', { name: 'Featured photos' }).getByRole('img').first()
+        await expect(img).toHaveCSS('animation-name', 'none')
       })
+    })
 
-      await assertOverflowAndTimingAcrossPages(page, test.info(), 'desktop', vehicle.slug)
+    test('gallery: four columns', async ({ page }) => {
+      await withGalleryPhotos(page, 8, async () => {
+        await page.goto('/en/gallery')
+        await page.waitForLoadState('networkidle')
+        expect(await galleryColumnCount(page)).toBe(4)
+      })
+    })
+
+    test('landing and gallery pages: no horizontal overflow + load timing', async ({ page }) => {
+      await withGalleryPhotos(page, 3, async () => {
+        await assertOverflowAndTimingAcrossPages(page, test.info(), 'desktop')
+      })
     })
   })
 })

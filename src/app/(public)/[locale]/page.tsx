@@ -1,204 +1,171 @@
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { Clock, ExternalLink, Mail, MapPin, Phone } from 'lucide-react'
 import { getPayload } from '@/lib/payload'
-import { getSiteSettings } from '@/lib/site-settings'
+import { getGalleryPhotos } from '@/lib/gallery'
 import { resolveLocalizedField } from '@/lib/content-locale'
-import { VehicleCard } from '@/components/vehicles/VehicleCard'
-import { ServiceCard } from '@/components/homepage/ServiceCard'
-import { StepItem } from '@/components/homepage/StepItem'
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, JAPAN_STORE_URL, MAP_URL } from '@/lib/shop-links'
+import { HeroCarousel, type HeroSlide } from '@/components/home/HeroCarousel'
+import { InstagramIcon } from '@/components/layout/InstagramIcon'
 import { Link } from '@/components/layout/Link'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   params: Promise<{ locale: string }>
 }
 
+// Landing copy lives in src/messages/{ja,en}.json. Only the hero photos (Homepage global)
+// and the gallery photos (Gallery global) come from the CMS; the page re-renders at most
+// once a minute.
+export const revalidate = 60
+
+type MediaDoc = { url?: string | null; altJa?: string | null; altEn?: string | null }
+
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
+  setRequestLocale(locale)
   const activeLocale = locale as 'ja' | 'en'
-  const t = await getTranslations('hero')
-  const tHome = await getTranslations('homepage')
-  const tVehicle = await getTranslations('vehicle')
-  const payload = await getPayload()
+  const t = await getTranslations({ locale, namespace: 'hero' })
+  const tLanding = await getTranslations({ locale, namespace: 'landing' })
+  const tShop = await getTranslations({ locale, namespace: 'shop' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
+  const services = tLanding.raw('services') as { title: string; body: string }[]
 
-  // `locale` is still passed to findGlobal — required for heroStats/services/steps/
-  // shopSection/ctaBanner, which remain localized: true (out of scope for
-  // specs/003-remove-payload-localization). It has no effect on heroHeadingJa/En,
-  // heroSubheadingJa/En, or whyUsPoints[].headingJa/En/bodyJa/En below.
-  const [homepage, siteSettings] = await Promise.all([
-    payload.findGlobal({ slug: 'homepage', locale: activeLocale }),
-    getSiteSettings(activeLocale),
-  ])
-
-  const heroHeading = resolveLocalizedField(homepage.heroHeadingJa as string, homepage.heroHeadingEn as string, activeLocale)
-  const heroSubheading = resolveLocalizedField(
-    homepage.heroSubheadingJa as string,
-    homepage.heroSubheadingEn as string,
-    activeLocale,
-  )
-
-  let featuredVehicles: any[] = []
-  if (homepage.featuredVehicles && (homepage.featuredVehicles as any[]).length > 0) {
-    featuredVehicles = homepage.featuredVehicles as any[]
-  } else {
-    const result = await payload.find({
-      collection: 'vehicles',
-      where: { status: { equals: 'available' } },
-      sort: '-createdAt',
-      limit: 6,
-      locale: locale as 'ja' | 'en',
-    })
-    featuredVehicles = result.docs
+  // A CMS read failure (e.g. the DB not yet migrated) must degrade to a photo-less page,
+  // not a 500 — the copy and links don't depend on it.
+  let heroSlides: HeroSlide[] = []
+  try {
+    const payload = await getPayload()
+    const homepage = await payload.findGlobal({ slug: 'homepage', locale: activeLocale })
+    heroSlides = ((homepage.heroSlides as any[]) ?? [])
+      .map((row) => {
+        const media = row?.image as MediaDoc | null
+        if (!media?.url) return null
+        return { url: media.url, alt: resolveLocalizedField(media.altJa, media.altEn, activeLocale) || tShop('name') }
+      })
+      .filter((s): s is HeroSlide => !!s)
+  } catch (error) {
+    console.error('Landing page CMS read failed:', error)
   }
+  const proofPhotos = (await getGalleryPhotos(activeLocale)).slice(0, 5)
 
-  const heroStats = (homepage.heroStats as any[]) ?? []
-  const services = (homepage.services as any[]) ?? []
-  const steps = (homepage.steps as any[]) ?? []
-  const shopSection = (homepage.shopSection as any) ?? {}
-  const ctaBanner = (homepage.ctaBanner as any) ?? {}
+  const directionsUrl = MAP_URL || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tShop('address'))}`
+  const onBrand = 'border-brand-foreground/40 bg-transparent text-brand-foreground hover:bg-brand-foreground/10 hover:text-brand-foreground'
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative bg-black text-white min-h-[70vh] flex items-center">
-        {homepage.heroImage && (
-          <img
-            src={(homepage.heroImage as any).url}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-40"
-          />
-        )}
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 w-full">
-          {siteSettings.shopName && <p className="takumi-eyebrow text-primary mb-4">{siteSettings.shopName}</p>}
-          <h1 className="takumi-display text-5xl sm:text-6xl mb-4">{heroHeading || t('cta')}</h1>
-          {heroSubheading && (
-            <p className="text-lg sm:text-xl mb-8 text-white/70 max-w-2xl">{heroSubheading}</p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={`/${locale}/vehicles`}
-              className="inline-flex items-center justify-center min-h-11 px-6 py-2.5 rounded-none bg-primary text-primary-foreground font-medium hover:opacity-90 transition uppercase tracking-wide text-sm"
-            >
-              {t('ctaPrimary')}
-            </Link>
-            <Link
-              href={`/${locale}/vehicles`}
-              className="inline-flex items-center justify-center min-h-11 px-6 py-2.5 rounded-none border border-white/30 text-white font-medium hover:bg-white/10 transition uppercase tracking-wide text-sm"
-            >
-              {t('ctaSecondary')}
-            </Link>
+      <HeroCarousel slides={heroSlides}>
+        <div className="flex flex-col items-start gap-4 bg-brand p-6 text-brand-foreground md:max-w-xl md:p-10">
+          <h1 className="text-3xl leading-[1.1] font-extrabold tracking-tight uppercase sm:text-4xl md:text-5xl">{t('heading')}</h1>
+          <p className="text-lg font-medium">{t('subheading')}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="lg" className="bg-hero-overlay text-white hover:bg-hero-overlay/90" asChild>
+              <Link href={`/${locale}/gallery`}>{t('ctaPrimary')}</Link>
+            </Button>
+            <Button size="lg" variant="outline" className={onBrand} asChild>
+              <a href="#find-us">{t('ctaSecondary')}</a>
+            </Button>
+            {JAPAN_STORE_URL && (
+              <Button size="lg" variant="outline" className={onBrand} asChild>
+                <a href={JAPAN_STORE_URL} target="_blank" rel="noopener noreferrer">
+                  {tNav('japanStore')}
+                  <ExternalLink />
+                </a>
+              </Button>
+            )}
+            <Button size="lg" variant="outline" className={onBrand} asChild>
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                <InstagramIcon />
+                {tNav('instagram')}
+              </a>
+            </Button>
           </div>
-
-          {heroStats.length > 0 && (
-            <div className="flex flex-wrap gap-8 mt-14 pt-8 border-t border-white/15">
-              {heroStats.map((stat: any, i: number) => (
-                <div key={i}>
-                  <p className="takumi-display text-4xl text-primary">{stat.value}</p>
-                  <p className="text-sm text-white/60 mt-1">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+      </HeroCarousel>
+
+      <section className="container mx-auto px-4 pt-14">
+        <h2 className="mb-4 text-sm font-semibold tracking-widest text-muted-foreground uppercase">{tLanding('servicesHeading')}</h2>
+        <ol>
+          {services.map((service, i) => (
+            <li key={service.title} className="flex flex-col gap-1 border-b py-5 first:border-t md:flex-row md:items-baseline md:gap-8">
+              <span className="text-3xl font-extrabold text-brand tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="text-xl font-semibold md:w-72">{service.title}</h3>
+              <p className="text-muted-foreground md:flex-1">{service.body}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {/* Services */}
-      {services.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-16">
-          <h2 className="takumi-eyebrow text-primary mb-2">{tHome('servicesHeading')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-            {services.map((service: any, i: number) => (
-              <ServiceCard key={i} icon={service.icon} name={service.name} description={service.description} priceFrom={service.priceFrom} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Featured vehicles */}
-      {featuredVehicles.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="takumi-eyebrow text-primary">{tHome('featuredHeading')}</h2>
-            <Link href={`/${locale}/vehicles`} className="text-sm font-medium text-primary hover:underline">
-              {tHome('viewAllVehicles')}
+      {proofPhotos.length > 0 && (
+        <section className="container mx-auto px-4 pt-14">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-extrabold tracking-tight uppercase">{tLanding('proofHeading')}</h2>
+            <Link href={`/${locale}/gallery`} className="text-sm font-medium underline underline-offset-4">
+              {tLanding('proofLink')} →
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredVehicles.map((vehicle: any) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Three steps */}
-      {steps.length > 0 && (
-        <section className="bg-muted py-16">
-          <div className="max-w-7xl mx-auto px-6">
-            <h2 className="takumi-eyebrow text-primary mb-8">{tHome('stepsHeading')}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-              {steps.map((step: any, i: number) => (
-                <StepItem key={i} index={i + 1} title={step.title} description={step.description} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Shop teaser */}
-      {(shopSection.heading || shopSection.image) && (
-        <section className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div className="aspect-[4/3] bg-muted rounded-lg overflow-hidden order-2 lg:order-1">
-            {shopSection.image && (
-              <img src={(shopSection.image as any).url} alt="" className="w-full h-full object-cover" />
-            )}
-          </div>
-          <div className="order-1 lg:order-2">
-            <h2 className="takumi-display text-3xl mb-4">{shopSection.heading}</h2>
-            <p className="text-muted-foreground mb-6">{shopSection.body}</p>
-            {shopSection.linkText && (
-              <Link href={`/${locale}/about`} className="text-primary font-medium hover:underline">
-                {shopSection.linkText} →
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:grid-rows-2">
+            {proofPhotos.map((photo, i) => (
+              <Link
+                key={photo.id}
+                href={`/${locale}/gallery`}
+                className={`block overflow-hidden rounded-lg bg-muted ${i === 0 ? 'col-span-2 row-span-2 aspect-[4/3] md:aspect-auto' : 'aspect-[4/3]'}`}
+              >
+                <img src={photo.thumb} alt={photo.alt} loading="lazy" className="h-full w-full object-cover transition hover:scale-[1.03]" />
               </Link>
-            )}
+            ))}
           </div>
         </section>
       )}
 
-      {/* CTA banner */}
-      {ctaBanner.heading && (
-        <section className="bg-black text-white py-16 text-center">
-          <div className="max-w-2xl mx-auto px-6">
-            <h2 className="takumi-display text-3xl sm:text-4xl mb-3">{ctaBanner.heading}</h2>
-            <p className="text-white/70 mb-8">{ctaBanner.body}</p>
-            <Link
-              href={`/${locale}/vehicles`}
-              className="inline-flex items-center justify-center min-h-11 px-8 py-2.5 rounded-none bg-primary text-primary-foreground font-medium hover:opacity-90 transition uppercase tracking-wide text-sm"
-            >
-              {ctaBanner.buttonText}
-            </Link>
+      <section id="find-us" className="mt-14 scroll-mt-16 bg-hero-overlay py-12 text-white">
+        <div className="container mx-auto grid gap-8 px-4 md:grid-cols-[1fr_1.4fr] md:items-center">
+          <div>
+            <h2 className="text-3xl leading-tight font-extrabold tracking-tight uppercase md:text-4xl">{tLanding('findHeading')}</h2>
+            <Button size="lg" className="mt-5 bg-brand text-brand-foreground hover:bg-brand/90" asChild>
+              <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+                <MapPin />
+                {tLanding('directions')}
+              </a>
+            </Button>
           </div>
-        </section>
-      )}
-
-      {/* Why us */}
-      {homepage.whyUsPoints && (homepage.whyUsPoints as any[]).length > 0 && (
-        <section className="bg-muted py-16">
-          <div className="max-w-7xl mx-auto px-6">
-            <h2 className="text-3xl font-bold mb-10 text-center">
-              {locale === 'ja' ? '選ばれる理由' : 'Why Choose Us'}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {(homepage.whyUsPoints as any[]).map((point: any, i: number) => (
-                <div key={i} className="text-center">
-                  <h3 className="text-xl font-semibold mb-2">
-                    {resolveLocalizedField(point.headingJa, point.headingEn, activeLocale)}
-                  </h3>
-                  <p className="text-muted-foreground">{resolveLocalizedField(point.bodyJa, point.bodyEn, activeLocale)}</p>
-                </div>
-              ))}
+          <dl className="grid gap-4 text-white/90 sm:grid-cols-2">
+            <div className="flex gap-3">
+              <MapPin className="mt-1 size-4 shrink-0 text-brand" aria-hidden="true" />
+              <div>
+                <dt className="text-sm text-white/60">{tLanding('addressLabel')}</dt>
+                <dd>{tShop('address')}</dd>
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+            <div className="flex gap-3">
+              <Clock className="mt-1 size-4 shrink-0 text-brand" aria-hidden="true" />
+              <div>
+                <dt className="text-sm text-white/60">{tLanding('hoursLabel')}</dt>
+                <dd>{tShop('hours')}</dd>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Phone className="mt-1 size-4 shrink-0 text-brand" aria-hidden="true" />
+              <div>
+                <dt className="text-sm text-white/60">{tLanding('phoneLabel')}</dt>
+                <dd>{tShop('phone')}</dd>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Mail className="mt-1 size-4 shrink-0 text-brand" aria-hidden="true" />
+              <div>
+                <dt className="text-sm text-white/60">{tLanding('emailLabel')}</dt>
+                <dd className="break-all">{tShop('email')}</dd>
+              </div>
+            </div>
+            <div className="flex gap-3 sm:col-span-2">
+              <InstagramIcon className="mt-1 size-4 shrink-0 text-brand" />
+              <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                {INSTAGRAM_HANDLE}
+              </a>
+            </div>
+          </dl>
+        </div>
+      </section>
     </div>
   )
 }

@@ -92,6 +92,7 @@ export default async function globalSetup() {
     data: {
       services: [{ name: '車検・整備' }],
       steps: [{ title: '車両を選ぶ' }],
+      ctaBanner: { heading: '次の一台をお探しですか？', body: 'ご希望をお聞かせください。', buttonText: 'お問い合わせ' },
     },
   })
   if (!homepageJaRes.ok()) {
@@ -106,10 +107,10 @@ export default async function globalSetup() {
       // plain, non-localized fields (see specs/003-remove-payload-localization) — set here in
       // the same request as the still-localized `en` fields below since ?locale has no effect
       // on them.
-      heroHeadingJa: '厳選されたJDMクラシックス',
-      heroHeadingEn: 'Handpicked JDM Classics',
-      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      heroHeadingJa: 'あなたの最高の一台を、私たちから',
+      heroHeadingEn: 'Your best car, from us',
+      heroSubheadingJa: '確かな品質で、お届けします。',
+      heroSubheadingEn: 'We deliver with excellence.',
       whyUsPoints: [
         { headingJa: '徹底検査済み', headingEn: 'Thoroughly Inspected', bodyJa: 'すべての車両は検査済みです。', bodyEn: 'Every vehicle is inspected.' },
       ],

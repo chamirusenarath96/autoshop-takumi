@@ -15,6 +15,12 @@ export const Media: CollectionConfig = {
   admin: {
     useAsTitle: 'filename',
   },
+  // Photos are public site content: without this, Payload's default (auth required) makes
+  // /api/media/file/<name> return 403 to visitors wherever uploads are served by the app
+  // itself (local dev, preview deployments without R2), leaving every image broken.
+  access: {
+    read: () => true,
+  },
   fields: [
     {
       type: 'row',
@@ -38,6 +44,8 @@ export const Media: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       admin: { readOnly: true },
+      // Public media reads must not expose which staff user uploaded a file.
+      access: { read: ({ req }) => Boolean(req.user) },
     },
   ],
   hooks: {

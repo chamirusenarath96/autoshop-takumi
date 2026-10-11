@@ -4,7 +4,7 @@ This file is read automatically by Claude Code. Keep it accurate as the project 
 
 ## What this is
 
-A bilingual (Japanese/English) vehicle sales website for Autoshop Takumi: landing page, filterable vehicle inventory, vehicle detail with inquiry form, and a Payload CMS admin dashboard. Built to be reusable as a template for other dealerships.
+A bilingual (Japanese/English) portfolio site for Autoshop Takumi: a landing page (hero carousel, services, recent deliveries, how to find us) and a photo-only Gallery page, plus a Payload CMS admin dashboard. The public inventory/detail/About pages were removed; the Vehicles collection remains in the admin but no public page reads it. Landing copy and shop details live in `src/messages/*.json` and `src/lib/shop-links.ts`; only the hero photos (`Homepage.heroSlides`) and gallery photos (`Gallery.photos`) come from the CMS. Built to be reusable as a template for other dealerships.
 
 ## Stack
 
@@ -96,7 +96,7 @@ Two independent stylesheet systems, never imported into each other:
 | File | `src/app/globals.css` | `@payloadcms/next/css` (Payload's own package, imported by us) |
 | Imported by | `src/app/(public)/[locale]/layout.tsx` only | `src/app/(payload)/layout.tsx` only |
 | System | Tailwind CSS v4 + custom brand tokens | Payload's complete prebuilt admin stylesheet |
-| Scoping | `[data-public] body { ... }` — only applies when `<html data-public>` is set (public layout sets this) | Global on admin routes only, since the admin route group never loads `globals.css` |
+| Scoping | Stock shadcn tokens in `@layer base`; only loaded via the public layout, so never reaches admin routes (public layout still sets `<html data-public>`) | Global on admin routes only, since the admin route group never loads `globals.css` |
 
 **Why we explicitly import `@payloadcms/next/css`:** Payload's `RootLayout` (from `@payloadcms/next/layouts`) internally does `import '@payloadcms/ui/scss/app.scss'`, expecting that to compile into the full admin stylesheet (root theme variables, plus every view's own CSS — login page layout, nav sidebar, etc.). In this project's Next.js 15.5 + webpack build, that internal SCSS import fails to compile correctly — not just the root `:root` variable block, but **entire view-level stylesheets** (e.g. the login page's `.template-minimal`/`.login__*` classes) are silently absent from the served CSS, in both dev and production builds. Verified by: standalone Sass compile of the same files (correct output); running that correct output through Tailwind's PostCSS plugin and Lightning CSS in isolation (no corruption in either); confirming `@payloadcms/ui`'s `sideEffects` config correctly prevents tree-shaking; confirming `sassOptions` survives the `withNextIntl(withPayload(...))` plugin chain. The exact webpack mechanism is still unidentified.
 

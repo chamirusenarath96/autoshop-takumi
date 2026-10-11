@@ -1,76 +1,65 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import type { SiteSettingsData } from '@/lib/site-settings'
+import { Link } from './Link'
+import { Separator } from '@/components/ui/separator'
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, JAPAN_STORE_URL } from '@/lib/shop-links'
 
-type Props = { locale: string; siteSettings: SiteSettingsData }
+type Props = { locale: string }
 
-export function Footer({ locale, siteSettings }: Props) {
+export function Footer({ locale }: Props) {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
+  const tShop = useTranslations('shop')
+  const shopName = tShop('name')
 
   return (
-    <footer className="mt-20 text-white" style={{ backgroundColor: 'var(--nav-bg)' }}>
-      <div className="h-1" style={{ backgroundColor: 'var(--primary)' }} />
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-3 gap-10">
-        {/* Brand */}
-        <div>
-          <img src="/logo.png" alt={siteSettings.shopName || 'Autoshop Takumi'} className="h-8 w-auto object-contain mb-4" />
-          <p className="text-white/60 text-sm leading-relaxed">{t('slogan')}</p>
+    <footer id="contact" className="mt-16 border-t bg-muted">
+      <div className="container mx-auto grid grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-3">
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold">{shopName}</p>
+          <p className="text-sm text-muted-foreground">{t('slogan')}</p>
         </div>
 
-        {/* Navigation */}
-        <div>
-          <p className="takumi-eyebrow text-white/50 mb-4">{t('navigationHeading')}</p>
-          <nav className="space-y-2">
-            {[
-              { href: `/${locale}`, label: tNav('home') },
-              { href: `/${locale}/vehicles`, label: tNav('vehicles') },
-              { href: `/${locale}/about`, label: tNav('about') },
-            ].map((l) => (
-              <a key={l.href} href={l.href} className="block text-sm text-white/60 transition hover:text-primary">
-                {l.label}
-              </a>
-            ))}
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">{t('navigationHeading')}</p>
+          <nav className="flex flex-col gap-1 text-sm text-muted-foreground">
+            <Link href={`/${locale}`} className="hover:text-foreground">
+              {tNav('home')}
+            </Link>
+            <Link href={`/${locale}/gallery`} className="hover:text-foreground">
+              {tNav('gallery')}
+            </Link>
           </nav>
         </div>
 
-        {/* Contact */}
-        <div>
-          <p className="takumi-eyebrow text-white/50 mb-4">{t('contactHeading')}</p>
-          <div className="space-y-1.5 text-sm text-white/60">
-            {siteSettings.contactPhone && <p>{siteSettings.contactPhone}</p>}
-            {siteSettings.contactEmail && <p>{siteSettings.contactEmail}</p>}
-            {siteSettings.address && (
-              <p className="leading-relaxed pt-1 whitespace-pre-line">{siteSettings.address}</p>
-            )}
-            {siteSettings.businessHours && (
-              <p className="leading-relaxed pt-1 text-white/50">{siteSettings.businessHours}</p>
-            )}
-            {siteSettings.instagramUrl && (
-              <a
-                href={siteSettings.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 pt-2 text-white/70 transition hover:text-primary"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                </svg>
-                {siteSettings.instagramHandle}
-              </a>
-            )}
-          </div>
+        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+          <p className="mb-1 text-sm font-medium text-foreground">{t('contactHeading')}</p>
+          <p>{tShop('phone')}</p>
+          <p>{tShop('email')}</p>
+          <p className="whitespace-pre-line">{tShop('address')}</p>
+          <p>{tShop('hours')}</p>
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('followUs')}
+            className="hover:text-foreground"
+          >
+            {INSTAGRAM_HANDLE}
+          </a>
+          {JAPAN_STORE_URL && (
+            <a href={JAPAN_STORE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+              {tNav('japanStore')} ↗
+            </a>
+          )}
         </div>
       </div>
 
-      <div className="border-t border-white/10 py-4">
-        <p className="text-center text-xs text-white/30" data-testid="footer-copyright">
-          © {new Date().getFullYear()} {siteSettings.shopName || 'Autoshop Takumi'}. {t('rights')}
-        </p>
-      </div>
+      <Separator />
+      <p className="py-4 text-center text-xs text-muted-foreground" data-testid="footer-copyright">
+        © {new Date().getFullYear()} {shopName}. {t('rights')}
+      </p>
     </footer>
   )
 }

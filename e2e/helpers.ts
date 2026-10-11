@@ -133,15 +133,13 @@ export async function assertNoHorizontalOverflow(page: Page) {
 /** Views covered by visual regression snapshots — see e2e/visual.spec.ts. */
 export type VisualView =
   | 'landing'
-  | 'listing'
-  | 'vehicle-detail'
-  | 'about'
+  | 'gallery'
   | 'admin-login'
   | 'admin-dashboard'
   | 'admin-vehicles-list'
   | 'admin-vehicles-edit'
 
-const PUBLIC_VIEWS: VisualView[] = ['landing', 'listing', 'vehicle-detail', 'about']
+const PUBLIC_VIEWS: VisualView[] = ['landing', 'gallery']
 
 /**
  * Returns fresh Locators for the genuinely run-varying regions of a given visual-test

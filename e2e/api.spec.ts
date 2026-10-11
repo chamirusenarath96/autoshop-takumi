@@ -374,12 +374,21 @@ test.describe('Media API', () => {
     expect(Array.isArray(body.docs)).toBe(true)
   })
 
-  test('GET /api/media — unauthenticated requests are rejected', async ({ baseURL }) => {
-    // Media has no `access` block either, so it's also auth-required by
-    // Payload's default. Vehicle photos still render publicly because the
-    // <img> src is the direct static file URL under /media, not a call to
-    // this REST endpoint.
-    const res = await fetch(`${baseURL}/api/media`)
-    expect(res.status).toBe(403)
+  test('GET /api/media — public reads work, but uploader identity is not exposed', async ({ baseURL }) => {
+    // Photos are public site content; without public read the file route returns 403 to
+    // visitors and every image on the site is broken wherever the app serves uploads itself.
+    const res = await fetch(`${baseURL}/api/media?limit=1`)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    for (const doc of body.docs) expect(doc).not.toHaveProperty('uploadedBy')
+  })
+
+  test('GET /api/media/file/<name> — an uploaded photo is served to anonymous visitors', async ({ page, baseURL }) => {
+    const list = await page.request.get('/api/media?limit=1')
+    const doc = (await list.json()).docs[0]
+    test.skip(!doc, 'no media uploaded yet in this database')
+    const res = await fetch(`${baseURL}${doc.url}`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toMatch(/^image\//)
   })
 })

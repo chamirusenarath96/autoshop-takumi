@@ -47,6 +47,16 @@ export const Homepage: GlobalConfig = {
       relationTo: 'media',
     },
     {
+      name: 'heroSlides',
+      type: 'array',
+      label: 'Hero carousel slides',
+      admin: {
+        description:
+          'Landscape 4:3, 2000×1500 px (JPEG/WebP, under 600 KB) — upload the full uncropped photo. Keep the car in the lower-middle of the frame: desktops crop the top and bottom, phones show the whole photo. 3–6 slides.',
+      },
+      fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
+    },
+    {
       name: 'aboutBlurbJa',
       type: 'richText',
       label: 'About Blurb (Japanese)',

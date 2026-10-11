@@ -2,35 +2,29 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { Footer } from '../Footer'
-import messages from '@/messages/en.json'
-import type { SiteSettingsData } from '@/lib/site-settings'
+import en from '@/messages/en.json'
+import ja from '@/messages/ja.json'
+import { INSTAGRAM_URL } from '@/lib/shop-links'
 
-const baseSiteSettings: SiteSettingsData = {
-  shopName: 'Autoshop Takumi',
-  contactEmail: 'hi@example.com',
-  contactPhone: '022-342-2285',
-  address: null,
-  businessHours: null,
-  instagramUrl: null,
-  instagramHandle: null,
-}
-
-function renderFooter(overrides: Partial<SiteSettingsData> = {}) {
+function renderFooter(locale: 'en' | 'ja' = 'en') {
   return render(
-    <NextIntlClientProvider locale="en" messages={messages}>
-      <Footer locale="en" siteSettings={{ ...baseSiteSettings, ...overrides }} />
+    <NextIntlClientProvider locale={locale} messages={locale === 'en' ? en : ja}>
+      <Footer locale={locale} />
     </NextIntlClientProvider>,
   )
 }
 
 describe('Footer', () => {
-  it('renders business hours when configured', () => {
-    renderFooter({ businessHours: 'Mon–Sat 9:00–18:00, closed Sundays' })
-    expect(screen.getByText('Mon–Sat 9:00–18:00, closed Sundays')).toBeInTheDocument()
+  it('renders contact details and business hours from the translation files, not the CMS', () => {
+    renderFooter('en')
+    expect(screen.getByText(en.shop.phone)).toBeInTheDocument()
+    expect(screen.getByText(en.shop.hours)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Follow us on Instagram' })).toHaveAttribute('href', INSTAGRAM_URL)
   })
 
-  it('renders without business hours when not configured', () => {
-    renderFooter({ businessHours: null })
-    expect(screen.queryByText(/closed Sundays/)).not.toBeInTheDocument()
+  it('renders the Japanese shop name and hours in the ja locale', () => {
+    renderFooter('ja')
+    expect(screen.getAllByText(ja.shop.name).length).toBeGreaterThan(0)
+    expect(screen.getByText(ja.shop.hours)).toBeInTheDocument()
   })
 })

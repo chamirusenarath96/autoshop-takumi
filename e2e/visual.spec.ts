@@ -29,38 +29,11 @@ test.describe('Visual — public site', () => {
   }
 
   for (const vp of VIEWPORT_NAMES) {
-    test(`vehicle listing — no filter — ${vp}`, async ({ page }) => {
+    test(`gallery — ${vp}`, async ({ page }) => {
       await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto('/en/vehicles')
+      await page.goto('/en/gallery')
       await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`listing-nofilter-${vp}.png`, { mask: getVisualMasks(page, 'listing'), fullPage: true })
-    })
-  }
-
-  for (const vp of VIEWPORT_NAMES) {
-    test(`vehicle listing — filtered by make — ${vp}`, async ({ page }) => {
-      await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto(`/en/vehicles?make=${fixture.makeId}`)
-      await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`listing-filtered-${vp}.png`, { mask: getVisualMasks(page, 'listing'), fullPage: true })
-    })
-  }
-
-  for (const vp of VIEWPORT_NAMES) {
-    test(`vehicle detail — ${vp}`, async ({ page }) => {
-      await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto(`/en/vehicles/${fixture.vehicleSlug}`)
-      await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`detail-${vp}.png`, { mask: getVisualMasks(page, 'vehicle-detail'), fullPage: true })
-    })
-  }
-
-  for (const vp of VIEWPORT_NAMES) {
-    test(`about page — ${vp}`, async ({ page }) => {
-      await page.setViewportSize(VIEWPORTS[vp])
-      await page.goto('/en/about')
-      await page.waitForLoadState('networkidle')
-      await expect(page).toHaveScreenshot(`about-${vp}.png`, { mask: getVisualMasks(page, 'about'), fullPage: true })
+      await expect(page).toHaveScreenshot(`gallery-${vp}.png`, { mask: getVisualMasks(page, 'gallery'), fullPage: true })
     })
   }
 })

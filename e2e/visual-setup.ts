@@ -72,6 +72,7 @@ async function main() {
     data: {
       services: [{ name: '車検・整備' }],
       steps: [{ title: '車両を選ぶ' }],
+      ctaBanner: { heading: '次の一台をお探しですか？', body: 'ご希望をお聞かせください。', buttonText: 'お問い合わせ' },
     },
   })
   if (!homepageJaRes.ok()) {
@@ -80,10 +81,10 @@ async function main() {
 
   const homepageRes = await apiCtx.post('/api/globals/homepage?locale=en', {
     data: {
-      heroHeadingJa: '厳選されたJDMクラシックス',
-      heroHeadingEn: 'Handpicked JDM Classics',
-      heroSubheadingJa: '品質検査済み車両。バイリンガルサービス。全世界発送対応。',
-      heroSubheadingEn: 'Quality inspected vehicles. Bilingual service. Worldwide shipping.',
+      heroHeadingJa: 'あなたの最高の一台を、私たちから',
+      heroHeadingEn: 'Your best car, from us',
+      heroSubheadingJa: '確かな品質で、お届けします。',
+      heroSubheadingEn: 'We deliver with excellence.',
       heroStats: [{ value: '22', label: 'years in business' }],
       services: [{ icon: 'Wrench', name: 'Shaken & servicing', description: 'Certified inspection and legal maintenance.', priceFrom: 'From ¥8,000' }],
       steps: [{ title: 'Browse the lot', description: 'Find a car you like from our current inventory.' }],
@@ -155,6 +156,16 @@ async function main() {
   const vehicleData = await vehicleRes.json()
   if (vehicleRes.status() !== 201) {
     throw new Error(`Fixture vehicle create failed: ${JSON.stringify(vehicleData.errors ?? vehicleData)}`)
+  }
+
+  // Gallery photos for the /gallery visual snapshot and the landing "delivered recently" collage.
+  const galleryIds: number[] = []
+  for (let i = 0; i < 3; i++) galleryIds.push(await uploadMedia(fixturePage))
+  const galleryRes = await fixturePage.request.post('/api/globals/gallery', {
+    data: { photos: galleryIds.map((image) => ({ image })) },
+  })
+  if (!galleryRes.ok()) {
+    throw new Error(`Gallery seed failed (${galleryRes.status()}): ${await galleryRes.text()}`)
   }
 
   await fixtureCtx.close()

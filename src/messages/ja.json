@@ -1,111 +1,25 @@
 {
   "nav": {
     "home": "ホーム",
-    "vehicles": "在庫車両",
-    "about": "会社概要",
-    "contact": "お問い合わせ",
     "followUs": "Instagramでフォローする",
     "menu": "メニュー",
-    "closeMenu": "メニューを閉じる"
+    "closeMenu": "メニューを閉じる",
+    "toggleTheme": "テーマを切り替え",
+    "japanStore": "日本国内の販売サイト",
+    "instagram": "Instagram",
+    "gallery": "ギャラリー"
   },
   "hero": {
-    "cta": "在庫を見る",
-    "ctaPrimary": "在庫を見る",
-    "ctaSecondary": "お問い合わせ"
-  },
-  "homepage": {
-    "servicesHeading": "サービス",
-    "stepsHeading": "ご利用の流れ",
-    "featuredHeading": "入荷車両",
-    "viewAllVehicles": "すべての在庫を見る"
-  },
-  "vehicles": {
-    "title": "在庫車両",
-    "filters": {
-      "make": "メーカー",
-      "model": "モデル",
-      "year": "年式",
-      "yearFrom": "年式（から）",
-      "yearTo": "年式（まで）",
-      "priceFrom": "価格（から）",
-      "priceTo": "価格（まで）",
-      "bodyType": "ボディタイプ",
-      "transmission": "トランスミッション",
-      "all": "すべて",
-      "reset": "リセット",
-      "openFilters": "絞り込み",
-      "closeFilters": "閉じる"
+    "ctaPrimary": "納車事例を見る",
+    "heading": "精度に駆られ、信頼に支えられ、匠がお届けします。",
+    "subheading": "あなたの最高の一台を、私たちから。",
+    "carousel": {
+      "label": "注目の写真",
+      "previous": "前へ",
+      "next": "次へ",
+      "goTo": "スライド{n}へ"
     },
-    "sort": {
-      "label": "並び替え",
-      "newest": "新着順",
-      "priceLow": "価格（低い順）",
-      "priceHigh": "価格（高い順）"
-    },
-    "status": {
-      "available": "在庫あり",
-      "reserved": "商談中",
-      "sold": "売約済"
-    },
-    "priceOnRequest": "要お問い合わせ",
-    "noResults": "該当する車両が見つかりませんでした",
-    "loadMore": "さらに読み込む",
-    "km": "km",
-    "year": "年"
-  },
-  "vehicle": {
-    "highlights": "特徴",
-    "specs": "スペック",
-    "gallery": "ギャラリー",
-    "related": "関連車両",
-    "shaken": "車検",
-    "inquiry": "お問い合わせ",
-    "shakenExpiry": "車検有効期限",
-    "priceOnRequest": "要お問い合わせ"
-  },
-  "inquiry": {
-    "title": "この車についてお問い合わせ",
-    "name": "お名前",
-    "email": "メールアドレス",
-    "phone": "電話番号（任意）",
-    "message": "メッセージ",
-    "submit": "送信する",
-    "sending": "送信中...",
-    "success": "お問い合わせを受け付けました。担当者よりご連絡いたします。",
-    "error": "送信に失敗しました。もう一度お試しください。"
-  },
-  "about": {
-    "title": "オートショップ匠について",
-    "subtitle": "精度に駆られ、信頼に支えられ、匠がお届けします。",
-    "story": "私たちについて",
-    "storyParagraphs": [
-      "オートショップ匠は、宮城県仙台市を拠点とする自動車販売・整備専門店です。国産車から輸入車まで幅広い車種を取り扱い、一台一台の品質と状態に徹底的にこだわってお客様にお届けしています。",
-      "整備・車検・カスタムなど、クルマにまつわるあらゆるご相談に経験豊富なスタッフが対応いたします。「精度に駆られ、信頼に支えられ」の理念のもと、お客様との長いお付き合いを大切にしています。",
-      "海外からのお客様にも対応しており、輸出手続きのサポートも承っております。Instagramでは最新の在庫情報や整備の様子を日々発信しています。"
-    ],
-    "servicesHeading": "サービス",
-    "services": {
-      "sales": "中古車販売",
-      "maintenance": "整備・修理",
-      "inspection": "車検",
-      "export": "輸出サポート"
-    },
-    "profile": "会社概要",
-    "fields": {
-      "companyName": "会社名",
-      "address": "所在地",
-      "phone": "電話番号",
-      "email": "メールアドレス",
-      "hours": "営業時間",
-      "instagram": "Instagram",
-      "services": "サービス"
-    },
-    "hoursValue": "お問い合わせください",
-    "findUs": "アクセス",
-    "mapTitle": "店舗地図",
-    "valuesHeading": "大切にしていること",
-    "teamHeading": "スタッフ紹介",
-    "facilityHeading": "設備紹介"
+    "ctaSecondary": "アクセス"
   },
   "footer": {
     "rights": "無断転載を禁じます。",
@@ -113,5 +27,51 @@
     "slogan": "精度に駆られ、信頼に支えられ、匠がお届けします。",
     "navigationHeading": "ナビゲーション",
     "contactHeading": "お問い合わせ"
+  },
+  "shop": {
+    "name": "オートショップ匠",
+    "phone": "022-342-2285",
+    "email": "takumitradings@gmail.com",
+    "address": "〒983-0013 宮城県仙台市宮城野区中野字神明148-1",
+    "hours": "月〜土 9:00〜18:00（日曜定休）"
+  },
+  "landing": {
+    "servicesHeading": "サービス",
+    "services": [
+      {
+        "title": "車検・整備",
+        "body": "国土交通省認証工場での車検・法定点検。"
+      },
+      {
+        "title": "購入前点検",
+        "body": "第三者による100項目の購入前検査。"
+      },
+      {
+        "title": "輸出手配",
+        "body": "海外発送に必要な書類・通関手続きを代行。"
+      },
+      {
+        "title": "板金・塗装",
+        "body": "自社工場での板金・塗装・カスタム仕上げ。"
+      }
+    ],
+    "proofHeading": "最近の納車",
+    "proofLink": "ギャラリーを見る",
+    "findHeading": "仙台でお待ちしています",
+    "directions": "道順を見る",
+    "emailLabel": "メール",
+    "phoneLabel": "電話",
+    "hoursLabel": "営業時間",
+    "addressLabel": "住所"
+  },
+  "gallery": {
+    "title": "ギャラリー",
+    "subtitle": "納車したお車の写真です。タップで拡大できます。",
+    "empty": "写真は近日公開です。",
+    "open": "写真{n}を開く",
+    "previous": "前の写真",
+    "next": "次の写真",
+    "counter": "{current} / {total}",
+    "close": "閉じる"
   }
 }
