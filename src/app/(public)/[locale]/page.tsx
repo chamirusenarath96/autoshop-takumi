@@ -5,6 +5,7 @@ import { resolveLocalizedField } from '@/lib/content-locale'
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, JAPAN_STORE_URL, MAP_URL } from '@/lib/shop-links'
 import { HeroCarousel, type HeroSlide } from '@/components/home/HeroCarousel'
 import { VehicleCard } from '@/components/vehicles/VehicleCard'
+import { VehicleScroller } from '@/components/home/VehicleScroller'
 import { InstagramIcon } from '@/components/layout/InstagramIcon'
 import { Link } from '@/components/layout/Link'
 import { Button } from '@/components/ui/button'
@@ -49,7 +50,7 @@ export default async function HomePage({ params }: Props) {
         collection: 'vehicles',
         where: { status: { equals: 'available' } },
         sort: '-createdAt',
-        limit: 3,
+        limit: 8,
         locale: activeLocale,
       }),
     ])
@@ -96,11 +97,11 @@ export default async function HomePage({ params }: Props) {
               <Link href={`/${locale}/vehicles`}>{tLanding('viewAll')}</Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <VehicleScroller label={tLanding('latestHeading')}>
             {vehicles.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} />
+              <VehicleCard key={vehicle.id} vehicle={vehicle} locale={locale} priceOnRequestLabel={tVehicle('priceOnRequest')} compact />
             ))}
-          </div>
+          </VehicleScroller>
         </section>
       )}
 

@@ -50,11 +50,11 @@ export function HeroCarousel({ slides, children }: Props) {
         >
           <CarouselContent className="ml-0">
             {slides.map((slide, i) => (
-              <CarouselItem key={slide.url} className={cn('pl-0', bandClass)}>
+              <CarouselItem key={slide.url} className={cn('overflow-hidden pl-0', bandClass)}>
                 <img
                   src={slide.url}
                   alt={slide.alt}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover max-md:w-[853px] max-md:max-w-none max-md:animate-[hero-pan_12s_ease-in-out_infinite_alternate] motion-reduce:max-md:translate-x-[calc((100vw-853px)/2)] motion-reduce:max-md:animate-none"
                   loading={i === 0 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}
                 />
@@ -65,7 +65,7 @@ export function HeroCarousel({ slides, children }: Props) {
       )}
 
       {/* Flat brand-colored scrim keeps the white headline readable on any photo. */}
-      {slides.length > 0 && <div className="pointer-events-none absolute inset-0 bg-hero-overlay/60" />}
+      {slides.length > 0 && <div className="pointer-events-none absolute inset-0 bg-hero-overlay/50 dark:bg-hero-overlay/60" />}
 
       <div className="pointer-events-none absolute inset-0 flex items-center">
         <div className="pointer-events-auto container mx-auto px-4 md:px-16">{children}</div>

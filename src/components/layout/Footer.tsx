@@ -14,7 +14,7 @@ export function Footer({ locale }: Props) {
   const shopName = tShop('name')
 
   return (
-    <footer id="contact" className="mt-16 border-t">
+    <footer id="contact" className="mt-16 border-t bg-muted">
       <div className="container mx-auto grid grid-cols-1 gap-8 px-4 py-10 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
           <p className="font-semibold">{shopName}</p>

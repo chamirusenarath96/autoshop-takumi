@@ -30,11 +30,11 @@ test.describe('Public site — landing and navigation', () => {
     await expect(page).toHaveURL(/\/en/)
   })
 
-  test('site defaults to the stock light shadcn theme', async ({ page }) => {
+  test('site defaults to the soft light theme (tinted page, not pure white)', async ({ page }) => {
     await page.goto('/en')
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
-    // oklch(1 0 0) — pure white, serialised by the browser as either rgb or color()
-    expect(bg).toMatch(/^(rgb\(255, 255, 255\)|oklch\(1 0 0\)|color\(srgb 1 1 1\))$/)
+    // --background: #dfe4ea
+    expect(bg).toBe('rgb(223, 228, 234)')
   })
 
   test('removed pages return 404', async ({ page }) => {

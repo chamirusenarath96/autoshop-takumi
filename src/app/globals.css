@@ -34,27 +34,28 @@
 :root {
   --radius: 0.625rem;
   /* Brand palette: orange #f05722, navy #0e284a, charcoal #252525, slate #50637b,
-     mist #828fa1, fog #d1d6dc, brown #7e3f36 — mapped to shadcn roles below. */
+     mist #828fa1, fog #d1d6dc, brown #7e3f36. The light theme is deliberately low-contrast:
+     tinted page (#dfe4ea) with off-white cards and soft navy-charcoal text. */
   --brand: #f05722;
   --brand-foreground: #252525;
   --hero-overlay: #0e284a;
-  --background: #ffffff;
-  --foreground: #252525;
-  --card: #ffffff;
-  --card-foreground: #252525;
-  --popover: #ffffff;
-  --popover-foreground: #252525;
+  --background: #dfe4ea;
+  --foreground: #2f3b4c;
+  --card: #eff2f5;
+  --card-foreground: #2f3b4c;
+  --popover: #eff2f5;
+  --popover-foreground: #2f3b4c;
   --primary: #0e284a;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f5f7;
+  --primary-foreground: #eff2f5;
+  --secondary: #d3d9e0;
   --secondary-foreground: #0e284a;
-  --muted: #f4f5f7;
+  --muted: #d3d9e0;
   --muted-foreground: #50637b;
-  --accent: #e8ebef;
+  --accent: #cdd4dc;
   --accent-foreground: #0e284a;
   --destructive: #7e3f36;
-  --border: #d1d6dc;
-  --input: #d1d6dc;
+  --border: #c5ccd5;
+  --input: #c5ccd5;
   --ring: #f05722;
 }
 
@@ -86,5 +87,16 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Mobile hero: the 16:9 photo is wider than the screen, so it drifts sideways slowly and the
+   whole picture is revealed over time (see HeroCarousel). 853px = hero height (480px) x 16/9. */
+@keyframes hero-pan {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100vw - 853px));
   }
 }

@@ -71,4 +71,10 @@ describe('VehicleCard', () => {
     render(<VehicleCard vehicle={baseVehicle} locale="en" />)
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
+
+  it('renders a more compact title and price in compact mode', () => {
+    render(<VehicleCard vehicle={baseVehicle} locale="en" compact />)
+    expect(screen.getByRole('heading', { level: 3 }).className).toContain('text-sm')
+    expect(screen.getByText(/3,500,000/).className).toContain('text-base')
+  })
 })

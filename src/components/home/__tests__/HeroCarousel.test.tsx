@@ -41,6 +41,14 @@ describe('HeroCarousel', () => {
     expect(imgs[1]).toHaveAttribute('loading', 'lazy')
   })
 
+  it('pans each photo sideways on mobile (and not from the md breakpoint up)', () => {
+    renderHero()
+    const cls = screen.getAllByRole('img')[0].className
+    expect(cls).toContain('max-md:animate-[hero-pan_')
+    expect(cls).toContain('motion-reduce:max-md:animate-none')
+    expect(cls).not.toMatch(/(^|\s)animate-/)
+  })
+
   it('shows arrows and one dot per slide when there are several slides', () => {
     renderHero()
     expect(screen.getByRole('button', { name: 'Previous slide' })).toBeInTheDocument()

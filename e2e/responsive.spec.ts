@@ -1,4 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 import { assertNoHorizontalOverflow, attachPageLoadTiming, AUTH_STATE_PATH, createPublishedVehicle, VIEWPORTS } from './helpers'
 
 /** Visits the landing and inventory pages, asserting no horizontal overflow and attaching load timing for each. */
@@ -23,6 +25,21 @@ async function seedOverflowVehicle(page: Page, prefix: string) {
     title: `${prefix} Overflow Test Vehicle ${ts}`,
     slug: `${prefix.toLowerCase()}-overflow-test-${ts}`,
   })
+}
+
+/** Gives the landing hero one photo, runs `check`, then clears it so other specs see the photo-less hero. */
+async function withHeroSlide(page: Page, check: () => Promise<void>) {
+  const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+  const media = await page.request.post('/api/media', {
+    multipart: { file: { name: 'pan-hero.png', mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: 'Pan hero' }) },
+  })
+  const id = (await media.json()).doc.id
+  await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: [{ image: id }] } })
+  try {
+    await check()
+  } finally {
+    await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: [] } })
+  }
 }
 
 test.describe('Responsive — mobile (375px)', () => {
@@ -61,6 +78,28 @@ test.describe('Responsive — mobile (375px)', () => {
 
   test.describe('with a seeded vehicle', () => {
     test.use({ storageState: AUTH_STATE_PATH })
+
+    test('hero photo drifts sideways on mobile without causing horizontal overflow', async ({ page }) => {
+      await withHeroSlide(page, async () => {
+        await page.goto('/en')
+        await page.waitForLoadState('networkidle')
+        const img = page.getByRole('region', { name: 'Featured photos' }).getByRole('img').first()
+        await expect(img).toHaveCSS('animation-name', 'hero-pan')
+        await assertNoHorizontalOverflow(page)
+      })
+    })
+
+    test('latest arrivals is one compact, horizontally scrollable row', async ({ page }) => {
+      await seedOverflowVehicle(page, 'Scroller')
+      await page.goto('/en')
+      await page.waitForLoadState('networkidle')
+      const row = page.getByRole('region', { name: 'Latest arrivals' })
+      const card = row.locator('[data-slot="card"]').first()
+      await expect(card).toBeVisible()
+      const box = await card.boundingBox()
+      expect(box!.width).toBeLessThan(300)
+      await assertNoHorizontalOverflow(page)
+    })
 
     test('landing and inventory pages: no horizontal overflow + load timing', async ({ page }) => {
       await seedOverflowVehicle(page, 'Mobile')
@@ -149,6 +188,15 @@ test.describe('Responsive — desktop (1280px)', () => {
 
   test.describe('with a seeded vehicle', () => {
     test.use({ storageState: AUTH_STATE_PATH })
+
+    test('hero photo stays still on desktop', async ({ page }) => {
+      await withHeroSlide(page, async () => {
+        await page.goto('/en')
+        await page.waitForLoadState('networkidle')
+        const img = page.getByRole('region', { name: 'Featured photos' }).getByRole('img').first()
+        await expect(img).toHaveCSS('animation-name', 'none')
+      })
+    })
 
     test('landing and inventory pages: no horizontal overflow + load timing', async ({ page }) => {
       await seedOverflowVehicle(page, 'Desktop')
