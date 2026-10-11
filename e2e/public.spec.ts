@@ -63,7 +63,7 @@ test.describe('Public site — landing and navigation', () => {
     await expect(page).toHaveURL(/\/(ja|en)/)
   })
 
-  test('shop-name wordmark links to homepage', async ({ page }) => {
+  test('header logo links to homepage', async ({ page }) => {
     await page.goto('/en/gallery')
     await page.getByRole('banner').getByRole('link', { name: 'Autoshop Takumi' }).click()
     await expect(page).toHaveURL(/\/en$|\/en\/$/)

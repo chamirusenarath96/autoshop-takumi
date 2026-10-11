@@ -53,8 +53,27 @@ async function galleryColumnCount(page: Page): Promise<number> {
   return new Set(xs).size
 }
 
+/** The header logo's rendered box, plus the room left beside it. */
+async function headerLogoBox(page: Page) {
+  await page.goto('/en')
+  await page.waitForLoadState('networkidle')
+  const logo = page.getByRole('banner').getByRole('img', { name: 'Autoshop Takumi' })
+  await expect(logo).toBeVisible()
+  await expect.poll(() => logo.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  return (await logo.boundingBox())!
+}
+
 test.describe('Responsive — mobile (375px)', () => {
   test.use({ viewport: VIEWPORTS.mobile, hasTouch: true })
+
+  test('header logo is small enough to sit beside the menu button', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(24, 0)
+    expect(box.width).toBeCloseTo(192, 0)
+    const menu = await page.getByRole('banner').getByRole('button', { name: 'Menu' }).boundingBox()
+    expect(box.x + box.width).toBeLessThan(menu!.x)
+    await assertNoHorizontalOverflow(page)
+  })
 
   test('header: menu sheet reveals nav links and the controls, and navigating works', async ({ page }) => {
     await page.goto('/en')
@@ -113,6 +132,12 @@ test.describe('Responsive — mobile (375px)', () => {
 test.describe('Responsive — tablet (768px)', () => {
   test.use({ viewport: VIEWPORTS.tablet })
 
+  test('header logo steps up to 32px tall', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(32, 0)
+    expect(box.width).toBeCloseTo(256, 0)
+  })
+
   test('header: inline nav is visible and the menu button is hidden at the md breakpoint', async ({ page }) => {
     await page.goto('/en')
     await page.waitForLoadState('networkidle')
@@ -143,6 +168,12 @@ test.describe('Responsive — tablet (768px)', () => {
 
 test.describe('Responsive — desktop (1280px)', () => {
   test.use({ viewport: VIEWPORTS.desktop })
+
+  test('header logo is at its largest, 36px tall', async ({ page }) => {
+    const box = await headerLogoBox(page)
+    expect(box.height).toBeCloseTo(36, 0)
+    expect(box.width).toBeCloseTo(288, 0)
+  })
 
   test('header: full nav row visible, no menu toggle', async ({ page }) => {
     await page.goto('/en')

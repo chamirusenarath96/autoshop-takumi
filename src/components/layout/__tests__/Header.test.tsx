@@ -39,10 +39,20 @@ describe('Header mobile nav toggle', () => {
   })
 })
 
-describe('Header wordmark', () => {
-  it('renders the shop name as a text wordmark linking home', () => {
+describe('Header logo', () => {
+  it('shows the logo image (named after the shop) as a link home', () => {
     renderHeader()
-    expect(screen.getByRole('link', { name: 'Autoshop Takumi' })).toHaveAttribute('href', '/en')
+    const link = screen.getByRole('link', { name: 'Autoshop Takumi' })
+    expect(link).toHaveAttribute('href', '/en')
+    const img = link.querySelector('img')!
+    expect(img).toHaveAttribute('src', '/logo-header.png')
+    expect(img).toHaveAttribute('alt', 'Autoshop Takumi')
+  })
+
+  it('scales the logo up with the screen width', () => {
+    renderHeader()
+    const cls = screen.getByRole('link', { name: 'Autoshop Takumi' }).querySelector('img')!.className
+    for (const c of ['h-6', 'sm:h-7', 'md:h-8', 'lg:h-9']) expect(cls).toContain(c)
   })
 })
 

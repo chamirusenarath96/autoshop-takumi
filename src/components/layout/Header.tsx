@@ -27,8 +27,15 @@ export function Header({ locale }: Props) {
     <header className="sticky top-0 z-50 w-full border-b bg-card">
       <div className="h-[3px] bg-brand" />
       <div className="container mx-auto flex h-14 items-center gap-4 px-4">
-        <Link href={`/${locale}`} className="text-lg font-semibold">
-          {tShop('name')}
+        {/* 8:1 lockup, stepped up with the screen so it stays in proportion to the nav. */}
+        <Link href={`/${locale}`} className="flex min-w-0 shrink items-center">
+          <img
+            src="/logo-header.png"
+            alt={tShop('name')}
+            width={800}
+            height={100}
+            className="h-6 w-auto max-w-full sm:h-7 md:h-8 lg:h-9"
+          />
         </Link>
 
         <nav className="ml-4 hidden items-center gap-1 md:flex">
