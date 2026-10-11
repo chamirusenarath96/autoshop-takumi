@@ -55,7 +55,7 @@ export default async function HomePage({ params }: Props) {
     <div>
       <HeroCarousel slides={heroSlides}>
         <div className="flex flex-col items-start gap-4 bg-brand p-6 text-brand-foreground md:max-w-xl md:p-10">
-          <h1 className="text-4xl leading-[1.05] font-extrabold tracking-tight uppercase sm:text-5xl md:text-6xl">{t('heading')}</h1>
+          <h1 className="text-3xl leading-[1.1] font-extrabold tracking-tight uppercase sm:text-4xl md:text-5xl">{t('heading')}</h1>
           <p className="text-lg font-medium">{t('subheading')}</p>
           <div className="flex flex-wrap gap-2">
             <Button size="lg" className="bg-hero-overlay text-white hover:bg-hero-overlay/90" asChild>

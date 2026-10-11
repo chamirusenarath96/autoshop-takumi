@@ -22,7 +22,7 @@ async function uploadPhotos(page: Page, count: number, prefix: string): Promise<
 test.describe('Public site — landing and navigation', () => {
   test('landing page loads in English', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByRole('heading', { name: 'Your best car, from us' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Driven by Precision. Powered by Trust. Delivered by Takumi.' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'See our work' })).toBeVisible()
     const header = page.getByRole('banner')
     await expect(header.getByRole('link', { name: 'Gallery' })).toBeVisible()
@@ -31,7 +31,7 @@ test.describe('Public site — landing and navigation', () => {
 
   test('landing page loads in Japanese', async ({ page }) => {
     await page.goto('/ja')
-    await expect(page.getByRole('heading', { name: 'あなたの最高の一台を、私たちから' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '精度に駆られ、信頼に支えられ、匠がお届けします。' })).toBeVisible()
     await expect(page.getByRole('banner').getByRole('link', { name: 'ギャラリー' })).toBeVisible()
   })
 
@@ -71,12 +71,12 @@ test.describe('Public site — landing and navigation', () => {
 
   test('landing page shows the hero copy and the services list in both locales', async ({ page }) => {
     await page.goto('/en')
-    await expect(page.getByText('We deliver with excellence.')).toBeVisible()
+    await expect(page.getByText('Your best car, from us.')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Shaken & servicing' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Export arrangement' })).toBeVisible()
 
     await page.goto('/ja')
-    await expect(page.getByText('確かな品質で、お届けします。')).toBeVisible()
+    await expect(page.getByText('あなたの最高の一台を、私たちから。')).toBeVisible()
     await expect(page.getByRole('heading', { name: '輸出手配' })).toBeVisible()
   })
 
