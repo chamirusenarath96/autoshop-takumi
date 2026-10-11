@@ -5,6 +5,9 @@ import { Menu } from 'lucide-react'
 import { Link } from './Link'
 import { LocaleSwitcher } from './LocaleSwitcher'
 import { ThemeToggle } from './ThemeToggle'
+import { InstagramIcon } from './InstagramIcon'
+import { ExternalLink } from 'lucide-react'
+import { INSTAGRAM_URL, JAPAN_STORE_URL } from '@/lib/shop-links'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Separator } from '@/components/ui/separator'
@@ -37,6 +40,19 @@ export function Header({ locale }: Props) {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 md:flex">
+          {JAPAN_STORE_URL && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={JAPAN_STORE_URL} target="_blank" rel="noopener noreferrer">
+                {t('japanStore')}
+                <ExternalLink />
+              </a>
+            </Button>
+          )}
+          <Button variant="outline" size="icon-sm" asChild>
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" aria-label={t('instagram')}>
+              <InstagramIcon />
+            </a>
+          </Button>
           <LocaleSwitcher locale={locale} />
           <ThemeToggle />
         </div>
@@ -57,6 +73,20 @@ export function Header({ locale }: Props) {
                   <Link href={link.href}>{link.label}</Link>
                 </Button>
               ))}
+              {JAPAN_STORE_URL && (
+                <Button variant="ghost" className="justify-start" asChild>
+                  <a href={JAPAN_STORE_URL} target="_blank" rel="noopener noreferrer">
+                    {t('japanStore')}
+                    <ExternalLink />
+                  </a>
+                </Button>
+              )}
+              <Button variant="ghost" className="justify-start" asChild>
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+                  <InstagramIcon />
+                  {t('instagram')}
+                </a>
+              </Button>
             </nav>
             <Separator />
             <div className="flex items-center gap-2 px-4">

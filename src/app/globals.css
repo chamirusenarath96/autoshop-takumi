@@ -23,6 +23,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-hero-overlay: var(--hero-overlay);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -34,6 +36,8 @@
   /* Brand palette: orange #f05722, navy #0e284a, charcoal #252525, slate #50637b,
      mist #828fa1, fog #d1d6dc, brown #7e3f36 — mapped to shadcn roles below. */
   --brand: #f05722;
+  --brand-foreground: #252525;
+  --hero-overlay: #0e284a;
   --background: #ffffff;
   --foreground: #252525;
   --card: #ffffff;
@@ -55,6 +59,7 @@
 }
 
 .dark {
+  --hero-overlay: #0a1d36;
   --background: #0a1d36;
   --foreground: #d1d6dc;
   --card: #0e284a;

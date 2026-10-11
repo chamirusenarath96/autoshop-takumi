@@ -45,3 +45,10 @@ describe('Header wordmark', () => {
     expect(screen.getByRole('link', { name: 'Autoshop Takumi' })).toHaveAttribute('href', '/en')
   })
 })
+
+describe('Header Japan store link', () => {
+  it('is hidden while no Japan store URL is configured', () => {
+    renderHeader()
+    expect(screen.queryByRole('link', { name: /Japan store/ })).not.toBeInTheDocument()
+  })
+})

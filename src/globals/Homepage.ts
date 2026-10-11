@@ -47,6 +47,26 @@ export const Homepage: GlobalConfig = {
       relationTo: 'media',
     },
     {
+      name: 'heroSlides',
+      type: 'array',
+      label: 'Hero carousel slides',
+      admin: {
+        description:
+          'Landscape 16:9, 2400×1350 px (JPEG/WebP, under 600 KB). Keep the subject in the central half — phones crop the sides, desktops crop the top and bottom. 3–5 slides.',
+      },
+      fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
+    },
+    {
+      name: 'shopPhotos',
+      type: 'array',
+      label: 'Shop photos',
+      maxRows: 3,
+      admin: {
+        description: 'Landscape 4:3, 1600×1200 px. Exactly 3 photos fill the "The shop behind the cars" row (workshop, office, team).',
+      },
+      fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
+    },
+    {
       name: 'aboutBlurbJa',
       type: 'richText',
       label: 'About Blurb (Japanese)',

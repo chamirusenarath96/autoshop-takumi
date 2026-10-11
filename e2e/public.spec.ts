@@ -74,12 +74,17 @@ test.describe('Public site — landing and navigation', () => {
     await page.goto('/en')
     await expect(page.getByRole('heading', { name: 'Your best car, from us' })).toBeVisible()
     await expect(page.getByText('We deliver with excellence.')).toBeVisible()
-    await expect(page.getByText('Looking for your next car?')).toBeVisible()
 
     await page.goto('/ja')
     await expect(page.getByRole('heading', { name: 'あなたの最高の一台を、私たちから' })).toBeVisible()
     await expect(page.getByText('確かな品質で、お届けします。')).toBeVisible()
-    await expect(page.getByText('次の一台をお探しですか？')).toBeVisible()
+  })
+
+  test('hero links out to Instagram in a new tab', async ({ page }) => {
+    await page.goto('/en')
+    const link = page.getByRole('region', { name: 'Featured photos' }).getByRole('link', { name: 'Instagram' })
+    await expect(link).toHaveAttribute('href', /instagram\.com\/autoshop_takumi/)
+    await expect(link).toHaveAttribute('target', '_blank')
   })
 
   test('footer shows contact details from the translation files in both locales', async ({ page }) => {
@@ -105,6 +110,47 @@ test.describe('Public site — landing and navigation', () => {
 
     await page.getByRole('banner').getByRole('button', { name: 'Toggle theme' }).click()
     await expect(html).not.toHaveClass(/dark/)
+  })
+})
+
+// ── Landing hero carousel — photos are uploaded through Payload ───────────
+
+test.describe('Landing hero carousel', () => {
+  test.use({ storageState: AUTH_STATE_PATH })
+
+  test('uploaded hero photos render as a carousel with working controls', async ({ page }) => {
+    const imgBytes = fs.readFileSync(path.resolve(__dirname, '../public/logo.png'))
+    const ids: string[] = []
+    for (const n of [1, 2]) {
+      const res = await page.request.post('/api/media', {
+        multipart: { file: { name: `hero-${n}.png`, mimeType: 'image/png', buffer: imgBytes }, _payload: JSON.stringify({ altEn: `Hero ${n}` }) },
+      })
+      ids.push((await res.json()).doc.id)
+    }
+    const set = await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: ids.map((image) => ({ image })) } })
+    expect(set.ok()).toBe(true)
+
+    try {
+      await page.goto('/en')
+      const hero = page.getByRole('region', { name: 'Featured photos' })
+      await expect(hero.getByRole('img')).toHaveCount(2)
+      const dots = hero.getByRole('button', { name: /Go to slide/ })
+      await expect(dots).toHaveCount(2)
+      await expect(dots.first()).toHaveAttribute('aria-current', 'true')
+
+      // Clicks before hydration are no-ops, so retry the (idempotent) dot click until the carousel responds.
+      await expect(async () => {
+        await dots.nth(1).click()
+        await expect(dots.nth(1)).toHaveAttribute('aria-current', 'true', { timeout: 500 })
+      }).toPass()
+
+      // With two looping slides, "Next" from the last slide wraps back to the first.
+      await hero.getByRole('button', { name: 'Next slide' }).click()
+      await expect(dots.first()).toHaveAttribute('aria-current', 'true')
+    } finally {
+      // Leave the shared DB as it was so later specs see the photo-less fallback hero.
+      await page.request.post('/api/globals/homepage?locale=en', { data: { heroSlides: [] } })
+    }
   })
 })
 

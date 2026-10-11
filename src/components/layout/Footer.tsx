@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from './Link'
 import { Separator } from '@/components/ui/separator'
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, JAPAN_STORE_URL } from '@/lib/shop-links'
 
 type Props = { locale: string }
 
@@ -39,14 +40,19 @@ export function Footer({ locale }: Props) {
           <p className="whitespace-pre-line">{tShop('address')}</p>
           <p>{tShop('hours')}</p>
           <a
-            href={tShop('instagramUrl')}
+            href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t('followUs')}
             className="hover:text-foreground"
           >
-            {tShop('instagramHandle')}
+            {INSTAGRAM_HANDLE}
           </a>
+          {JAPAN_STORE_URL && (
+            <a href={JAPAN_STORE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+              {tNav('japanStore')} ↗
+            </a>
+          )}
         </div>
       </div>
 

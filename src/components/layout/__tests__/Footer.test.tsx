@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { Footer } from '../Footer'
 import en from '@/messages/en.json'
 import ja from '@/messages/ja.json'
+import { INSTAGRAM_URL } from '@/lib/shop-links'
 
 function renderFooter(locale: 'en' | 'ja' = 'en') {
   return render(
@@ -18,7 +19,7 @@ describe('Footer', () => {
     renderFooter('en')
     expect(screen.getByText(en.shop.phone)).toBeInTheDocument()
     expect(screen.getByText(en.shop.hours)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Follow us on Instagram' })).toHaveAttribute('href', en.shop.instagramUrl)
+    expect(screen.getByRole('link', { name: 'Follow us on Instagram' })).toHaveAttribute('href', INSTAGRAM_URL)
   })
 
   it('renders the Japanese shop name and hours in the ja locale', () => {

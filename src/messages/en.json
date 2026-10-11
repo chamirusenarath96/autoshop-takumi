@@ -5,13 +5,20 @@
     "followUs": "Follow us on Instagram",
     "menu": "Menu",
     "closeMenu": "Close menu",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "japanStore": "Japan store",
+    "instagram": "Instagram"
   },
   "hero": {
     "ctaPrimary": "Browse vehicles",
-    "ctaSecondary": "Contact us",
     "heading": "Your best car, from us",
-    "subheading": "We deliver with excellence."
+    "subheading": "We deliver with excellence.",
+    "carousel": {
+      "label": "Featured photos",
+      "previous": "Previous slide",
+      "next": "Next slide",
+      "goTo": "Go to slide {n}"
+    }
   },
   "vehicles": {
     "title": "Vehicle Inventory",
@@ -58,18 +65,24 @@
     "navigationHeading": "Navigation",
     "contactHeading": "Contact"
   },
-  "cta": {
-    "heading": "Looking for your next car?",
-    "body": "Tell us what you're after.",
-    "button": "Browse vehicles"
-  },
   "shop": {
     "name": "Autoshop Takumi",
     "phone": "022-342-2285",
     "email": "takumitradings@gmail.com",
     "address": "148-1 Nakanonazamyojin, Miyaginoku, Sendai, Miyagi 983-0013, Japan",
-    "hours": "Mon–Sat 9:00–18:00, closed Sundays",
-    "instagramUrl": "https://www.instagram.com/autoshop_takumi/",
-    "instagramHandle": "@autoshop_takumi"
+    "hours": "Mon–Sat 9:00–18:00, closed Sundays"
+  },
+  "landing": {
+    "latestHeading": "Latest arrivals",
+    "viewAll": "View all vehicles",
+    "shopHeading": "The shop behind the cars",
+    "instagramHeading": "Follow new arrivals on Instagram",
+    "instagramBody": "Daily arrivals and delivery photos.",
+    "instagramButton": "Open Instagram",
+    "contactHeading": "Talk to us",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "visitLabel": "Visit us",
+    "viewMap": "View on map"
   }
 }

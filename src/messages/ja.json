@@ -5,13 +5,20 @@
     "followUs": "Instagramでフォローする",
     "menu": "メニュー",
     "closeMenu": "メニューを閉じる",
-    "toggleTheme": "テーマを切り替え"
+    "toggleTheme": "テーマを切り替え",
+    "japanStore": "日本国内の販売サイト",
+    "instagram": "Instagram"
   },
   "hero": {
     "ctaPrimary": "在庫を見る",
-    "ctaSecondary": "お問い合わせ",
     "heading": "あなたの最高の一台を、私たちから",
-    "subheading": "確かな品質で、お届けします。"
+    "subheading": "確かな品質で、お届けします。",
+    "carousel": {
+      "label": "注目の写真",
+      "previous": "前へ",
+      "next": "次へ",
+      "goTo": "スライド{n}へ"
+    }
   },
   "vehicles": {
     "title": "在庫車両",
@@ -58,18 +65,24 @@
     "navigationHeading": "ナビゲーション",
     "contactHeading": "お問い合わせ"
   },
-  "cta": {
-    "heading": "次の一台をお探しですか？",
-    "body": "ご希望をお聞かせください。",
-    "button": "在庫を見る"
-  },
   "shop": {
     "name": "オートショップ匠",
     "phone": "022-342-2285",
     "email": "takumitradings@gmail.com",
     "address": "〒983-0013 宮城県仙台市宮城野区中野字神明148-1",
-    "hours": "月〜土 9:00〜18:00（日曜定休）",
-    "instagramUrl": "https://www.instagram.com/autoshop_takumi/",
-    "instagramHandle": "@autoshop_takumi"
+    "hours": "月〜土 9:00〜18:00（日曜定休）"
+  },
+  "landing": {
+    "latestHeading": "新着車両",
+    "viewAll": "在庫をすべて見る",
+    "shopHeading": "車を支えるお店",
+    "instagramHeading": "Instagramで入荷情報をチェック",
+    "instagramBody": "入荷や納車の写真を毎日更新しています。",
+    "instagramButton": "Instagramを開く",
+    "contactHeading": "お問い合わせ",
+    "emailLabel": "メール",
+    "phoneLabel": "電話",
+    "visitLabel": "ご来店",
+    "viewMap": "地図を見る"
   }
 }
