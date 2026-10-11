@@ -6,7 +6,7 @@ import { Header } from '../Header'
 import messages from '@/messages/en.json'
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/en/vehicles',
+  usePathname: () => '/en/gallery',
   useRouter: () => ({ push: vi.fn() }),
 }))
 
@@ -32,7 +32,7 @@ describe('Header mobile nav toggle', () => {
 
     const panel = within(screen.getByTestId('mobile-nav-panel'))
     expect(panel.getByRole('link', { name: 'Home' })).toBeInTheDocument()
-    expect(panel.getByRole('link', { name: 'Inventory' })).toBeInTheDocument()
+    expect(panel.getByRole('link', { name: 'Gallery' })).toBeInTheDocument()
     expect(panel.queryByRole('link', { name: 'About' })).not.toBeInTheDocument()
     expect(panel.getByText('日本語')).toBeInTheDocument()
     expect(panel.getByText('English')).toBeInTheDocument()

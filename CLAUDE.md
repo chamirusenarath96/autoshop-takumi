@@ -4,7 +4,7 @@ This file is read automatically by Claude Code. Keep it accurate as the project 
 
 ## What this is
 
-A bilingual (Japanese/English) vehicle sales website for Autoshop Takumi: landing page, filterable vehicle inventory, vehicle detail with inquiry form, and a Payload CMS admin dashboard. Built to be reusable as a template for other dealerships.
+A bilingual (Japanese/English) portfolio site for Autoshop Takumi: a landing page (hero carousel, services, recent deliveries, how to find us) and a photo-only Gallery page, plus a Payload CMS admin dashboard. The public inventory/detail/About pages were removed; the Vehicles collection remains in the admin but no public page reads it. Landing copy and shop details live in `src/messages/*.json` and `src/lib/shop-links.ts`; only the hero photos (`Homepage.heroSlides`) and gallery photos (`Gallery.photos`) come from the CMS. Built to be reusable as a template for other dealerships.
 
 ## Stack
 

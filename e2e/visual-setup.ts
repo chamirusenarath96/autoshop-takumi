@@ -158,6 +158,16 @@ async function main() {
     throw new Error(`Fixture vehicle create failed: ${JSON.stringify(vehicleData.errors ?? vehicleData)}`)
   }
 
+  // Gallery photos for the /gallery visual snapshot and the landing "delivered recently" collage.
+  const galleryIds: number[] = []
+  for (let i = 0; i < 3; i++) galleryIds.push(await uploadMedia(fixturePage))
+  const galleryRes = await fixturePage.request.post('/api/globals/gallery', {
+    data: { photos: galleryIds.map((image) => ({ image })) },
+  })
+  if (!galleryRes.ok()) {
+    throw new Error(`Gallery seed failed (${galleryRes.status()}): ${await galleryRes.text()}`)
+  }
+
   await fixtureCtx.close()
   await fixtureBrowser.close()
   await apiCtx.dispose()

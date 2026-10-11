@@ -91,12 +91,12 @@
 }
 
 /* Mobile hero: the 16:9 photo is wider than the screen, so it drifts sideways slowly and the
-   whole picture is revealed over time (see HeroCarousel). 853px = hero height (480px) x 16/9. */
+   whole picture is revealed over time (see HeroCarousel). 818px = hero height (460px) x 16/9. */
 @keyframes hero-pan {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(calc(100vw - 853px));
+    transform: translateX(calc(100vw - 818px));
   }
 }

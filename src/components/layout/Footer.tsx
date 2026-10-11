@@ -27,8 +27,8 @@ export function Footer({ locale }: Props) {
             <Link href={`/${locale}`} className="hover:text-foreground">
               {tNav('home')}
             </Link>
-            <Link href={`/${locale}/vehicles`} className="hover:text-foreground">
-              {tNav('vehicles')}
+            <Link href={`/${locale}/gallery`} className="hover:text-foreground">
+              {tNav('gallery')}
             </Link>
           </nav>
         </div>

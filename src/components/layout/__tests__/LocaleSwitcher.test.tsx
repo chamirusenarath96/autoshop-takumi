@@ -6,7 +6,7 @@ import { LocaleSwitcher } from '../LocaleSwitcher'
 const push = vi.fn()
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/en/vehicles',
+  usePathname: () => '/en/gallery',
   useRouter: () => ({ push }),
 }))
 
@@ -34,6 +34,6 @@ describe('LocaleSwitcher', () => {
   it('switches to JA when JA is clicked', async () => {
     render(<LocaleSwitcher locale="en" />)
     await userEvent.click(screen.getByText('日本語'))
-    expect(push).toHaveBeenCalledWith('/ja/vehicles')
+    expect(push).toHaveBeenCalledWith('/ja/gallery')
   })
 })

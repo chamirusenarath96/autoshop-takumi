@@ -57,16 +57,6 @@ export const Homepage: GlobalConfig = {
       fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
     },
     {
-      name: 'shopPhotos',
-      type: 'array',
-      label: 'Shop photos',
-      maxRows: 3,
-      admin: {
-        description: 'Landscape 4:3, 1600×1200 px. Exactly 3 photos fill the "The shop behind the cars" row (workshop, office, team).',
-      },
-      fields: [{ name: 'image', type: 'upload', relationTo: 'media', required: true }],
-    },
-    {
       name: 'aboutBlurbJa',
       type: 'richText',
       label: 'About Blurb (Japanese)',

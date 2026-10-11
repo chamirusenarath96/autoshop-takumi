@@ -20,7 +20,7 @@ export function Header({ locale }: Props) {
 
   const navLinks = [
     { href: `/${locale}`, label: t('home') },
-    { href: `/${locale}/vehicles`, label: t('vehicles') },
+    { href: `/${locale}/gallery`, label: t('gallery') },
   ]
 
   return (
